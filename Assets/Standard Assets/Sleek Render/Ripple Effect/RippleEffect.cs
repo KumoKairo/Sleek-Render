@@ -1,31 +1,33 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class DrawMeshNow : MonoBehaviour
+[AddComponentMenu("Effects/Sleek Render/Ripple Effect")]
+[RequireComponent(typeof(Camera))]
+public class RippleEffect : MonoBehaviour
 {
     public Material material;
-    public Camera camera;
 
-    private Mesh quadMesh;
-    private RenderTexture renderTexture;
+    private Camera _camera;
+    private Mesh _quadMesh;
+    private RenderTexture _renderTexture;
 
     private Coroutine _waitForEndOfFrameCoroutine;
 
-    void Start()
+    private void Start()
     {
-        CreateQuadMesh();
-        CreateRenderTexture();
-        camera.targetTexture = renderTexture;
+        _quadMesh = CreateQuadMesh();
+        _renderTexture = CreateRenderTexture();
+
+        material.SetTexture("_MainTex", _renderTexture);
+
+        _camera = GetComponent<Camera>();
+        _camera.targetTexture = _renderTexture;
+
         StartCoroutine(WaitForEndOfFrame());
     }
 
-    private void CreateQuadMesh()
+    private Mesh CreateQuadMesh()
     {
-        if (quadMesh != null)
-        {
-            return;
-        }
-
         var mesh = new Mesh();
 
         var vertices = new[] {
@@ -60,18 +62,14 @@ public class DrawMeshNow : MonoBehaviour
         mesh.triangles = triangles;
         mesh.colors = colors;
 
-        quadMesh = mesh;
+        return mesh;
     }
 
-    private void CreateRenderTexture()
+    private RenderTexture CreateRenderTexture()
     {
-        if (renderTexture != null)
-        {
-            return;
-        }
-
-        renderTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
+        var renderTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
         renderTexture.antiAliasing = QualitySettings.antiAliasing;
+        return renderTexture;
     }
 
     public IEnumerator WaitForEndOfFrame()
@@ -80,14 +78,13 @@ public class DrawMeshNow : MonoBehaviour
         {
             yield return new WaitForEndOfFrame();
 
+            GL.Clear(true, true, _camera.backgroundColor);
             material.SetPass(0);
-        
-            material.SetTexture("_MainTex", renderTexture);
-            
+
             GL.PushMatrix();
 
             var matrix = Matrix4x4.identity;
-            Graphics.DrawMeshNow(quadMesh, matrix);
+            Graphics.DrawMeshNow(_quadMesh, matrix);
             GL.PopMatrix();
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using WeaselTrust;
 
 [AddComponentMenu("Effects/Sleek Render/Ripple Effect")]
 [RequireComponent(typeof(Camera))]
@@ -22,8 +23,7 @@ public class RippleEffect : MonoBehaviour
 
         _camera = GetComponent<Camera>();
         _camera.targetTexture = _renderTexture;
-
-        StartCoroutine(WaitForEndOfFrame());
+        _camera.enabled = false;
     }
 
     private Mesh CreateQuadMesh()
@@ -72,20 +72,23 @@ public class RippleEffect : MonoBehaviour
         return renderTexture;
     }
 
-    public IEnumerator WaitForEndOfFrame()
+    public void LateUpdate()
     {
-        while (true)
+        _camera.Render();
+    }
+
+    public void OnRenderObject()
+    {
+        int cameraInstanceId = Camera.current.GetInstanceID();
+        if (cameraInstanceId == _camera.GetInstanceID())
         {
-            yield return new WaitForEndOfFrame();
-
-            GL.Clear(true, true, _camera.backgroundColor);
+            material.SetTexture("_MainTex", _renderTexture);
             material.SetPass(0);
-
-            GL.PushMatrix();
-
-            var matrix = Matrix4x4.identity;
-            Graphics.DrawMeshNow(_quadMesh, matrix);
-            GL.PopMatrix();
+            Graphics.DrawMeshNow(_quadMesh, Matrix4x4.identity);
+        }
+        else
+        {
+            _renderTexture.DiscardContents(false, true);
         }
     }
 }

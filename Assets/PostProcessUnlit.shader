@@ -47,8 +47,7 @@
 			float4 frag (v2f i) : SV_Target
 			{
 				float4 col = tex2D(_MainTex, i.uv);
-				float luma = dot(col.rgb, float3(0.3, 0.3, 0.3));
-				return i.color * luma;
+				float luma = dot(col.rgb, float3(0.2126, 0.7152, 0.072));
 				return float4(luma, luma, luma, 1.0);
 			}
 			ENDCG

@@ -20,9 +20,7 @@ public class RippleEffect : MonoBehaviour
         _quadMesh = CreateQuadMesh();
         _renderTexture = CreateRenderTexture();
 
-
         _camera = GetComponent<Camera>();
-        _camera.clearFlags = CameraClearFlags.Color;
         
         var copyCamera = new GameObject("Camera");
         _targetCamera = copyCamera.AddComponent<Camera>();
@@ -38,17 +36,7 @@ public class RippleEffect : MonoBehaviour
 
     private void OnRenderObject()
     {
-        int instanceId = Camera.current.GetInstanceID();
-        if (instanceId == this._camera.GetInstanceID())
-        {
-            material.SetTexture("_MainTex", _renderTexture);
-            material.SetPass(0);
-            Graphics.DrawMeshNow(_quadMesh, Matrix4x4.identity);
-        }
-        else
-        {
-            _renderTexture.DiscardContents(false, true);
-        }
+        
     }
 
     private void OnPreCull()
@@ -60,6 +48,18 @@ public class RippleEffect : MonoBehaviour
     private void OnPostRender()
     {
         _camera.cullingMask = _cullingMask;
+
+        int instanceId = Camera.current.GetInstanceID();
+        if (instanceId == this._camera.GetInstanceID())
+        {
+            material.SetTexture("_MainTex", _renderTexture);
+            material.SetPass(0);
+            Graphics.DrawMeshNow(_quadMesh, Matrix4x4.identity);
+        }
+        else
+        {
+            _renderTexture.DiscardContents(false, true);
+        }
     }
 
     private Mesh CreateQuadMesh()
@@ -106,6 +106,7 @@ public class RippleEffect : MonoBehaviour
     {
         var renderTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
         renderTexture.antiAliasing = QualitySettings.antiAliasing;
+        renderTexture.depth = 16;
         return renderTexture;
     }
 }

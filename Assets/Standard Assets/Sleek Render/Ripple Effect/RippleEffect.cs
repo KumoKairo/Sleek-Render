@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
-using WeaselTrust;
+﻿using UnityEngine;
 
 [AddComponentMenu("Effects/Sleek Render/Ripple Effect")]
 [RequireComponent(typeof(Camera))]
@@ -9,8 +7,11 @@ public class RippleEffect : MonoBehaviour
     public Material material;
 
     private Camera _camera;
+    private Camera _targetCamera;
     private Mesh _quadMesh;
     private RenderTexture _renderTexture;
+
+    private int _cullingMask;
 
     private Coroutine _waitForEndOfFrameCoroutine;
 
@@ -19,11 +20,46 @@ public class RippleEffect : MonoBehaviour
         _quadMesh = CreateQuadMesh();
         _renderTexture = CreateRenderTexture();
 
-        material.SetTexture("_MainTex", _renderTexture);
 
         _camera = GetComponent<Camera>();
-        _camera.targetTexture = _renderTexture;
-        _camera.enabled = false;
+        _camera.clearFlags = CameraClearFlags.Color;
+        
+        var copyCamera = new GameObject("Camera");
+        _targetCamera = copyCamera.AddComponent<Camera>();
+        _targetCamera.CopyFrom(_camera);
+        _targetCamera.targetTexture = _renderTexture;
+        _targetCamera.enabled = false;
+    }
+
+    private void LateUpdate()
+    {
+        _targetCamera.Render();
+    }
+
+    private void OnRenderObject()
+    {
+        int instanceId = Camera.current.GetInstanceID();
+        if (instanceId == this._camera.GetInstanceID())
+        {
+            material.SetTexture("_MainTex", _renderTexture);
+            material.SetPass(0);
+            Graphics.DrawMeshNow(_quadMesh, Matrix4x4.identity);
+        }
+        else
+        {
+            _renderTexture.DiscardContents(false, true);
+        }
+    }
+
+    private void OnPreCull()
+    {
+        _cullingMask = _camera.cullingMask;
+        _camera.cullingMask = 0;
+    }
+
+    private void OnPostRender()
+    {
+        _camera.cullingMask = _cullingMask;
     }
 
     private Mesh CreateQuadMesh()
@@ -53,14 +89,15 @@ public class RippleEffect : MonoBehaviour
         };
 
         var triangles = new[] {
-            0, 2, 1,
-            0, 3, 2
+            0, 1, 2,
+            0, 2, 3
         };
 
         mesh.vertices = vertices;
         mesh.uv = uvs;
         mesh.triangles = triangles;
         mesh.colors = colors;
+        mesh.UploadMeshData(true);
 
         return mesh;
     }
@@ -70,25 +107,5 @@ public class RippleEffect : MonoBehaviour
         var renderTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
         renderTexture.antiAliasing = QualitySettings.antiAliasing;
         return renderTexture;
-    }
-
-    public void LateUpdate()
-    {
-        _camera.Render();
-    }
-
-    public void OnRenderObject()
-    {
-        int cameraInstanceId = Camera.current.GetInstanceID();
-        if (cameraInstanceId == _camera.GetInstanceID())
-        {
-            material.SetTexture("_MainTex", _renderTexture);
-            material.SetPass(0);
-            Graphics.DrawMeshNow(_quadMesh, Matrix4x4.identity);
-        }
-        else
-        {
-            _renderTexture.DiscardContents(false, true);
-        }
     }
 }

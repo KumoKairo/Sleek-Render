@@ -2,17 +2,19 @@
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white"
+		_MainTex ("Texture", 2D) = "red"
 	}
 	SubShader
 	{
 		Tags { "RenderType"="Opaque" }
 		Cull Off
 		ZTest Always
+		ZWrite Off
 
 		Pass
 		{
 			CGPROGRAM
+			#include "UnityCG.cginc"
 			#pragma vertex vert
 			#pragma fragment frag
 			
@@ -42,9 +44,12 @@
 				return o;
 			}
 			
-			fixed4 frag (v2f i) : SV_Target
+			float4 frag (v2f i) : SV_Target
 			{
-				return tex2D(_MainTex, i.uv);
+				float4 col = tex2D(_MainTex, i.uv);
+				float luma = dot(col.rgb, float3(0.3, 0.3, 0.3));
+				return i.color * luma;
+				return float4(luma, luma, luma, 1.0);
 			}
 			ENDCG
 		}

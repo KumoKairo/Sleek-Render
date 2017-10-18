@@ -1,94 +1,58 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class DrawMeshNow : MonoBehaviour
 {
-    public Material material;
-    public Camera camera;
+    // When added to an object, draws colored rays from the
+    // transform position.
+    public int lineCount = 100;
+    public float radius = 3.0f;
 
-    private Mesh quadMesh;
-    private RenderTexture renderTexture;
-
-    private Coroutine _waitForEndOfFrameCoroutine;
-
-    void Start()
+    static Material lineMaterial;
+    static void CreateLineMaterial()
     {
-        CreateQuadMesh();
-        CreateRenderTexture();
-        camera.targetTexture = renderTexture;
-        StartCoroutine(WaitForEndOfFrame());
+        if (!lineMaterial)
+        {
+            // Unity has a built-in shader that is useful for drawing
+            // simple colored things.
+            Shader shader = Shader.Find("Hidden/Internal-Colored");
+            lineMaterial = new Material(shader);
+            lineMaterial.hideFlags = HideFlags.HideAndDontSave;
+            // Turn on alpha blending
+            lineMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            lineMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            // Turn backface culling off
+            lineMaterial.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
+            // Turn off depth writes
+            lineMaterial.SetInt("_ZWrite", 0);
+        }
     }
 
-    private void CreateQuadMesh()
+    // Will be called after all regular rendering is done
+    public void OnRenderObject()
     {
-        if (quadMesh != null)
+        CreateLineMaterial();
+        // Apply the line material
+        lineMaterial.SetPass(0);
+
+        GL.PushMatrix();
+        // Set transformation matrix for drawing to
+        // match our transform
+        //GL.MultMatrix(transform.localToWorldMatrix);
+
+        // Draw lines
+        GL.Begin(GL.LINES);
+        for (int i = 0; i < lineCount; ++i)
         {
-            return;
+            float a = i / (float)lineCount;
+            float angle = a * Mathf.PI * 2;
+            // Vertex colors change from red to green
+            GL.Color(new Color(a, 1 - a, 0, 0.8F));
+            // One vertex at transform position
+            GL.Vertex3(0, 0, 0);
+            // Another vertex at edge of circle
+            GL.Vertex3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0);
         }
-
-        var mesh = new Mesh();
-
-        var vertices = new[] {
-            new Vector3(-1f, -1f, 0f),
-            new Vector3(-1f, 1f, 0f),
-            new Vector3(1f, 1f, 0f),
-            new Vector3(1f, -1f, 0f)
-        };
-
-        var uvs = new[] {
-            new Vector2(0f, 0f),
-            new Vector2(0f, 1f),
-            new Vector2(1f, 1f),
-            new Vector2(1f, 0f)
-        };
-
-        var colors = new[]
-        {
-            new Color(0f, 0f, 1f),
-            new Color(0f, 1f, 1f),
-            new Color(1f, 1f, 1f),
-            new Color(1f, 0f, 1f),
-        };
-
-        var triangles = new[] {
-            0, 2, 1,
-            0, 3, 2
-        };
-
-        mesh.vertices = vertices;
-        mesh.uv = uvs;
-        mesh.triangles = triangles;
-        mesh.colors = colors;
-
-        quadMesh = mesh;
-    }
-
-    private void CreateRenderTexture()
-    {
-        if (renderTexture != null)
-        {
-            return;
-        }
-
-        renderTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
-        renderTexture.antiAliasing = QualitySettings.antiAliasing;
-    }
-
-    public IEnumerator WaitForEndOfFrame()
-    {
-        while (true)
-        {
-            yield return new WaitForEndOfFrame();
-
-            material.SetPass(0);
-        
-            material.SetTexture("_MainTex", renderTexture);
-            
-            GL.PushMatrix();
-
-            var matrix = Matrix4x4.identity;
-            Graphics.DrawMeshNow(quadMesh, matrix);
-            GL.PopMatrix();
-        }
+        GL.End();
+        GL.PopMatrix();
     }
 }

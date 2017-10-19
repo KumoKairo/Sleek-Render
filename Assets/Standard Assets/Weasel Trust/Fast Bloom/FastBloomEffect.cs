@@ -7,27 +7,32 @@ namespace WeaselTrust
     [RequireComponent(typeof(Camera))]
     public class FastBloomEffect : MonoBehaviour
     {
+        [Range(0f, 1f)]
         public float bloomThreshold = 0.8f;
+
+        [Range(0f, 3f)]
+        public float bloomIntensity = 0.8f;
+
+        [Range(0f, 0.5f)]
+        public float spread = 0.1f;
 
         [SerializeField]
         private Shader _downsampleShader;
 
         [SerializeField]
-        private Shader _horizontalBlurShader;
-
-        [SerializeField]
-        private Shader _verticalBlurShader;
+        private Shader _blurShader;
 
         [SerializeField]
         private Shader _finalPassShader;
 
         private Material _downsampleMaterial;
         private Material _horizontalBlurMaterial;
-        private Material _verticalBlurMaterial;
         private Material _finalPassMaterial;
 
-        private RenderTexture _bloomFirstPassTexture;
-        private RenderTexture _bloomAdditivePassTexture;
+        private RenderTexture _downsampledBrightpassTexture;
+        private RenderTexture _finalComposeTexture;
+        private RenderTexture _bloomHorizontalBlurTexture;
+        private RenderTexture _bloomVerticalBlurTexture;
 
         private Camera _mainCamera;
         private Camera _renderCamera;
@@ -61,9 +66,17 @@ namespace WeaselTrust
                 -bloomThreshold * oneOverOneMinusBloomThreshold);
 
             _downsampleMaterial.SetVector("_LuminanceConst", luminanceConst);
-            Blit(_mainRenderTexture, _bloomFirstPassTexture, _finalPassMaterial, 0);
-            //Blit(_bloomFirstPassTexture, _bloomAdditivePassTexture, _horizontalBlurMaterial, 0);
-            //Blit(_bloomFirstPassTexture, _bloomAdditivePassTexture, _finalPassMaterial, 0);
+            Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial, 0);
+
+            //_horizontalBlurMaterial.SetFloat("_Spread", spread);
+            //Blit(_downsampledBrightpassTexture, _bloomHorizontalBlurTexture, _horizontalBlurMaterial, 0);
+
+            //_verticalBlurMaterial.SetFloat("_Spread", spread);
+            //Blit(_bloomHorizontalBlurTexture, _bloomVerticalBlurTexture, _verticalBlurMaterial, 0);
+
+            //_finalPassMaterial.SetTexture("_BloomTex", _bloomVerticalBlurTexture);
+            //_finalPassMaterial.SetFloat("_BloomIntencity", bloomIntensity);
+            //Blit(_mainRenderTexture, _finalComposeTexture, _finalPassMaterial, 0);
         }
 
         private void OnRenderObject()
@@ -71,7 +84,7 @@ namespace WeaselTrust
             int instanceId = Camera.current.GetInstanceID();
             if (instanceId == this._mainCamera.GetInstanceID())
             {
-                _finalPassMaterial.SetTexture("_MainTex", _bloomFirstPassTexture);
+                _finalPassMaterial.SetTexture("_MainTex", _downsampledBrightpassTexture);
                 _finalPassMaterial.SetPass(0);
                 Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
             }
@@ -98,19 +111,25 @@ namespace WeaselTrust
 
             _mainCamera = GetComponent<Camera>();
 
-            LoadShaderIfNotPresent(ref _downsampleShader, "Weasel Trust/DownsampleBrightpass");
-            LoadShaderIfNotPresent(ref _horizontalBlurShader, "Weasel Trust/VerticalBlur");
-            LoadShaderIfNotPresent(ref _verticalBlurShader, "Weasel Trust/HorizontalBlur");
+            LoadShaderIfNotPresent(ref _downsampleShader, "Weasel Trust/Downsample Brightpass");
+            LoadShaderIfNotPresent(ref _blurShader, "Weasel Trust/Blur");
             LoadShaderIfNotPresent(ref _finalPassShader, "Weasel Trust/Final Pass");
 
             _downsampleMaterial = new Material(_downsampleShader);
-            _horizontalBlurMaterial = new Material(_horizontalBlurShader);
-            _verticalBlurMaterial = new Material(_verticalBlurShader);
+            _horizontalBlurMaterial = new Material(_blurShader);
             _finalPassMaterial = new Material(_finalPassShader);
 
-            _bloomFirstPassTexture = CreateTransientRenderTexture("Bloom First Pass", Screen.width, Screen.height);
-            _bloomAdditivePassTexture = CreateTransientRenderTexture("Bloom Additive Pass", Screen.width, Screen.height);
-            _mainRenderTexture = CreateMainRenderTexture(Screen.width, Screen.height);
+            var width = Screen.width;
+            var height = Screen.height;
+
+            _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", width / 16, height / 16);
+            _bloomHorizontalBlurTexture = CreateTransientRenderTexture("Bloom Horizontal Blur Pass", 32, 128);
+            _bloomVerticalBlurTexture = CreateTransientRenderTexture("Bloom Vertical Blur Pass", 32, 128);
+
+            Debug.Log(Screen.width + " " + Screen.height);
+
+            _mainRenderTexture = CreateMainRenderTexture(width, height);
+            _finalComposeTexture = CreateMainRenderTexture(width, height);
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");
             renderCameraGameObject.hideFlags = HideFlags.HideAndDontSave;
@@ -162,13 +181,15 @@ namespace WeaselTrust
 
             DestroyImmediate(_downsampleMaterial);
             DestroyImmediate(_horizontalBlurMaterial);
-            DestroyImmediate(_verticalBlurMaterial);
 
-            DestroyImmediate(_bloomFirstPassTexture);
-            DestroyImmediate(_bloomAdditivePassTexture);
+            DestroyImmediate(_downsampledBrightpassTexture);
+            DestroyImmediate(_bloomHorizontalBlurTexture);
+            DestroyImmediate(_bloomVerticalBlurTexture);
+
             DestroyImmediate(_renderCamera.gameObject);
 
             DestroyImmediate(_mainRenderTexture);
+            DestroyImmediate(_finalComposeTexture);
 
             DestroyImmediate(_fullscreenQuadMesh);
         }
@@ -198,10 +219,10 @@ namespace WeaselTrust
 
             var vertices = new[]
             {
-                new Vector3(-1f, -1f, 0f),
-                new Vector3(-1f, 1f, 0f),
-                new Vector3(1f, 1f, 0f),
-                new Vector3(1f, -1f, 0f)
+                new Vector3(-1f, -1f, 0f), // BL
+                new Vector3(-1f, 1f, 0f),  // TL
+                new Vector3(1f, 1f, 0f),   // TR
+                new Vector3(1f, -1f, 0f)   // BR
             };
 
             var uvs = new[]
@@ -222,8 +243,8 @@ namespace WeaselTrust
 
             var triangles = new[]
             {
-                0, 1, 2,
-                0, 2, 3
+                0, 2, 1,
+                0, 3, 2
             };
 
             mesh.vertices = vertices;

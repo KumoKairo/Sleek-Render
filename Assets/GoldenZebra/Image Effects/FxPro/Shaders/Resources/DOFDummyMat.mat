@@ -1,0 +1,125 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: DOFDummyMat
+  m_Shader: {fileID: 4800000, guid: a44383ba73632824e8c39e37c48a4df4, type: 3}
+  m_ShaderKeywords: []
+  m_CustomRenderQueue: -1
+  m_SavedProperties:
+    serializedVersion: 2
+    m_TexEnvs:
+      data:
+        first:
+          name: _MainTex
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _BlurTex
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _COCTex
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _BokehTex
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _Source
+        second:
+          m_Texture: {fileID: 2800000, guid: a4cdca73d61814d33ac1587f6c163bca, type: 3}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _BokehBlurTex
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _BlurTexNear
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _BlurTexFar
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+    m_Floats:
+      data:
+        first:
+          name: _FocalDist
+        second: .031994082
+      data:
+        first:
+          name: _FocalLength
+        second: .00639881659
+      data:
+        first:
+          name: _BokehThreshold
+        second: .100000001
+      data:
+        first:
+          name: _BokehGain
+        second: 50
+      data:
+        first:
+          name: _BokehBias
+        second: .5
+      data:
+        first:
+          name: _DOFBoost
+        second: 1
+      data:
+        first:
+          name: _FocalPlane
+        second: .0934804976
+      data:
+        first:
+          name: _DepthOfField
+        second: .100000001
+      data:
+        first:
+          name: _NearToFarBlurTransitionDist
+        second: .5
+    m_Colors:
+      data:
+        first:
+          name: _Color
+        second: {r: 1, g: 1, b: 1, a: 1}
+      data:
+        first:
+          name: _BlurOffsets
+        second: {r: 1, g: 0, b: 0, a: 0}
+      data:
+        first:
+          name: _BlurStepSize
+        second: {r: 0, g: 1, b: 0, a: 0}
+      data:
+        first:
+          name: _BokehColor
+        second: {r: .654901981, g: .772177577, b: 1, a: 1}

@@ -3,6 +3,8 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
+		_BloomTex("Bloom", 2D) = "black" {}
+		_BloomIntencity("Bloom Intensity", float) = 1
 	}
 	SubShader
 	{
@@ -14,17 +16,17 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-
+			
 			struct appdata
 			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
+				half4 vertex : POSITION;
+				half4 uv : TEXCOORD0;
 			};
 
 			struct v2f
 			{
-				float2 uv : TEXCOORD0;
-				float4 vertex : SV_POSITION;
+				half4 vertex : SV_POSITION;
+				half4 uv : TEXCOORD0;
 			};
 
 			v2f vert (appdata v)
@@ -34,18 +36,20 @@
 				o.uv = v.uv;
 
 				#if UNITY_UV_STARTS_AT_TOP
-				//o.uv.y = 1-o.uv.y;
+				o.uv.y = 1-o.uv.y;
 				#endif
 
 				return o;
 			}
 			
-			sampler2D _MainTex;
+			sampler2D _MainTex, _BloomTex;
+			float _BloomIntencity;
 
-			fixed4 frag (v2f i) : SV_Target
+			half4 frag (v2f i) : SV_Target
 			{
-				fixed4 col = tex2D(_MainTex, i.uv);
-				return col;
+				half4 bloom = tex2D(_BloomTex, i.uv);
+				half4 color = tex2D(_MainTex, i.uv);
+				return color + bloom * bloom.a * _BloomIntencity;
 			}
 			ENDCG
 		}

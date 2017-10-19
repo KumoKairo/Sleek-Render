@@ -1,4 +1,4 @@
-﻿Shader "Weasel Trust/DownsampleBrightpass"
+﻿Shader "Weasel Trust/Downsample Brightpass"
 {
 	Properties
 	{
@@ -14,6 +14,8 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
+
+			#include "UnityCG.cginc"
 			
 			struct appdata
 			{
@@ -24,24 +26,28 @@
 			struct v2f
 			{
 				half4 vertex : SV_POSITION;
-				half4 uv_0 : TEXCOORD0;
-				half4 uv_1 : TEXCOORD1;
-				half4 uv_2 : TEXCOORD2;
-				half4 uv_3 : TEXCOORD3;
-				half4 uv_4 : TEXCOORD4;
+				half2 uv_0 : TEXCOORD0;
+				half2 uv_1 : TEXCOORD1;
+				half2 uv_2 : TEXCOORD2;
+				half2 uv_3 : TEXCOORD3;
+				half2 uv_4 : TEXCOORD4;
 			};
+
+			sampler2D _MainTex;
+			float4 _MainTex_TexelSize;
 
 			v2f vert (appdata v)
 			{
 				v2f o;
 				o.vertex = v.vertex;
-				half offset = 0.001h;
-				o.uv_0 = v.uv + half4(-offset, -offset, 0.0h, 0.0h);
-				o.uv_1 = v.uv + half4(-offset, offset, 0.0h, 0.0h);
-				o.uv_2 = v.uv + half4(offset, offset, 0.0h, 0.0h);
-				o.uv_3 = v.uv + half4(offset, -offset, 0.0h, 0.0h);
+				half2 texelSize = _MainTex_TexelSize.xy;
 
-				o.uv_4 = v.uv;
+				o.uv_0 = v.uv - texelSize;
+				o.uv_1 = v.uv + texelSize * half2(1, -1);
+				o.uv_2 = v.uv + texelSize * half2(-1, 1);
+				o.uv_3 = v.uv + texelSize;
+
+				o.uv_4 = _MainTex_TexelSize;
 
 				#if UNITY_UV_STARTS_AT_TOP
 				o.uv_0.y = 1-o.uv_0.y;
@@ -54,7 +60,6 @@
 				return o;
 			}
 			
-			sampler2D _MainTex;
 			half4 _LuminanceConst;
 
 			half4 frag (v2f i) : SV_Target
@@ -71,9 +76,13 @@
 				half4 col_3 = tex2D(_MainTex, i.uv_3);
 				half luma_3 = saturate(dot(half4(col_3.rgb, 1.0h), _LuminanceConst));
 
+				half4 col_4 = tex2D(_MainTex, i.uv_4);
+
 				half4 col = ((col_0 + col_1) * 0.5h + (col_2 + col_3) * 0.5h) * 0.5h;
 				col.a = (luma_0 + luma_1 + luma_2 + luma_3) * 0.25h;
 
+				//return i.uv_4;
+				return col;
 				return half4(col.a, col.a, col.a, col.a);
 			}
 			ENDCG

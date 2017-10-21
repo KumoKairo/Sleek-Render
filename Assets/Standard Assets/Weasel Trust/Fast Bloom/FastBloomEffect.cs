@@ -23,7 +23,7 @@ namespace WeaselTrust
         private Shader _blurShader;
 
         [SerializeField]
-        private Shader _precomposeShader;
+        private Shader _verticalBlurGammaCorrectionShader;
 
         [SerializeField]
         private Shader _composeShader;
@@ -37,7 +37,7 @@ namespace WeaselTrust
         private Material _downsampleMaterial;
         private Material _brightpassMaterial;
         private Material _blurMaterial;
-        private Material _precomposeMaterial;
+        private Material _verticalBlurGammaCorrectionMaterial;
         private Material _composeMaterial;
         private Material _displayMainTextureMaterial;
         private Material _upscaleBloomMaterial;
@@ -45,8 +45,7 @@ namespace WeaselTrust
         private RenderTexture _downsampledBrightpassTexture;
         private RenderTexture _preBloomTexture;
         private RenderTexture _horizontalBlurTexture;
-        private RenderTexture _verticalBlurTexture;
-        private RenderTexture _precomposeTexture;
+        private RenderTexture _verticalBlurGammaCorrectedTexture;
 
         private RenderTexture _finalComposeTexture;
 
@@ -89,10 +88,9 @@ namespace WeaselTrust
             _blurMaterial.SetVector("_SpreadDirection", new Vector4(1f, 0f, 0f, 0f));
             Blit(_preBloomTexture, _horizontalBlurTexture, _blurMaterial);
 
-            _blurMaterial.SetVector("_SpreadDirection", new Vector4(0f, 1f, 0f, 0f));
-            Blit(_horizontalBlurTexture, _verticalBlurTexture, _blurMaterial);
-
-            //Blit(_verticalBlurTexture, _finalComposeTexture, _upscaleBloomMaterial);
+            _verticalBlurGammaCorrectionMaterial.SetFloat("_BloomIntencity", bloomIntensity);
+            _verticalBlurGammaCorrectionMaterial.SetPass(0);
+            Blit(_horizontalBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
         }
 
         private void OnRenderObject()
@@ -100,14 +98,10 @@ namespace WeaselTrust
             int instanceId = Camera.current.GetInstanceID();
             if (instanceId == this._mainCamera.GetInstanceID())
             {
-                _precomposeMaterial.SetFloat("_BloomIntencity", bloomIntensity);
-                _precomposeMaterial.SetPass(0);
+                _composeMaterial.SetPass(0);
                 Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
 
                 //_displayMainTextureMaterial.SetPass(0);
-                //Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
-
-                //_upscaleBloomMaterial.SetPass(0);
                 //Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
             }
             else
@@ -136,7 +130,7 @@ namespace WeaselTrust
             LoadShaderIfNotPresent(ref _downsampleShader, "Weasel Trust/Downsample Brightpass");
             LoadShaderIfNotPresent(ref _brightPassShader, "Weasel Trust/Brightpass");
             LoadShaderIfNotPresent(ref _blurShader, "Weasel Trust/Horizontal Blur");
-            LoadShaderIfNotPresent(ref _precomposeShader, "Weasel Trust/Precompose");
+            LoadShaderIfNotPresent(ref _verticalBlurGammaCorrectionShader, "Weasel Trust/Vertical Blur Gamma Correction");
             LoadShaderIfNotPresent(ref _composeShader, "Weasel Trust/Compose");
             LoadShaderIfNotPresent(ref _upscaleBloomShader, "Weasel Trust/Upscale Bloom");
 
@@ -145,7 +139,7 @@ namespace WeaselTrust
             _downsampleMaterial = new Material(_downsampleShader);
             _brightpassMaterial = new Material(_brightPassShader);
             _blurMaterial = new Material(_blurShader);
-            _precomposeMaterial = new Material(_precomposeShader);
+            _verticalBlurGammaCorrectionMaterial = new Material(_verticalBlurGammaCorrectionShader);
             _composeMaterial = new Material(_composeShader);
             _upscaleBloomMaterial = new Material(_upscaleBloomShader);
 
@@ -154,29 +148,36 @@ namespace WeaselTrust
             var width = Screen.width;
             var height = Screen.height;
 
-            _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", width / 4, height / 4);
-
             int blurWidth = 32;
             int blurHeight = 128;
+
+            int downsampleWidth = width / 4;
+            int downsampleHeight = height / 4;
+
+            _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", downsampleWidth, downsampleHeight);
             _preBloomTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
             _horizontalBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
-            _verticalBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
-            _precomposeTexture = CreateTransientRenderTexture("Precompose", blurWidth, blurHeight);
+            _verticalBlurGammaCorrectedTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
 
             _mainRenderTexture = CreateMainRenderTexture(width, height);
             _finalComposeTexture = CreateMainRenderTexture(width, height);
 
-            _precomposeMaterial.SetTexture("_BloomTex", _verticalBlurTexture);
-            _precomposeMaterial.SetTexture("_MainTex", _mainRenderTexture);
+            _verticalBlurGammaCorrectionMaterial.SetTexture("_MainTex", _downsampledBrightpassTexture);
+            _verticalBlurGammaCorrectionMaterial.SetTexture("_BloomTex", _horizontalBlurTexture);
+            var ySpread = 1 / (float) blurHeight;
+            _verticalBlurGammaCorrectionMaterial.SetFloat("_YSpread", ySpread);
+
             _blurMaterial.SetFloat("_XSpread", 1 / (float) blurWidth);
-            _blurMaterial.SetFloat("_YSpread", 1 / (float) blurHeight);
             _downsampleMaterial.SetVector("_TexelSize",
                 new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height, 
                 0f, 0f));
 
+            _composeMaterial.SetTexture("_MainTex", _mainRenderTexture);
+            _composeMaterial.SetTexture("_BloomTex", _verticalBlurGammaCorrectedTexture);
+
             //===============
-            _displayMainTextureMaterial.SetTexture("_MainTex", _verticalBlurTexture);
-            _upscaleBloomMaterial.SetTexture("_BloomTex", _verticalBlurTexture);
+            _displayMainTextureMaterial.SetTexture("_MainTex", _verticalBlurGammaCorrectedTexture);
+            _upscaleBloomMaterial.SetTexture("_BloomTex", _verticalBlurGammaCorrectedTexture);
             //===============
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");

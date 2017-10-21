@@ -4,6 +4,7 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		_LuminanceConst("Luminance", Vector) = (1.0, 1.0, 1.0, 1.0)
+		_TexelSize("_TexelSize", Vector) = (1.0, 1.0, 1.0, 1.0)
 	}
 	SubShader
 	{
@@ -15,8 +16,6 @@
 			#pragma vertex vert
 			#pragma fragment frag
 
-			#include "UnityCG.cginc"
-			
 			struct appdata
 			{
 				half4 vertex : POSITION;
@@ -34,20 +33,19 @@
 			};
 
 			sampler2D _MainTex;
-			float4 _MainTex_TexelSize;
+			float4 _TexelSize;
 
 			v2f vert (appdata v)
 			{
 				v2f o;
 				o.vertex = v.vertex;
-				half2 texelSize = _MainTex_TexelSize.xy;
+				half2 texelSize = _TexelSize.xy;
 
+				o.uv_4 = v.uv;
 				o.uv_0 = v.uv - texelSize;
 				o.uv_1 = v.uv + texelSize * half2(1, -1);
 				o.uv_2 = v.uv + texelSize * half2(-1, 1);
 				o.uv_3 = v.uv + texelSize;
-
-				o.uv_4 = _MainTex_TexelSize;
 
 				#if UNITY_UV_STARTS_AT_TOP
 				o.uv_0.y = 1-o.uv_0.y;
@@ -77,11 +75,11 @@
 				half luma_3 = saturate(dot(half4(col_3.rgb, 1.0h), _LuminanceConst));
 
 				half4 col_4 = tex2D(_MainTex, i.uv_4);
+				half luma_4 = saturate(dot(half4(col_4.rgb, 1.0h), _LuminanceConst));
 
-				half4 col = ((col_0 + col_1) * 0.5h + (col_2 + col_3) * 0.5h) * 0.5h;
-				col.a = (luma_0 + luma_1 + luma_2 + luma_3) * 0.25h;
+				half4 col = (col_0 + col_1 + col_2 + col_3 + col_4) * 0.2;
+				col.a = (luma_0 + luma_1 + luma_2 + luma_3 + luma_4) * 0.2h;
 
-				//return i.uv_4;
 				return col;
 				return half4(col.a, col.a, col.a, col.a);
 			}

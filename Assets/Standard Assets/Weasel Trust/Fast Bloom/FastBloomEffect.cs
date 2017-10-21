@@ -13,26 +13,42 @@ namespace WeaselTrust
         [Range(0f, 3f)]
         public float bloomIntensity = 0.8f;
 
-        [Range(0f, 0.5f)]
-        public float spread = 0.1f;
-
         [SerializeField]
         private Shader _downsampleShader;
+
+        [SerializeField]
+        private Shader _brightPassShader;
 
         [SerializeField]
         private Shader _blurShader;
 
         [SerializeField]
-        private Shader _finalPassShader;
+        private Shader _precomposeShader;
+
+        [SerializeField]
+        private Shader _composeShader;
+
+        [SerializeField]
+        private Shader _displayMainTextureShader;
+
+        [SerializeField]
+        private Shader _upscaleBloomShader;
 
         private Material _downsampleMaterial;
-        private Material _horizontalBlurMaterial;
-        private Material _finalPassMaterial;
+        private Material _brightpassMaterial;
+        private Material _blurMaterial;
+        private Material _precomposeMaterial;
+        private Material _composeMaterial;
+        private Material _displayMainTextureMaterial;
+        private Material _upscaleBloomMaterial;
 
         private RenderTexture _downsampledBrightpassTexture;
+        private RenderTexture _preBloomTexture;
+        private RenderTexture _horizontalBlurTexture;
+        private RenderTexture _verticalBlurTexture;
+        private RenderTexture _precomposeTexture;
+
         private RenderTexture _finalComposeTexture;
-        private RenderTexture _bloomHorizontalBlurTexture;
-        private RenderTexture _bloomVerticalBlurTexture;
 
         private Camera _mainCamera;
         private Camera _renderCamera;
@@ -66,17 +82,17 @@ namespace WeaselTrust
                 -bloomThreshold * oneOverOneMinusBloomThreshold);
 
             _downsampleMaterial.SetVector("_LuminanceConst", luminanceConst);
-            Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial, 0);
+            Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
 
-            //_horizontalBlurMaterial.SetFloat("_Spread", spread);
-            //Blit(_downsampledBrightpassTexture, _bloomHorizontalBlurTexture, _horizontalBlurMaterial, 0);
+            Blit(_downsampledBrightpassTexture, _preBloomTexture, _brightpassMaterial);
 
-            //_verticalBlurMaterial.SetFloat("_Spread", spread);
-            //Blit(_bloomHorizontalBlurTexture, _bloomVerticalBlurTexture, _verticalBlurMaterial, 0);
+            _blurMaterial.SetVector("_SpreadDirection", new Vector4(1f, 0f, 0f, 0f));
+            Blit(_preBloomTexture, _horizontalBlurTexture, _blurMaterial);
 
-            //_finalPassMaterial.SetTexture("_BloomTex", _bloomVerticalBlurTexture);
-            //_finalPassMaterial.SetFloat("_BloomIntencity", bloomIntensity);
-            //Blit(_mainRenderTexture, _finalComposeTexture, _finalPassMaterial, 0);
+            _blurMaterial.SetVector("_SpreadDirection", new Vector4(0f, 1f, 0f, 0f));
+            Blit(_horizontalBlurTexture, _verticalBlurTexture, _blurMaterial);
+
+            //Blit(_verticalBlurTexture, _finalComposeTexture, _upscaleBloomMaterial);
         }
 
         private void OnRenderObject()
@@ -84,9 +100,15 @@ namespace WeaselTrust
             int instanceId = Camera.current.GetInstanceID();
             if (instanceId == this._mainCamera.GetInstanceID())
             {
-                _finalPassMaterial.SetTexture("_MainTex", _downsampledBrightpassTexture);
-                _finalPassMaterial.SetPass(0);
+                _precomposeMaterial.SetFloat("_BloomIntencity", bloomIntensity);
+                _precomposeMaterial.SetPass(0);
                 Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
+
+                //_displayMainTextureMaterial.SetPass(0);
+                //Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
+
+                //_upscaleBloomMaterial.SetPass(0);
+                //Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
             }
             else
             {
@@ -112,24 +134,50 @@ namespace WeaselTrust
             _mainCamera = GetComponent<Camera>();
 
             LoadShaderIfNotPresent(ref _downsampleShader, "Weasel Trust/Downsample Brightpass");
-            LoadShaderIfNotPresent(ref _blurShader, "Weasel Trust/Blur");
-            LoadShaderIfNotPresent(ref _finalPassShader, "Weasel Trust/Final Pass");
+            LoadShaderIfNotPresent(ref _brightPassShader, "Weasel Trust/Brightpass");
+            LoadShaderIfNotPresent(ref _blurShader, "Weasel Trust/Horizontal Blur");
+            LoadShaderIfNotPresent(ref _precomposeShader, "Weasel Trust/Precompose");
+            LoadShaderIfNotPresent(ref _composeShader, "Weasel Trust/Compose");
+            LoadShaderIfNotPresent(ref _upscaleBloomShader, "Weasel Trust/Upscale Bloom");
+
+            LoadShaderIfNotPresent(ref _displayMainTextureShader, "Weasel Trust/Display Main Texture");
 
             _downsampleMaterial = new Material(_downsampleShader);
-            _horizontalBlurMaterial = new Material(_blurShader);
-            _finalPassMaterial = new Material(_finalPassShader);
+            _brightpassMaterial = new Material(_brightPassShader);
+            _blurMaterial = new Material(_blurShader);
+            _precomposeMaterial = new Material(_precomposeShader);
+            _composeMaterial = new Material(_composeShader);
+            _upscaleBloomMaterial = new Material(_upscaleBloomShader);
+
+            _displayMainTextureMaterial = new Material(_displayMainTextureShader);
 
             var width = Screen.width;
             var height = Screen.height;
 
-            _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", width / 16, height / 16);
-            _bloomHorizontalBlurTexture = CreateTransientRenderTexture("Bloom Horizontal Blur Pass", 32, 128);
-            _bloomVerticalBlurTexture = CreateTransientRenderTexture("Bloom Vertical Blur Pass", 32, 128);
+            _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", width / 4, height / 4);
 
-            Debug.Log(Screen.width + " " + Screen.height);
+            int blurWidth = 32;
+            int blurHeight = 128;
+            _preBloomTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
+            _horizontalBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
+            _verticalBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
+            _precomposeTexture = CreateTransientRenderTexture("Precompose", blurWidth, blurHeight);
 
             _mainRenderTexture = CreateMainRenderTexture(width, height);
             _finalComposeTexture = CreateMainRenderTexture(width, height);
+
+            _precomposeMaterial.SetTexture("_BloomTex", _verticalBlurTexture);
+            _precomposeMaterial.SetTexture("_MainTex", _mainRenderTexture);
+            _blurMaterial.SetFloat("_XSpread", 1 / (float) blurWidth);
+            _blurMaterial.SetFloat("_YSpread", 1 / (float) blurHeight);
+            _downsampleMaterial.SetVector("_TexelSize",
+                new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height, 
+                0f, 0f));
+
+            //===============
+            _displayMainTextureMaterial.SetTexture("_MainTex", _verticalBlurTexture);
+            _upscaleBloomMaterial.SetTexture("_BloomTex", _verticalBlurTexture);
+            //===============
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");
             renderCameraGameObject.hideFlags = HideFlags.HideAndDontSave;
@@ -153,6 +201,7 @@ namespace WeaselTrust
         private RenderTexture CreateMainRenderTexture(int width, int height)
         {
             var isMetal = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal;
+            Debug.Log("NAME: " + SystemInfo.graphicsDeviceName);
             var isTegra = SystemInfo.graphicsDeviceName.Contains("NVIDIA");
             var doesntSupportRgb565 = !SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB565);
 
@@ -161,6 +210,7 @@ namespace WeaselTrust
             {
                 textureFormat = RenderTextureFormat.ARGB32;
             }
+            Debug.Log("FORMAT: " + textureFormat);
 
             var renderTexture = new RenderTexture(width, height, 16, textureFormat);
             renderTexture.antiAliasing = QualitySettings.antiAliasing;
@@ -180,11 +230,8 @@ namespace WeaselTrust
             Debug.Log("Release resources");
 
             DestroyImmediate(_downsampleMaterial);
-            DestroyImmediate(_horizontalBlurMaterial);
 
             DestroyImmediate(_downsampledBrightpassTexture);
-            DestroyImmediate(_bloomHorizontalBlurTexture);
-            DestroyImmediate(_bloomVerticalBlurTexture);
 
             DestroyImmediate(_renderCamera.gameObject);
 

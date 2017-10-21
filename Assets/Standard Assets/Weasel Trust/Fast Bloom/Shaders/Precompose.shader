@@ -1,10 +1,10 @@
-﻿Shader "Weasel Trust/Final Pass"
+﻿Shader "Weasel Trust/Precompose"
 {
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		_BloomTex("Bloom", 2D) = "black" {}
-		_BloomIntencity("Bloom Intensity", float) = 1
+		_BloomIntencity("Bloom Intensity", float) = 0.672
 	}
 	SubShader
 	{
@@ -47,9 +47,16 @@
 
 			half4 frag (v2f i) : SV_Target
 			{
-				half4 bloom = tex2D(_BloomTex, i.uv);
 				half4 color = tex2D(_MainTex, i.uv);
-				return color + bloom * bloom.a * _BloomIntencity;
+				half4 bloom = tex2D(_BloomTex, i.uv) * _BloomIntencity;
+				//half luma = dot(color.rgb + bloom.rgb, half3(0.2126h, 0.7152h, 0.0722h));
+				//half gammaCorrectionFactor = 0.933033;
+				//half gammaCorrectionPower = 0.05;
+				//half gammaCompression = gammaCorrectionFactor * pow(luma, gammaCorrectionPower);
+
+				//half4 finalColor = color + bloom;
+
+				return color + bloom;
 			}
 			ENDCG
 		}

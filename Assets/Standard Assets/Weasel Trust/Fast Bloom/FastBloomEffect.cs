@@ -74,14 +74,7 @@ namespace WeaselTrust
 
         private void ApplyBloom()
         {
-            float oneOverOneMinusBloomThreshold = 1f / (1f - bloomThreshold);
-            Vector4 luminanceConst = new Vector4(
-                0.2126f * oneOverOneMinusBloomThreshold,
-                0.7152f * oneOverOneMinusBloomThreshold,
-                0.0722f * oneOverOneMinusBloomThreshold, 
-                -bloomThreshold * oneOverOneMinusBloomThreshold);
-
-            _downsampleMaterial.SetVector("_LuminanceConst", luminanceConst);
+            
             Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
 
             //Blit(_downsampledBrightpassTexture, _preBloomTexture, _brightpassMaterial);
@@ -170,6 +163,17 @@ namespace WeaselTrust
             _verticalBlurGammaCorrectionMaterial.SetTexture("_BloomTex", _horizontalBlurTexture);
             var ySpread = 1 / (float) blurHeight;
             _verticalBlurGammaCorrectionMaterial.SetFloat("_YSpread", ySpread);
+
+            // ==== MOVE TO UPDATE
+            float oneOverOneMinusBloomThreshold = 1f / (1f - bloomThreshold);
+            Vector4 luminanceConst = new Vector4(
+                0.2126f * oneOverOneMinusBloomThreshold,
+                0.7152f * oneOverOneMinusBloomThreshold,
+                0.0722f * oneOverOneMinusBloomThreshold,
+                -bloomThreshold * oneOverOneMinusBloomThreshold);
+
+            _downsampleMaterial.SetVector("_LuminanceConst", luminanceConst);
+            // =====
 
             _blurMaterial.SetFloat("_XSpread", 1 / (float) blurWidth);
             _downsampleMaterial.SetVector("_TexelSize",

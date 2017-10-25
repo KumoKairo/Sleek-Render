@@ -74,8 +74,7 @@ namespace WeaselTrust
 
         private void ApplyBloom()
         {
-
-            Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
+            //Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
 
             //Blit(_downsampledBrightpassTexture, _preBloomTexture, _brightpassMaterial);
 
@@ -92,8 +91,8 @@ namespace WeaselTrust
             int instanceId = Camera.current.GetInstanceID();
             if (instanceId == this._mainCamera.GetInstanceID())
             {
-                _composeMaterial.SetPass(0);
-                Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
+                //_composeMaterial.SetPass(0);
+                //Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
 
                 _displayMainTextureMaterial.SetPass(0);
                 Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
@@ -139,8 +138,8 @@ namespace WeaselTrust
 
             _displayMainTextureMaterial = new Material(_displayMainTextureShader);
 
-            var width = Screen.width;
-            var height = Screen.height;
+            var width = Mathf.RoundToInt(Screen.width * 0.6f);
+            var height = Mathf.RoundToInt(Screen.height * 0.6f);
 
             var maxHeight = Mathf.Min(height, 720);
             var ratio = (float) maxHeight / height;
@@ -184,7 +183,7 @@ namespace WeaselTrust
             _composeMaterial.SetTexture("_BloomTex", _verticalBlurGammaCorrectedTexture);
 
             //===============
-            _displayMainTextureMaterial.SetTexture("_MainTex", _downsampledBrightpassTexture);
+            _displayMainTextureMaterial.SetTexture("_MainTex", _mainRenderTexture);
             _upscaleBloomMaterial.SetTexture("_BloomTex", _verticalBlurGammaCorrectedTexture);
             //===============
 

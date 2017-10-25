@@ -74,7 +74,7 @@ namespace WeaselTrust
 
         private void ApplyBloom()
         {
-            //Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
+            Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
 
             //Blit(_downsampledBrightpassTexture, _preBloomTexture, _brightpassMaterial);
 
@@ -183,7 +183,7 @@ namespace WeaselTrust
             _composeMaterial.SetTexture("_BloomTex", _verticalBlurGammaCorrectedTexture);
 
             //===============
-            _displayMainTextureMaterial.SetTexture("_MainTex", _mainRenderTexture);
+            _displayMainTextureMaterial.SetTexture("_MainTex", _downsampledBrightpassTexture);
             _upscaleBloomMaterial.SetTexture("_BloomTex", _verticalBlurGammaCorrectedTexture);
             //===============
 

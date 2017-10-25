@@ -33,7 +33,7 @@
 			};
 
 			sampler2D _MainTex;
-			float4 _TexelSize;
+			float4 _TexelSize, _MainTex_TexelSize;
 
 			v2f vert (appdata v)
 			{
@@ -47,7 +47,14 @@
 				o.uv_2 = v.uv + texelSize * half2(-1, 1);
 				o.uv_3 = v.uv + texelSize;
 
-				
+				if (_ProjectionParams.x < 0)
+				{
+					o.uv_0.y = 1-o.uv_0.y;
+					o.uv_1.y = 1-o.uv_1.y;
+					o.uv_2.y = 1-o.uv_2.y;
+					o.uv_3.y = 1-o.uv_3.y;
+					o.uv_4.y = 1-o.uv_4.y;
+				}
 
 				return o;
 			}

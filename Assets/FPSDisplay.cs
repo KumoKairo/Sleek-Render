@@ -11,6 +11,7 @@ public class FPSDisplay : MonoBehaviour
 
     void Start()
     {
+        Application.targetFrameRate = 60;
         for (int i = 0; i < numbers.Length; i++)
         {
             numbers[i] = i.ToString();

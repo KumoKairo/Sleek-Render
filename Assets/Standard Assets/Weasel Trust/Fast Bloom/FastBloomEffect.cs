@@ -57,6 +57,7 @@ namespace WeaselTrust
 
         private void OnEnable()
         {
+            Application.targetFrameRate = 60;
             CreateResources();
         }
 

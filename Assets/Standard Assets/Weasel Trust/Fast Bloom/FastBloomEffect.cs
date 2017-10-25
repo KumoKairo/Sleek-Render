@@ -74,17 +74,17 @@ namespace WeaselTrust
 
         private void ApplyBloom()
         {
-            
+
             Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
 
-            //Blit(_downsampledBrightpassTexture, _preBloomTexture, _brightpassMaterial);
+            Blit(_downsampledBrightpassTexture, _preBloomTexture, _brightpassMaterial);
 
-            //_blurMaterial.SetVector("_SpreadDirection", new Vector4(1f, 0f, 0f, 0f));
-            //Blit(_preBloomTexture, _horizontalBlurTexture, _blurMaterial);
+            _blurMaterial.SetVector("_SpreadDirection", new Vector4(1f, 0f, 0f, 0f));
+            Blit(_preBloomTexture, _horizontalBlurTexture, _blurMaterial);
 
-            //_verticalBlurGammaCorrectionMaterial.SetFloat("_BloomIntencity", bloomIntensity);
-            //_verticalBlurGammaCorrectionMaterial.SetPass(0);
-            //Blit(_horizontalBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
+            _verticalBlurGammaCorrectionMaterial.SetFloat("_BloomIntencity", bloomIntensity);
+            _verticalBlurGammaCorrectionMaterial.SetPass(0);
+            Blit(_horizontalBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
         }
 
         private void OnRenderObject()
@@ -92,11 +92,11 @@ namespace WeaselTrust
             int instanceId = Camera.current.GetInstanceID();
             if (instanceId == this._mainCamera.GetInstanceID())
             {
-                //_composeMaterial.SetPass(0);
-                //Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
-
-                _displayMainTextureMaterial.SetPass(0);
+                _composeMaterial.SetPass(0);
                 Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
+
+                //_displayMainTextureMaterial.SetPass(0);
+                //Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
             }
             else
             {

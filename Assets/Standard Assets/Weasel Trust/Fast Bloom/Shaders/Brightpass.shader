@@ -44,12 +44,13 @@
 				o.uv_3 = v.uv + texelSize;
 				
 
-				#if UNITY_UV_STARTS_AT_TOP
-				o.uv_0.y = 1-o.uv_0.y;
-				o.uv_1.y = 1-o.uv_1.y;
-				o.uv_2.y = 1-o.uv_2.y;
-				o.uv_3.y = 1-o.uv_3.y;
-				#endif
+				if (_ProjectionParams.x < 0)
+				{
+					o.uv_0.y = 1-o.uv_0.y;
+					o.uv_1.y = 1-o.uv_1.y;
+					o.uv_2.y = 1-o.uv_2.y;
+					o.uv_3.y = 1-o.uv_3.y;
+				}
 
 				return o;
 			}

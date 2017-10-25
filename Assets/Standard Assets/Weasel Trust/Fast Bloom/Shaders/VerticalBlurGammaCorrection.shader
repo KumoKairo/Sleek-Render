@@ -56,15 +56,16 @@
 				o.uv_5 = v.uv - stepVector * stepThree;
 				o.uv_6 = v.uv;
 
-				#if UNITY_UV_STARTS_AT_TOP
-				o.uv_0.y = 1-o.uv_0.y;
-				o.uv_1.y = 1-o.uv_1.y;
-				o.uv_2.y = 1-o.uv_2.y;
-				o.uv_3.y = 1-o.uv_3.y;
-				o.uv_4.y = 1-o.uv_4.y;
-				o.uv_5.y = 1-o.uv_5.y;
-				o.uv_6.y = 1-o.uv_6.y;
-				#endif
+				if (_ProjectionParams.x < 0)
+				{
+					o.uv_0.y = 1-o.uv_0.y;
+					o.uv_1.y = 1-o.uv_1.y;
+					o.uv_2.y = 1-o.uv_2.y;
+					o.uv_3.y = 1-o.uv_3.y;
+					o.uv_4.y = 1-o.uv_4.y;
+					o.uv_5.y = 1-o.uv_5.y;
+					o.uv_6.y = 1-o.uv_6.y;
+				}
 
 				return o;
 			}

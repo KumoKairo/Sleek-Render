@@ -34,9 +34,10 @@
 				o.vertex = v.vertex;
 				o.uv = v.uv;
 
-				#if UNITY_UV_STARTS_AT_TOP
-				o.uv.y = 1 - o.uv.y;
-				#endif
+				if (_ProjectionParams.x < 0)
+				{
+					o.uv.y = 1 - o.uv.y;
+				}
 
 				return o;
 			}

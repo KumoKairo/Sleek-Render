@@ -149,11 +149,14 @@ namespace WeaselTrust
             var width = Screen.width;
             var height = Screen.height;
 
+            var maxHeight = Mathf.Min(height, 720);
+            var ratio = (float) maxHeight / height;
+
             int blurWidth = 32;
             int blurHeight = 128;
 
-            int downsampleWidth = width / 4;
-            int downsampleHeight = height / 4;
+            int downsampleWidth = Mathf.RoundToInt((width * ratio) / 4);
+            int downsampleHeight = Mathf.RoundToInt((height * ratio) / 4);
 
             _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", downsampleWidth, downsampleHeight);
             _preBloomTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);

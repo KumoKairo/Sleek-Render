@@ -47,13 +47,7 @@
 				o.uv_2 = v.uv + texelSize * half2(-1, 1);
 				o.uv_3 = v.uv + texelSize;
 
-				#if UNITY_UV_STARTS_AT_TOP
-				o.uv_0.y = 1-o.uv_0.y;
-				o.uv_1.y = 1-o.uv_1.y;
-				o.uv_2.y = 1-o.uv_2.y;
-				o.uv_3.y = 1-o.uv_3.y;
-				o.uv_4.y = 1-o.uv_4.y;
-				#endif
+				
 
 				return o;
 			}

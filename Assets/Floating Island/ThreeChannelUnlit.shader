@@ -5,7 +5,7 @@
 		_MainTex ("Texture", 2D) = "white" {}
 		_FlickerNoise ("Texture", 2D) = "white" {}
 		_Luminance ("Luminance", Vector) = (1, 1, 1, 1)
-		 _BonfireColor("Bonfire Light Color", Color) = (1, 1, 1, 1)
+		_BonfireColor("Bonfire Light Color", Color) = (1, 1, 1, 1)
 		_TentColor ("Tent Color", Color) = (1, 1, 1, 1)
 		_FillLightColor ("Fill Color", Color) = (1, 1, 1, 1)
 	}
@@ -46,7 +46,8 @@
 				v2f o;
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-				o.noise_uv = half2(_Time.x, _Time.x);
+				half sinTime = _SinTime.x * 0.5h;
+				o.noise_uv = half2(sinTime, sinTime);
 				UNITY_TRANSFER_FOG(o, o.vertex);
 				return o;
 			}

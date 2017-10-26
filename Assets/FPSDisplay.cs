@@ -5,7 +5,10 @@ public class FPSDisplay : MonoBehaviour
 {
     public Text text;
 
-    float deltaTime = 0.0f;
+    private const float UPDATE_EVERY = 0.3f;
+
+    private float _accumulatedTime = 0f;
+    private int _accumulatedFrames = 0;
 
     private string[] numbers = new string[61];
 
@@ -16,15 +19,25 @@ public class FPSDisplay : MonoBehaviour
         {
             numbers[i] = i.ToString();
         }
+
+        _accumulatedTime = 0f;
+        _accumulatedFrames = 0;
     }
 
     void Update()
     {
-        deltaTime += (Time.deltaTime - deltaTime) * 0.1f;
+        _accumulatedTime += Time.deltaTime;
+        _accumulatedFrames++;
 
-        float fps = 1.0f / deltaTime;
-        var intFps = Mathf.RoundToInt(fps);
-        intFps = Mathf.Clamp(intFps, 0, 60);
-        text.text = numbers[intFps];
+        if (_accumulatedTime > UPDATE_EVERY)
+        {
+            float fps = _accumulatedFrames / _accumulatedTime;
+            var intFps = Mathf.RoundToInt(fps);
+            intFps = Mathf.Clamp(intFps, 0, 60);
+            text.text = numbers[intFps];
+
+            _accumulatedTime = 0f;
+            _accumulatedFrames = 0;
+        }
     }
 }

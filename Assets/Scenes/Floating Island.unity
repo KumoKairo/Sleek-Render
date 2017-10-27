@@ -10398,7 +10398,6 @@ GameObject:
   - component: {fileID: 670914259}
   - component: {fileID: 670914264}
   - component: {fileID: 670914260}
-  - component: {fileID: 670914261}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -10424,12 +10423,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e038005619490fe408d8e989d164e2c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Quality: 3
+  Quality: 2
   BloomEnabled: 1
   BloomParams:
-    Quality: 3
+    Quality: 2
     BloomTint: {r: 1, g: 1, b: 1, a: 1}
-    BloomThreshold: 0.341
+    BloomThreshold: 0.207
     BloomIntensity: 2.38
     BloomSoftness: 1.44
   VisualizeBloom: 0
@@ -10444,9 +10443,9 @@ MonoBehaviour:
   LensCurvaturePrecise: 0
   FilmGrainIntensity: 0
   FilmGrainTiling: 4
-  VignettingIntensity: 0.5
+  VignettingIntensity: 0
   DOFEnabled: 0
-  BlurCOCTexture: 0
+  BlurCOCTexture: 1
   DOFParams:
     UseUnityDepthBuffer: 1
     AutoFocus: 1
@@ -10476,17 +10475,6 @@ MonoBehaviour:
   FogTint: {r: 1, g: 1, b: 1, a: 1}
   FogStrength: 0.5
   HalfResolution: 0
---- !u!114 &670914261
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 670914258}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff26db721962cdf4a8edcdfa9a767d2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!20 &670914262
 Camera:
   m_ObjectHideFlags: 0

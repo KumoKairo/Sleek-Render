@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class FPSDisplay : MonoBehaviour
+public class FPSDisplay : MonoBehaviour, IPointerClickHandler
 {
     public Text text;
 
@@ -39,5 +40,10 @@ public class FPSDisplay : MonoBehaviour
             _accumulatedTime = 0f;
             _accumulatedFrames = 0;
         }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        text.enabled = !text.enabled;
     }
 }

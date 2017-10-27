@@ -10398,6 +10398,7 @@ GameObject:
   - component: {fileID: 670914259}
   - component: {fileID: 670914264}
   - component: {fileID: 670914260}
+  - component: {fileID: 670914261}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -10475,6 +10476,18 @@ MonoBehaviour:
   FogTint: {r: 1, g: 1, b: 1, a: 1}
   FogStrength: 0.5
   HalfResolution: 0
+--- !u!114 &670914261
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 670914258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff26db721962cdf4a8edcdfa9a767d2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  profile: {fileID: 11400000, guid: 70a07115af3ec054e987144cc228dce1, type: 2}
 --- !u!20 &670914262
 Camera:
   m_ObjectHideFlags: 0
@@ -10530,7 +10543,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 670914258}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1ae0f3a7e2d72c1428326c5518fdc2f5, type: 3}
   m_Name: 

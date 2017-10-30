@@ -99,10 +99,10 @@ namespace WeaselTrust
             int instanceId = Camera.current.GetInstanceID();
             if (instanceId == this._mainCamera.GetInstanceID())
             {
-                // _composeMaterial.SetPass(0);
-                // Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
+                _composeMaterial.SetPass(0);
+                Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
 
-                DrawDebugTexture(_downsampledBrightpassTexture);
+                // DrawDebugTexture(_downsampledBrightpassTexture);
             }
             else
             {

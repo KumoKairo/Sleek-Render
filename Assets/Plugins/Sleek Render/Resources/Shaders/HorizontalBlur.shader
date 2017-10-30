@@ -18,24 +18,23 @@
 			
 			struct appdata
 			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
+				half4 vertex : POSITION;
+				half2 uv : TEXCOORD0;
 			};
 
 			struct v2f
 			{
-				float4 vertex : SV_POSITION;
-				float2 uv_0 : TEXCOORD0;
-				float2 uv_1 : TEXCOORD1;
-				float2 uv_2 : TEXCOORD2;
-				float2 uv_3 : TEXCOORD3;
-				float2 uv_4 : TEXCOORD4;
-				float2 uv_5 : TEXCOORD5;
-				float2 uv_6 : TEXCOORD6;
+				half4 vertex : SV_POSITION;
+				half2 uv_0 : TEXCOORD0;
+				half2 uv_1 : TEXCOORD1;
+				half2 uv_2 : TEXCOORD2;
+				half2 uv_3 : TEXCOORD3;
+				half2 uv_4 : TEXCOORD4;
+				half2 uv_5 : TEXCOORD5;
+				half2 uv_6 : TEXCOORD6;
 			};
 
-			float4 _SpreadDirection;
-			float _XSpread, _YSpread;
+			half _XSpread;
 
 			v2f vert (appdata v)
 			{

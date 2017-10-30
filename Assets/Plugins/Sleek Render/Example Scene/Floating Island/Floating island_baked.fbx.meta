@@ -11,9 +11,9 @@ ModelImporter:
     3300000: //RootNode
     4300000: Tree3.001
   materials:
-    importMaterials: 1
-    materialName: 0
-    materialSearch: 1
+    importMaterials: 0
+    materialName: 1
+    materialSearch: 0
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
@@ -47,9 +47,9 @@ ModelImporter:
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
+    optimizeMeshForGPU: 0
     keepQuads: 0
-    weldVertices: 1
+    weldVertices: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
@@ -58,7 +58,7 @@ ModelImporter:
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
-    tangentImportMode: 3
+    tangentImportMode: 2
     normalCalculationMode: 4
   importAnimation: 1
   copyAvatar: 0

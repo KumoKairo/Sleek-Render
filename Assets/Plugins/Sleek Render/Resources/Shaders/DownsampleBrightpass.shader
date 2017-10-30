@@ -1,4 +1,4 @@
-﻿Shader "Weasel Trust/Downsample Brightpass"
+﻿Shader "Sleek Render/Post Process/Downsample Brightpass"
 {
 	Properties
 	{
@@ -29,23 +29,21 @@
 				half2 uv_1 : TEXCOORD1;
 				half2 uv_2 : TEXCOORD2;
 				half2 uv_3 : TEXCOORD3;
-				half2 uv_4 : TEXCOORD4;
 			};
 
 			sampler2D _MainTex;
-			float4 _TexelSize, _MainTex_TexelSize;
+			float4 _TexelSize;
 
 			v2f vert (appdata v)
 			{
 				v2f o;
 				o.vertex = v.vertex;
-				half2 texelSize = _TexelSize.xy;
+				half2 halfTexelSize = _TexelSize.xy * 0.5h;
 
-				o.uv_4 = v.uv;
-				o.uv_0 = v.uv - texelSize;
-				o.uv_1 = v.uv + texelSize * half2(1, -1);
-				o.uv_2 = v.uv + texelSize * half2(-1, 1);
-				o.uv_3 = v.uv + texelSize;
+				o.uv_0 = v.uv - halfTexelSize;
+				o.uv_1 = v.uv + halfTexelSize * half2(1, -1);
+				o.uv_2 = v.uv + halfTexelSize * half2(-1, 1);
+				o.uv_3 = v.uv + halfTexelSize;
 
 				if (_ProjectionParams.x < 0)
 				{
@@ -53,7 +51,6 @@
 					o.uv_1.y = 1-o.uv_1.y;
 					o.uv_2.y = 1-o.uv_2.y;
 					o.uv_3.y = 1-o.uv_3.y;
-					o.uv_4.y = 1-o.uv_4.y;
 				}
 
 				return o;
@@ -75,11 +72,8 @@
 				half4 col_3 = tex2D(_MainTex, i.uv_3);
 				half luma_3 = saturate(dot(half4(col_3.rgb, 1.0h), _LuminanceConst));
 
-				half4 col_4 = tex2D(_MainTex, i.uv_4);
-				half luma_4 = saturate(dot(half4(col_4.rgb, 1.0h), _LuminanceConst));
-
-				half4 col = (col_0 + col_1 + col_2 + col_3 + col_4) * 0.2;
-				col.a = (luma_0 + luma_1 + luma_2 + luma_3 + luma_4) * 0.2h;
+				half4 col = (col_0 + col_1 + col_2 + col_3) * 0.2h;
+				col.a = (luma_0 + luma_1 + luma_2 + luma_3) * 0.2h;
 
 				return col;
 				return half4(col.a, col.a, col.a, col.a);

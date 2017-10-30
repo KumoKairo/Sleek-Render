@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace WeaselTrust
 {
-    [AddComponentMenu("Effects/Weasel Trust/Fast Bloom")]
+    [AddComponentMenu("Effects/Sleek Render/Post Process/Fast Bloom")]
     [RequireComponent(typeof(Camera))]
     [ExecuteInEditMode, DisallowMultipleComponent]
     public class FastBloomEffect : MonoBehaviour
@@ -28,26 +28,26 @@ namespace WeaselTrust
         private Material _verticalBlurGammaCorrectionMaterial;
         private Material _composeMaterial;
         private Material _displayMainTextureMaterial;
-        private Material _upscaleBloomMaterial;
 
+        private RenderTexture _mainRenderTexture;
         private RenderTexture _downsampledBrightpassTexture;
         private RenderTexture _preBloomTexture;
         private RenderTexture _horizontalBlurTexture;
         private RenderTexture _verticalBlurGammaCorrectedTexture;
-
         private RenderTexture _finalComposeTexture;
 
         private Camera _mainCamera;
         private Camera _renderCamera;
-        private RenderTexture _mainRenderTexture;
         private Mesh _fullscreenQuadMesh;
         private int _originalCullingMask;
 
+        private int _currentCameraPixelWidth;
+        private int _currentCameraPixelHeight;
+
         private void OnEnable()
         {
-            Application.targetFrameRate = 60;
-            
-            if(settings == null){
+            if(settings == null)
+            {
                 settings = ScriptableObject.CreateInstance<SleekRenderSettings>();
             }
 
@@ -61,11 +61,11 @@ namespace WeaselTrust
 
         private void LateUpdate()
         {
-            
+            #if UNITY_EDITOR
+            CheckScreenSizeAndRecreateTexturesIfNeeded(_mainCamera);
+            #endif
 
-            _renderCamera.CopyFrom(_mainCamera);
-            _renderCamera.clearFlags = CameraClearFlags.Color;
-            _renderCamera.targetTexture = _mainRenderTexture;
+            PrepareRenderCamera(_renderCamera, _mainCamera);
 
             _renderCamera.Render();
             ApplyBloom();
@@ -99,8 +99,10 @@ namespace WeaselTrust
             int instanceId = Camera.current.GetInstanceID();
             if (instanceId == this._mainCamera.GetInstanceID())
             {
-                _composeMaterial.SetPass(0);
-                Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
+                // _composeMaterial.SetPass(0);
+                // Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
+
+                DrawDebugTexture(_downsampledBrightpassTexture);
             }
             else
             {
@@ -123,24 +125,25 @@ namespace WeaselTrust
         {
             _mainCamera = GetComponent<Camera>();
 
-            var downsampleShader = Shader.Find("Weasel Trust/Downsample Brightpass");
-            var brightPassShader = Shader.Find("Weasel Trust/Brightpass");
-            var blurShader = Shader.Find("Weasel Trust/Horizontal Blur");
-            var verticalBlurGammaCorrectionShader = Shader.Find("Weasel Trust/Vertical Blur Gamma Correction");
-            var composeShader = Shader.Find("Weasel Trust/Compose");
-            var upscaleBloomShader = Shader.Find("Weasel Trust/Upscale Bloom");
-            var displayMainTextureShader = Shader.Find("Weasel Trust/Display Main Texture");
+            var downsampleShader = Shader.Find("Sleek Render/Post Process/Downsample Brightpass");
+            var brightPassShader = Shader.Find("Sleek Render/Post Process/Brightpass");
+            var blurShader = Shader.Find("Sleek Render/Post Process/Horizontal Gaussian Blur");
+            var verticalBlurGammaCorrectionShader = Shader.Find("Sleek Render/Post Process/Vertical Gaussian Blur Gamma Correction");
+            var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
+            var displayMainTextureShader = Shader.Find("Sleek Render/Post Process/Display Main Texture");
 
             _downsampleMaterial = new Material(downsampleShader);
             _brightpassMaterial = new Material(brightPassShader);
             _blurMaterial = new Material(blurShader);
             _verticalBlurGammaCorrectionMaterial = new Material(verticalBlurGammaCorrectionShader);
             _composeMaterial = new Material(composeShader);
-            _upscaleBloomMaterial = new Material(upscaleBloomShader);
             _displayMainTextureMaterial = new Material(displayMainTextureShader);
 
-            var width = _mainCamera.pixelWidth;
-            var height = _mainCamera.pixelHeight;
+            _currentCameraPixelWidth = _mainCamera.pixelWidth;
+            _currentCameraPixelHeight = _mainCamera.pixelHeight;
+
+            var width = _currentCameraPixelWidth;
+            var height = _currentCameraPixelHeight;
 
             var maxHeight = Mathf.Min(height, 720);
             var ratio = (float) maxHeight / height;
@@ -164,18 +167,13 @@ namespace WeaselTrust
             var ySpread = 1 / (float) blurHeight;
             _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._YSpread, ySpread);
 
-            _blurMaterial.SetFloat(Uniforms._XSpread, 1 / (float) blurWidth);
+            _blurMaterial.SetFloat(Uniforms._XSpread, 1.0f / (width * 0.055f));
             _downsampleMaterial.SetVector(Uniforms._TexelSize,
                 new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height, 
                 0f, 0f));
 
             _composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
             _composeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurGammaCorrectedTexture);
-
-            //===============
-            _displayMainTextureMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
-            _upscaleBloomMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurGammaCorrectedTexture);
-            //===============
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");
             renderCameraGameObject.hideFlags = HideFlags.HideAndDontSave;
@@ -199,10 +197,10 @@ namespace WeaselTrust
         {
             var isMetal = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal;
             var isTegra = SystemInfo.graphicsDeviceName.Contains("NVIDIA");
-            var doesntSupportRgb565 = !SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB565);
+            var rgb565NotSupported = !SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB565);
 
             var textureFormat = RenderTextureFormat.RGB565;
-            if (isMetal || isTegra || doesntSupportRgb565)
+            if (isMetal || isTegra || rgb565NotSupported)
             {
                 textureFormat = RenderTextureFormat.ARGB32;
             }
@@ -214,16 +212,34 @@ namespace WeaselTrust
 
         private void ReleaseResources()
         {
-            DestroyImmediate(_downsampleMaterial);
+            DestroyImmediateIfNotNull(_downsampleMaterial);
+            DestroyImmediateIfNotNull(_brightpassMaterial);
+            DestroyImmediateIfNotNull(_blurMaterial);
+            DestroyImmediateIfNotNull(_verticalBlurGammaCorrectionMaterial);
+            DestroyImmediateIfNotNull(_composeMaterial);
+            DestroyImmediateIfNotNull(_displayMainTextureMaterial);
 
-            DestroyImmediate(_downsampledBrightpassTexture);
+            DestroyImmediateIfNotNull(_mainRenderTexture);
+            DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
+            DestroyImmediateIfNotNull(_preBloomTexture);
+            DestroyImmediateIfNotNull(_horizontalBlurTexture);
+            DestroyImmediateIfNotNull(_verticalBlurGammaCorrectedTexture);
+            DestroyImmediateIfNotNull(_finalComposeTexture);
 
-            DestroyImmediate(_renderCamera.gameObject);
+            DestroyImmediateIfNotNull(_fullscreenQuadMesh);
 
-            DestroyImmediate(_mainRenderTexture);
-            DestroyImmediate(_finalComposeTexture);
+            if(_renderCamera != null)
+            {
+                DestroyImmediateIfNotNull(_renderCamera.gameObject);
+            }
+        }
 
-            DestroyImmediate(_fullscreenQuadMesh);
+        private void DestroyImmediateIfNotNull(Object obj)
+        {
+            if(obj != null)
+            {
+                DestroyImmediate(obj);
+            }
         }
 
         public void Blit(Texture source, RenderTexture destination, Material material, int materialPass = 0)
@@ -235,13 +251,36 @@ namespace WeaselTrust
         private static void SetActiveRenderTextureAndClear(RenderTexture destination)
         {
             RenderTexture.active = destination;
-            GL.Clear(true, true, new Color(0.5f, 0.5f, 0.5f, 1f));
+            GL.Clear(true, true, new Color(1f, 0.75f, 0.5f, 0.8f));
         }
 
         private void DrawFullscreenQuad(Texture source, Material material, int materialPass = 0)
         {
             material.SetTexture(Uniforms._MainTex, source);
             material.SetPass(materialPass);
+            Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
+        }
+
+        private void PrepareRenderCamera(Camera renderCamera, Camera mainCamera)
+        {
+            renderCamera.CopyFrom(mainCamera);
+            renderCamera.clearFlags = CameraClearFlags.Color;
+            renderCamera.targetTexture = _mainRenderTexture;
+        }
+
+        private void CheckScreenSizeAndRecreateTexturesIfNeeded(Camera mainCamera)
+        {
+            if(mainCamera.pixelWidth != _currentCameraPixelWidth || mainCamera.pixelHeight != _currentCameraPixelHeight)
+            {
+                ReleaseResources();
+                CreateResources();
+            }
+        }
+
+        private void DrawDebugTexture(Texture texture)
+        {
+            _displayMainTextureMaterial.SetTexture(Uniforms._MainTex, texture);
+            _displayMainTextureMaterial.SetPass(0);
             Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
         }
 

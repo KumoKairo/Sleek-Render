@@ -1,4 +1,4 @@
-﻿Shader "Weasel Trust/Upscale Bloom"
+﻿Shader "Sleek Render/Post Process/Upscale Bloom"
 {
 	Properties
 	{

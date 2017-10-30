@@ -1,4 +1,4 @@
-﻿Shader "Weasel Trust/Horizontal Blur"
+﻿Shader "Sleek Render/Post Process/Horizontal Gaussian Blur"
 {
 	Properties
 	{
@@ -43,9 +43,10 @@
 				o.vertex = v.vertex;
 
 				half4 stepVector = half4(_XSpread, 0.0h, 0.0h, 0.0h);
-				half stepOne = 1.441h;
-				half stepTwo = 3.361h;
-				half stepThree = 4.04h;
+				half stepOne = 1.8h;
+				half stepTwo = 3.6h;
+				half stepThree = 4.6h;
+
 				o.uv_0 = v.uv + stepVector * stepOne;
 				o.uv_1 = v.uv - stepVector * stepOne;
 				o.uv_2 = v.uv + stepVector * stepTwo;

@@ -1,4 +1,4 @@
-﻿Shader "Weasel Trust/Compose"
+﻿Shader "Sleek Render/Post Process/Compose"
 {
 	Properties
 	{

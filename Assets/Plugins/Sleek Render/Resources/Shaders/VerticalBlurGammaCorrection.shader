@@ -1,4 +1,4 @@
-﻿Shader "Weasel Trust/Vertical Blur Gamma Correction"
+﻿Shader "Sleek Render/Post Process/Vertical Gaussian Blur Gamma Correction"
 {
 	Properties
 	{
@@ -45,9 +45,9 @@
 				o.vertex = v.vertex;
 
 				half4 stepVector = half4(0.0h, _YSpread, 0.0h, 0.0h);
-				half stepOne = 1.441h;
-				half stepTwo = 3.361h;
-				half stepThree = 4.04h;
+				half stepOne = 1.5h;
+				half stepTwo = 3.0h;
+				half stepThree = 4.2h;
 				o.uv_0 = v.uv + stepVector * stepOne;
 				o.uv_1 = v.uv - stepVector * stepOne;
 				o.uv_2 = v.uv + stepVector * stepTwo;

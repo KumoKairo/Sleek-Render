@@ -1,4 +1,4 @@
-﻿Shader "Weasel Trust/Brightpass"
+﻿Shader "Sleek Render/Post Process/Brightpass"
 {
 	Properties
 	{

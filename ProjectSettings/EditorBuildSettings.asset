@@ -6,5 +6,5 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Floating Island.unity
+    path: Assets/Plugins/Sleek Render/Scenes/Floating Island.unity
     guid: bd7e52b3b253d694bbd7803e87ebbd98

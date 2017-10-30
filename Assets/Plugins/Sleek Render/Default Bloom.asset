@@ -11,5 +11,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
   m_Name: Default Bloom
   m_EditorClassIdentifier: 
-  bloomThreshold: 0.02
-  bloomIntensity: 3
+  bloomThreshold: 0
+  bloomIntensity: 1.24

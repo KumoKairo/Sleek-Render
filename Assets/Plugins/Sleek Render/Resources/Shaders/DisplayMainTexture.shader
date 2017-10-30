@@ -1,4 +1,4 @@
-﻿Shader "Weasel Trust/Display Main Texture"
+﻿Shader "Sleek Render/Post Process/Display Main Texture"
 {
 	Properties
 	{

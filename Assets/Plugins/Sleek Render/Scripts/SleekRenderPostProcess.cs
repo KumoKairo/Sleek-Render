@@ -62,8 +62,28 @@ namespace SleekRender
 
             PrepareRenderCamera(_renderCamera, _mainCamera);
 
+            _mainRenderTexture.DiscardContents(true, true);
             _renderCamera.Render();
             ApplyBloom();
+        }
+
+        private CameraClearFlags clearFlags;
+        private void OnPreCull()
+        {
+            _originalCullingMask = _mainCamera.cullingMask;
+            _mainCamera.cullingMask = 0;
+
+            clearFlags = _mainCamera.clearFlags;
+            _mainCamera.clearFlags = CameraClearFlags.SolidColor;
+        }
+
+        private void OnPostRender()
+        {
+            _mainCamera.cullingMask = _originalCullingMask;
+            _mainCamera.clearFlags = clearFlags;
+
+            _composeMaterial.SetPass(0);
+            Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
         }
 
         private void ApplyBloom()
@@ -91,31 +111,6 @@ namespace SleekRender
             _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
             _verticalBlurGammaCorrectionMaterial.SetPass(0);
             Blit(_horizontalBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
-        }
-
-        private void OnRenderObject()
-        {
-            int instanceId = Camera.current.GetInstanceID();
-            if (instanceId == this._mainCamera.GetInstanceID())
-            {
-                _composeMaterial.SetPass(0);
-                Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
-            }
-            else
-            {
-                _mainRenderTexture.DiscardContents(false, true);
-            }
-        }
-
-        private void OnPreCull()
-        {
-            _originalCullingMask = _mainCamera.cullingMask;
-            _mainCamera.cullingMask = 0;
-        }
-
-        private void OnPostRender()
-        {
-            _mainCamera.cullingMask = _originalCullingMask;
         }
 
         private void CreateResources()
@@ -203,7 +198,8 @@ namespace SleekRender
             }
 
             var renderTexture = new RenderTexture(width, height, 16, textureFormat);
-            renderTexture.antiAliasing = QualitySettings.antiAliasing;
+            var antialiasingSamples = QualitySettings.antiAliasing;
+            renderTexture.antiAliasing = antialiasingSamples == 0 ? 1 : antialiasingSamples;
             return renderTexture;
         }
 

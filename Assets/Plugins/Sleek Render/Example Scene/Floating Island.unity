@@ -10229,7 +10229,6 @@ GameObject:
   - component: {fileID: 670914262}
   - component: {fileID: 670914259}
   - component: {fileID: 670914264}
-  - component: {fileID: 670914260}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -10244,69 +10243,6 @@ AudioListener:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 670914258}
   m_Enabled: 1
---- !u!114 &670914260
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 670914258}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e038005619490fe408d8e989d164e2c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Quality: 2
-  BloomEnabled: 1
-  BloomParams:
-    Quality: 2
-    BloomTint: {r: 1, g: 1, b: 1, a: 1}
-    BloomThreshold: 0.207
-    BloomIntensity: 2.38
-    BloomSoftness: 1.44
-  VisualizeBloom: 0
-  LensDirtTexture: {fileID: 2800000, guid: a4fed32d8ef3a744a9fb4ea31840e8e3, type: 3}
-  LensDirtIntensity: 0
-  ChromaticAberration: 0
-  ChromaticAberrationPrecise: 0
-  ChromaticAberrationOffset: 1
-  SCurveIntensity: 0.5
-  LensCurvatureEnabled: 0
-  LensCurvaturePower: 1.1
-  LensCurvaturePrecise: 0
-  FilmGrainIntensity: 0
-  FilmGrainTiling: 4
-  VignettingIntensity: 0
-  DOFEnabled: 0
-  BlurCOCTexture: 1
-  DOFParams:
-    UseUnityDepthBuffer: 1
-    AutoFocus: 1
-    AutoFocusLayerMask:
-      serializedVersion: 2
-      m_Bits: 4294967295
-    AutoFocusSpeed: 5
-    FocalLengthMultiplier: 0.33
-    FocalDistMultiplier: 1
-    DOFBlurSize: 1
-    BokehEnabled: 0
-    DepthCompression: 4
-    EffectCamera: {fileID: 670914262}
-    Target: {fileID: 0}
-    BokehThreshold: 0.5
-    BokehGain: 2
-    BokehBias: 0.5
-    DoubleIntensityBlur: 0
-  VisualizeCOC: 0
-  ColorEffectsEnabled: 0
-  CloseTint: {r: 1, g: 0.5, b: 0, a: 1}
-  FarTint: {r: 0, g: 0, b: 1, a: 1}
-  CloseTintStrength: 0.5
-  FarTintStrength: 0.5
-  DesaturateDarksStrength: 0.5
-  DesaturateFarObjsStrength: 0.5
-  FogTint: {r: 1, g: 1, b: 1, a: 1}
-  FogStrength: 0.5
-  HalfResolution: 0
 --- !u!20 &670914262
 Camera:
   m_ObjectHideFlags: 0
@@ -10367,7 +10303,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ae0f3a7e2d72c1428326c5518fdc2f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settings: {fileID: 11400000, guid: a380794ab535ffe4f9ac5b7dee1d737e, type: 2}
+  settings: {fileID: 11400000, guid: be2120d8dbb123647827ad8fd5937bd2, type: 2}
 --- !u!1 &1200284065
 GameObject:
   m_ObjectHideFlags: 0

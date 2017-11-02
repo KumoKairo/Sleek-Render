@@ -61,7 +61,10 @@ namespace SleekRender
             #endif
 
             PrepareRenderCamera(_renderCamera, _mainCamera);
-
+            
+            // Right now we're on mobiles and should discard every time
+            // TODO - add an if statements that checks that the GPU is actually tile-based
+            _mainRenderTexture.DiscardContents(true, true);
             _renderCamera.Render();
             ApplyBloom();
         }

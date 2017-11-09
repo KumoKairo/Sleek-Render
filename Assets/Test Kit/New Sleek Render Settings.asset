@@ -13,3 +13,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bloomThreshold: 0.6
   bloomIntensity: 2.5
+  colorize:
+    serializedVersion: 2
+    rgba: 1822143184

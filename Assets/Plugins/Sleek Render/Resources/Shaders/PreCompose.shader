@@ -1,10 +1,9 @@
-﻿Shader "Sleek Render/Post Process/Compose"
+﻿Shader "Sleek Render/Post Process/PreCompose"
 {
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-		_PreComposeTex("Pre Compose", 2D) = "black" {}
-		_Colorize("Colorize", vector) = (1.0, 1.0, 1.0, 0.0)
+		_BloomTex("Bloom", 2D) = "black" {}
 	}
 	SubShader
 	{
@@ -17,6 +16,8 @@
 			#pragma vertex vert
 			#pragma fragment frag
 			
+			#include "UnityCG.cginc"
+
 			struct appdata
 			{
 				half4 vertex : POSITION;
@@ -43,18 +44,12 @@
 				return o;
 			}
 			
-			sampler2D _MainTex, _PreComposeTex;
-			half4 _Colorize;
+			sampler2D _MainTex, _BloomTex;
 
 			half4 frag (v2f i) : SV_Target
 			{
-				half4 col = tex2D(_MainTex, i.uv);
-				half4 bloom = tex2D(_PreComposeTex, i.uv);
-				half4 mainColor = col + bloom;
-
-				half3 result = mainColor * (1.0h - _Colorize.a) + _Colorize.a * _Colorize.rgb * dot(half3(0.2126h, 0.7152h, 0.0722h), mainColor.rgb);
-
-				return half4(result, 1.0);
+				half4 mainColor = tex2D(_MainTex, i.uv);
+				return mainColor;
 			}
 			ENDCG
 		}

@@ -8,16 +8,20 @@ namespace SleekRender
     [ExecuteInEditMode, DisallowMultipleComponent]
     public class SleekRenderPostProcess : MonoBehaviour
     {
+        public UnityEngine.UI.Text elapsed;
+
         private static class Uniforms
         {
             public static readonly int _LuminanceConst = Shader.PropertyToID("_LuminanceConst");
-            public static readonly int _SpreadDirection = Shader.PropertyToID("_SpreadDirection");
             public static readonly int _BloomIntencity = Shader.PropertyToID("_BloomIntencity");
             public static readonly int _MainTex = Shader.PropertyToID("_MainTex");
             public static readonly int _BloomTex = Shader.PropertyToID("_BloomTex");
+            public static readonly int _PreComposeTex = Shader.PropertyToID("_PreComposeTex");
             public static readonly int _YSpread = Shader.PropertyToID("_YSpread");
             public static readonly int _XSpread = Shader.PropertyToID("_XSpread");
             public static readonly int _TexelSize = Shader.PropertyToID("_TexelSize");
+            public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
+            public static readonly int _AspectCorrection = Shader.PropertyToID("_AspectCorrection");
         }
 
         public SleekRenderSettings settings;
@@ -25,6 +29,7 @@ namespace SleekRender
         private Material _brightpassMaterial;
         private Material _blurMaterial;
         private Material _verticalBlurGammaCorrectionMaterial;
+        private Material _preComposeMaterial;
         private Material _composeMaterial;
         private Material _displayMainTextureMaterial;
 
@@ -33,12 +38,14 @@ namespace SleekRender
         private RenderTexture _preBloomTexture;
         private RenderTexture _horizontalBlurTexture;
         private RenderTexture _verticalBlurGammaCorrectedTexture;
+        private RenderTexture _preComposeTexture;
         private RenderTexture _finalComposeTexture;
 
         private Camera _mainCamera;
         private Camera _renderCamera;
         private Mesh _fullscreenQuadMesh;
         private int _originalCullingMask;
+        private CameraClearFlags _originalClearFlags;
 
         private int _currentCameraPixelWidth;
         private int _currentCameraPixelHeight;
@@ -67,21 +74,29 @@ namespace SleekRender
             ApplyBloom();
         }
 
-        private CameraClearFlags clearFlags;
         private void OnPreCull()
         {
             _originalCullingMask = _mainCamera.cullingMask;
             _mainCamera.cullingMask = 0;
 
-            clearFlags = _mainCamera.clearFlags;
+            _originalClearFlags = _mainCamera.clearFlags;
             _mainCamera.clearFlags = CameraClearFlags.SolidColor;
         }
 
         private void OnPostRender()
         {
             _mainCamera.cullingMask = _originalCullingMask;
-            _mainCamera.clearFlags = clearFlags;
+            _mainCamera.clearFlags = _originalClearFlags;
 
+            Compose();
+        }
+
+        private void Compose()
+        {
+            var colorize = settings.colorize;
+            var vectorColor = new Vector4(colorize.r * 0.0039216f, colorize.g * 0.0039216f, colorize.b * 0.0039216f, colorize.a * 0.0039216f);
+
+            _composeMaterial.SetVector(Uniforms._Colorize, vectorColor);
             _composeMaterial.SetPass(0);
             Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
         }
@@ -105,7 +120,6 @@ namespace SleekRender
 
             Blit(_downsampledBrightpassTexture, _preBloomTexture, _brightpassMaterial);
 
-            _blurMaterial.SetVector(Uniforms._SpreadDirection, new Vector4(1f, 0f, 0f, 0f));
             Blit(_preBloomTexture, _horizontalBlurTexture, _blurMaterial);
 
             _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
@@ -123,19 +137,21 @@ namespace SleekRender
             var verticalBlurGammaCorrectionShader = Shader.Find("Sleek Render/Post Process/Vertical Gaussian Blur Gamma Correction");
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
             var displayMainTextureShader = Shader.Find("Sleek Render/Post Process/Display Main Texture");
+            var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
 
             _downsampleMaterial = new Material(downsampleShader);
             _brightpassMaterial = new Material(brightPassShader);
             _blurMaterial = new Material(blurShader);
             _verticalBlurGammaCorrectionMaterial = new Material(verticalBlurGammaCorrectionShader);
+            _preComposeMaterial = new Material(preComposeShader);
             _composeMaterial = new Material(composeShader);
             _displayMainTextureMaterial = new Material(displayMainTextureShader);
 
             _currentCameraPixelWidth = _mainCamera.pixelWidth;
             _currentCameraPixelHeight = _mainCamera.pixelHeight;
 
-            var width = _currentCameraPixelWidth;
-            var height = _currentCameraPixelHeight;
+            int width = _currentCameraPixelWidth;
+            int height = _currentCameraPixelHeight;
 
             var maxHeight = Mathf.Min(height, 720);
             var ratio = (float) maxHeight / height;
@@ -143,12 +159,13 @@ namespace SleekRender
             int blurWidth = 32;
             int blurHeight = 128;
 
-            int downsampleWidth = Mathf.RoundToInt((width * ratio) / 4);
-            int downsampleHeight = Mathf.RoundToInt((height * ratio) / 4);
+            int downsampleWidth = Mathf.RoundToInt((width * ratio) / 8);
+            int downsampleHeight = Mathf.RoundToInt((height * ratio) / 8);
 
             _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", downsampleWidth, downsampleHeight);
             _preBloomTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
             _horizontalBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
+            _preComposeTexture = CreateTransientRenderTexture("Pre Compose", downsampleWidth, downsampleHeight);
             _verticalBlurGammaCorrectedTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
 
             _mainRenderTexture = CreateMainRenderTexture(width, height);
@@ -159,13 +176,15 @@ namespace SleekRender
             var ySpread = 1 / (float) blurHeight;
             _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._YSpread, ySpread);
 
-            _blurMaterial.SetFloat(Uniforms._XSpread, 1.0f / (width * 0.055f));
+            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurGammaCorrectedTexture);
+
+            _blurMaterial.SetFloat(Uniforms._XSpread, 1.0f / blurWidth);
             _downsampleMaterial.SetVector(Uniforms._TexelSize,
                 new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height, 
                 0f, 0f));
 
             _composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
-            _composeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurGammaCorrectedTexture);
+            _composeMaterial.SetTexture(Uniforms._PreComposeTex, _verticalBlurGammaCorrectedTexture);
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");
             renderCameraGameObject.hideFlags = HideFlags.HideAndDontSave;
@@ -209,6 +228,7 @@ namespace SleekRender
             DestroyImmediateIfNotNull(_brightpassMaterial);
             DestroyImmediateIfNotNull(_blurMaterial);
             DestroyImmediateIfNotNull(_verticalBlurGammaCorrectionMaterial);
+            DestroyImmediateIfNotNull(_preComposeMaterial);
             DestroyImmediateIfNotNull(_composeMaterial);
             DestroyImmediateIfNotNull(_displayMainTextureMaterial);
 
@@ -217,6 +237,7 @@ namespace SleekRender
             DestroyImmediateIfNotNull(_preBloomTexture);
             DestroyImmediateIfNotNull(_horizontalBlurTexture);
             DestroyImmediateIfNotNull(_verticalBlurGammaCorrectedTexture);
+            DestroyImmediateIfNotNull(_preComposeTexture);
             DestroyImmediateIfNotNull(_finalComposeTexture);
 
             DestroyImmediateIfNotNull(_fullscreenQuadMesh);

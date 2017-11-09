@@ -81,10 +81,10 @@
 				half4 tap_6 = tex2D(_MainTex, i.uv_0);
 
 				half4 col = 
-					tap_4 * 0.015625 + tap_5 * 0.015625
-					+ tap_3 * 0.0937 + tap_2 * 0.0937
-					+ tap_6 * 0.234375 + tap_1 * 0.234375
-					+ tap_0 * 0.3125;
+					tap_4 * 0.015625h + tap_5 * 0.015625h
+					+ tap_3 * 0.0937h + tap_2 * 0.0937h
+					+ tap_6 * 0.234375h + tap_1 * 0.234375h
+					+ tap_0 * 0.3125h;
 
 				return col;
 			}

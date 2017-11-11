@@ -11,8 +11,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
   m_Name: New Sleek Render Settings
   m_EditorClassIdentifier: 
-  bloomThreshold: 0.6
-  bloomIntensity: 2.5
+  bloomThreshold: 0.646
+  bloomIntensity: 0
   colorize:
     serializedVersion: 2
-    rgba: 1822143184
+    rgba: 4294967295
+  vignetteBeginRadius: 0
+  vignetteEndRadius: 0
+  vignetteColor:
+    serializedVersion: 2
+    rgba: 4278190080

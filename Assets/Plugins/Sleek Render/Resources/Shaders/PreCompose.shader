@@ -2,8 +2,9 @@
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
 		_BloomTex("Bloom", 2D) = "black" {}
+		_VignetteForm("Vignette Form", vector) = (1.0, 1.0, 1.0, 1.0)
+		_VignetteColor("Vignette Color", color) = (0.0, 0.0, 0.0, 1.0)
 	}
 	SubShader
 	{
@@ -44,11 +45,12 @@
 				return o;
 			}
 			
-			sampler2D _MainTex, _BloomTex;
+			sampler2D _BloomTex;
+			half4 _VignetteForm, _VignetteColor;
 
 			half4 frag (v2f i) : SV_Target
 			{
-				half4 mainColor = tex2D(_MainTex, i.uv);
+				half4 mainColor = tex2D(_BloomTex, i.uv);
 				return mainColor;
 			}
 			ENDCG

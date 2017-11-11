@@ -4,7 +4,7 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		_PreComposeTex("Pre Compose", 2D) = "black" {}
-		_Colorize("Colorize", vector) = (1.0, 1.0, 1.0, 0.0)
+		_Colorize("Colorize", color) = (1.0, 1.0, 1.0, 0.0)
 	}
 	SubShader
 	{

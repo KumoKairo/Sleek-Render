@@ -8,8 +8,6 @@ namespace SleekRender
     [ExecuteInEditMode, DisallowMultipleComponent]
     public class SleekRenderPostProcess : MonoBehaviour
     {
-        public UnityEngine.UI.Text elapsed;
-
         private static class Uniforms
         {
             public static readonly int _LuminanceConst = Shader.PropertyToID("_LuminanceConst");
@@ -21,7 +19,8 @@ namespace SleekRender
             public static readonly int _XSpread = Shader.PropertyToID("_XSpread");
             public static readonly int _TexelSize = Shader.PropertyToID("_TexelSize");
             public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
-            public static readonly int _AspectCorrection = Shader.PropertyToID("_AspectCorrection");
+            public static readonly int _VignetteForm = Shader.PropertyToID("_VignetteForm");
+            public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
         }
 
         public SleekRenderSettings settings;
@@ -71,7 +70,7 @@ namespace SleekRender
 
             _mainRenderTexture.DiscardContents(true, true);
             _renderCamera.Render();
-            ApplyBloom();
+            ApplyPostProcess();
         }
 
         private void OnPreCull()
@@ -93,15 +92,12 @@ namespace SleekRender
 
         private void Compose()
         {
-            var colorize = settings.colorize;
-            var vectorColor = new Vector4(colorize.r * 0.0039216f, colorize.g * 0.0039216f, colorize.b * 0.0039216f, colorize.a * 0.0039216f);
-
-            _composeMaterial.SetVector(Uniforms._Colorize, vectorColor);
+            _composeMaterial.SetColor(Uniforms._Colorize, settings.colorize);
             _composeMaterial.SetPass(0);
             Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
         }
 
-        private void ApplyBloom()
+        private void ApplyPostProcess()
         {
             #if UNITY_EDITOR
             CreateDefaultSettingsIfNoneLinked();
@@ -125,6 +121,10 @@ namespace SleekRender
             _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
             _verticalBlurGammaCorrectionMaterial.SetPass(0);
             Blit(_horizontalBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
+
+            float totalVignetteRadius = settings.vignetteBeginRadius + settings.vignetteEndRadius;
+            float oneOverSquareRadiusDistance = 1f / (totalVignetteRadius * totalVignetteRadius - settings.vignetteBeginRadius * settings.vignetteBeginRadius);
+
         }
 
         private void CreateResources()

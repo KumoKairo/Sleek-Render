@@ -14,17 +14,5 @@ namespace SleekRender
 
         [Header("Color overlay (alpha sets intensity)")]
         public Color32 colorize = Color.clear;
-
-        [HideInInspector]
-        [Header("Vignette")]
-        [Range(0f, 1f)]
-        public float vignetteBeginRadius = 0f;
-
-        [HideInInspector]
-        [Range(0f, 1f)]
-        public float vignetteEndRadius = 0f;
-
-        [HideInInspector]
-        public Color32 vignetteColor = Color.black;
     }
 }

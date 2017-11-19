@@ -23,6 +23,10 @@ public class FPSDisplay : MonoBehaviour, IPointerClickHandler
 
         _accumulatedTime = 0f;
         _accumulatedFrames = 0;
+
+        var width = Screen.width;
+        var height = Screen.height;
+        Screen.SetResolution(width, height, true);
     }
 
     void Update()

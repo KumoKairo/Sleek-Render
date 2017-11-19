@@ -121,10 +121,6 @@ namespace SleekRender
             _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
             _verticalBlurGammaCorrectionMaterial.SetPass(0);
             Blit(_horizontalBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
-
-            float totalVignetteRadius = settings.vignetteBeginRadius + settings.vignetteEndRadius;
-            float oneOverSquareRadiusDistance = 1f / (totalVignetteRadius * totalVignetteRadius - settings.vignetteBeginRadius * settings.vignetteBeginRadius);
-
         }
 
         private void CreateResources()

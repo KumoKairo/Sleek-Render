@@ -15,7 +15,7 @@ MonoBehaviour:
   bloomIntensity: 3.23
   colorize:
     serializedVersion: 2
-    rgba: 1157627903
+    rgba: 4278190080
   vignetteBeginRadius: 0
   vignetteEndRadius: 0
   vignetteColor:

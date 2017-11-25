@@ -3,12 +3,11 @@
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-		_PreComposeTex("Pre Compose", 2D) = "black" {}
+		_PreComposeTex("PreCompose Texture", 2D) = "black" {}
 		_Colorize("Colorize", color) = (1.0, 1.0, 1.0, 0.0)
 	}
 	SubShader
 	{
-		// No culling or depth
 		Cull Off ZWrite Off ZTest Always
 
 		Pass
@@ -49,10 +48,10 @@
 			half4 frag (v2f i) : SV_Target
 			{
 				half4 col = tex2D(_MainTex, i.uv);
-				half4 bloom = tex2D(_PreComposeTex, i.uv);
-				half4 mainColor = col + bloom;
+				half4 precompose = tex2D(_PreComposeTex, i.uv);
+				half3 mainColor = col.rgb * precompose.a + precompose.rgb;
 
-				half3 result = mainColor * (1.0h - _Colorize.a) + _Colorize.a * _Colorize.rgb * dot(half3(0.2126h, 0.7152h, 0.0722h), mainColor.rgb);
+				half3 result = mainColor * (1.0h - _Colorize.a) + _Colorize.a * _Colorize.rgb * dot(half3(0.2126h, 0.7152h, 0.0722h), mainColor);
 
 				return half4(result, 1.0);
 			}

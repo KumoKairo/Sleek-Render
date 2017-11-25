@@ -19,6 +19,10 @@ namespace SleekRender
             public static readonly int _XSpread = Shader.PropertyToID("_XSpread");
             public static readonly int _TexelSize = Shader.PropertyToID("_TexelSize");
             public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
+            public static readonly int _VignetteShape = Shader.PropertyToID("_VignetteShape");
+            public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
+            public static readonly int _GammaCompressionPower = Shader.PropertyToID("_GammaCompressionPower");
+            public static readonly int _GammaCompressionFactor = Shader.PropertyToID("_GammaCompressionFactor");
         }
 
         public SleekRenderSettings settings;
@@ -88,13 +92,6 @@ namespace SleekRender
             Compose();
         }
 
-        private void Compose()
-        {
-            _composeMaterial.SetColor(Uniforms._Colorize, settings.colorize);
-            _composeMaterial.SetPass(0);
-            Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
-        }
-
         private void ApplyPostProcess()
         {
             #if UNITY_EDITOR
@@ -108,6 +105,23 @@ namespace SleekRender
                 0.0722f * oneOverOneMinusBloomThreshold,
                 -settings.bloomThreshold * oneOverOneMinusBloomThreshold);
 
+            float vignetteBeginRadius = settings.vignetteBeginRadius;
+            float squareVignetteBeginRaduis = vignetteBeginRadius * vignetteBeginRadius;
+            float vignetteRadii = vignetteBeginRadius + settings.vignetteExpandRadius;
+            float oneOverVignetteRadiusDistance = 1f / (vignetteRadii - squareVignetteBeginRaduis);
+
+            var vignetteColor = settings.vignetteColor;
+
+            _preComposeMaterial.SetVector(Uniforms._VignetteShape, new Vector4(
+                4f * oneOverVignetteRadiusDistance * oneOverVignetteRadiusDistance,
+                -oneOverVignetteRadiusDistance * squareVignetteBeginRaduis));
+
+            _preComposeMaterial.SetColor(Uniforms._VignetteColor, new Color(
+                    vignetteColor.r * vignetteColor.a, 
+                    vignetteColor.g * vignetteColor.a,
+                    vignetteColor.b * vignetteColor.a,
+                    vignetteColor.a));
+
             _downsampleMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
 
             Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
@@ -116,9 +130,23 @@ namespace SleekRender
 
             Blit(_preBloomTexture, _horizontalBlurTexture, _blurMaterial);
 
-            _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
             _verticalBlurGammaCorrectionMaterial.SetPass(0);
             Blit(_horizontalBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
+
+            _preComposeMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
+
+            float gammaCompressionPower = settings.gammaCompressionPower;
+            _preComposeMaterial.SetFloat(Uniforms._GammaCompressionPower, gammaCompressionPower);
+            _preComposeMaterial.SetFloat(Uniforms._GammaCompressionFactor, Mathf.Pow(settings.hdrMaxIntensity, -gammaCompressionPower));
+
+            Blit(_downsampledBrightpassTexture, _preComposeTexture, _preComposeMaterial);
+        }
+
+        private void Compose()
+        {
+            _composeMaterial.SetColor(Uniforms._Colorize, settings.colorize);
+            _composeMaterial.SetPass(0);
+            Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
         }
 
         private void CreateResources()
@@ -178,7 +206,8 @@ namespace SleekRender
                 0f, 0f));
 
             _composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
-            _composeMaterial.SetTexture(Uniforms._PreComposeTex, _verticalBlurGammaCorrectedTexture);
+            //_composeMaterial.SetTexture(Uniforms._PreComposeTex, _verticalBlurGammaCorrectedTexture);
+            _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");
             renderCameraGameObject.hideFlags = HideFlags.HideAndDontSave;
@@ -211,7 +240,7 @@ namespace SleekRender
             }
 
 #if UNITY_EDITOR
-            //textureFormat = RenderTextureFormat.ARGB32;
+            textureFormat = RenderTextureFormat.ARGB32;
 #endif
 
             var renderTexture = new RenderTexture(width, height, 16, textureFormat);

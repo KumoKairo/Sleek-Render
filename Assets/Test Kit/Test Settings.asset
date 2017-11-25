@@ -9,15 +9,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
-  m_Name: New Sleek Render Settings
+  m_Name: Test Settings
   m_EditorClassIdentifier: 
-  bloomThreshold: 0.646
-  bloomIntensity: 0
+  bloomThreshold: 0.793
+  bloomIntensity: 1.8
+  gammaCompressionPower: 0.07
+  hdrMaxIntensity: 82.59
   colorize:
     serializedVersion: 2
-    rgba: 4294967295
-  vignetteBeginRadius: 0
-  vignetteEndRadius: 0
-  vignetteColor:
-    serializedVersion: 2
-    rgba: 4278190080
+    rgba: 1107099583
+  vignetteBeginRadius: 0.438
+  vignetteExpandRadius: 0.91
+  vignetteColor: {r: 0, g: 0, b: 0, a: 0.672}

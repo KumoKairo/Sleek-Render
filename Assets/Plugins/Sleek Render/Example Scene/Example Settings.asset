@@ -11,8 +11,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
   m_Name: Example Settings
   m_EditorClassIdentifier: 
-  bloomThreshold: 0.965
-  bloomIntensity: 1.95
+  bloomThreshold: 0.537
+  bloomIntensity: 3.6
+  gammaCompressionPower: 0
+  hdrMaxIntensity: 0
   colorize:
     serializedVersion: 2
-    rgba: 0
+    rgba: 905963982
+  vignetteBeginRadius: 0.166
+  vignetteExpandRadius: 1.34
+  vignetteColor: {r: 0.49264705, g: 0.24137707, b: 0.10504975, a: 0.441}

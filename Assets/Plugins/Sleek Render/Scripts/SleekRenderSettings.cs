@@ -12,7 +12,22 @@ namespace SleekRender
         [Range(0f, 15f)]
         public float bloomIntensity = 2.5f;
 
+        [Header("HDR Compression")]
+        [Range(0f, 1f)]
+        public float gammaCompressionPower = 0.05f;
+
+        [Range(0f, 100f)]
+        public float hdrMaxIntensity = 1f;
+
         [Header("Color overlay (alpha sets intensity)")]
         public Color32 colorize = Color.clear;
+
+        [Header("Vignette")]
+        [Range(0f, 1f)]
+        public float vignetteBeginRadius = 0f;
+
+        public float vignetteExpandRadius = 1f;
+
+        public Color vignetteColor = Color.black;
     }
 }

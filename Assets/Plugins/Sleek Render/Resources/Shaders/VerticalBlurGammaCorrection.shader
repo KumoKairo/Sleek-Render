@@ -4,12 +4,10 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		_BloomTex("Bloom", 2D) = "black" {}
-		_BloomIntencity("Bloom Intensity", float) = 0.672
 		_YSpread("Y Spread", float) = 0
 	}
 	SubShader
 	{
-		// No culling or depth
 		Cull Off ZWrite Off ZTest Always
 
 		Pass
@@ -27,16 +25,16 @@
 			struct v2f
 			{
 				half4 vertex : SV_POSITION;
-				float2 uv_0 : TEXCOORD0;
-				float2 uv_1 : TEXCOORD1;
-				float2 uv_2 : TEXCOORD2;
-				float2 uv_3 : TEXCOORD3;
-				float2 uv_4 : TEXCOORD4;
-				float2 uv_5 : TEXCOORD5;
-				float2 uv_6 : TEXCOORD6;
+				half2 uv_0 : TEXCOORD0;
+				half2 uv_1 : TEXCOORD1;
+				half2 uv_2 : TEXCOORD2;
+				half2 uv_3 : TEXCOORD3;
+				half2 uv_4 : TEXCOORD4;
+				half2 uv_5 : TEXCOORD5;
+				half2 uv_6 : TEXCOORD6;
 			};
 
-			float _BloomIntencity, _YSpread;
+			half _BloomIntencity, _YSpread;
 			sampler2D _MainTex, _BloomTex;
 
 			v2f vert (appdata v)
@@ -81,19 +79,12 @@
 				half4 tap_6 = tex2D(_BloomTex, i.uv_0);
 
 				half4 bloomColor = 
-					tap_4 * 0.015625 + tap_5 * 0.015625
-					+ tap_3 * 0.0937 + tap_2 * 0.0937
-					+ tap_6 * 0.234375 + tap_1 * 0.234375
-					+ tap_0 * 0.3125;
+					tap_4 * 0.015625h + tap_5 * 0.015625h
+					+ tap_3 * 0.0937h + tap_2 * 0.0937h
+					+ tap_6 * 0.234375h + tap_1 * 0.234375h
+					+ tap_0 * 0.3125h;
 
-				half4 color = tex2D(_MainTex, i.uv_6);
-				half luma = dot(color.rgb + bloomColor.rgb * _BloomIntencity, half3(0.2126h, 0.7152h, 0.0722h));
-				half gammaCorrectionFactor = 0.933033;
-				half gammaCorrectionPower = 0.05;
-				half gammaCompression = gammaCorrectionFactor * pow(luma, gammaCorrectionPower);
-				half4 bloom = bloomColor * gammaCompression * _BloomIntencity;
-
-				return bloom;
+				return bloomColor;
 			}
 			ENDCG
 		}

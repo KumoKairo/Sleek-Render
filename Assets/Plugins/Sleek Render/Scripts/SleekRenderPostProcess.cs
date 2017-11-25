@@ -210,6 +210,10 @@ namespace SleekRender
                 textureFormat = RenderTextureFormat.ARGB32;
             }
 
+#if UNITY_EDITOR
+            //textureFormat = RenderTextureFormat.ARGB32;
+#endif
+
             var renderTexture = new RenderTexture(width, height, 16, textureFormat);
             var antialiasingSamples = QualitySettings.antiAliasing;
             renderTexture.antiAliasing = antialiasingSamples == 0 ? 1 : antialiasingSamples;

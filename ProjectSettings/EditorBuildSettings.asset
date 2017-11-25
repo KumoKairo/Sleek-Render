@@ -11,6 +11,6 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Test Kit/Scene.unity
     guid: ad31f085cb94fc946b9c47e04ec230fd
-  - enabled: 1
+  - enabled: 0
     path: Assets/Test Kit/DTRsTest.unity
     guid: 055e3c20fb3bad54d923c9a6db72eb3a

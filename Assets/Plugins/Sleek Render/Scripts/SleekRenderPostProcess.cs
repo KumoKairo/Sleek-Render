@@ -19,8 +19,6 @@ namespace SleekRender
             public static readonly int _XSpread = Shader.PropertyToID("_XSpread");
             public static readonly int _TexelSize = Shader.PropertyToID("_TexelSize");
             public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
-            public static readonly int _VignetteForm = Shader.PropertyToID("_VignetteForm");
-            public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
         }
 
         public SleekRenderSettings settings;
@@ -211,6 +209,10 @@ namespace SleekRender
             {
                 textureFormat = RenderTextureFormat.ARGB32;
             }
+
+#if UNITY_EDITOR
+            //textureFormat = RenderTextureFormat.ARGB32;
+#endif
 
             var renderTexture = new RenderTexture(width, height, 16, textureFormat);
             var antialiasingSamples = QualitySettings.antiAliasing;

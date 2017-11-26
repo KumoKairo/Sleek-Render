@@ -27,7 +27,7 @@ namespace SleekRender
 
         public SleekRenderSettings settings;
         private Material _downsampleMaterial;
-        private Material _brightpassMaterial;
+        private Material _brightpassBlurMaterial;
         private Material _blurMaterial;
         private Material _verticalBlurGammaCorrectionMaterial;
         private Material _preComposeMaterial;
@@ -36,7 +36,7 @@ namespace SleekRender
 
         private RenderTexture _mainRenderTexture;
         private RenderTexture _downsampledBrightpassTexture;
-        private RenderTexture _preBloomTexture;
+        private RenderTexture _brightPassBlurTexture;
         private RenderTexture _horizontalBlurTexture;
         private RenderTexture _verticalBlurGammaCorrectedTexture;
         private RenderTexture _preComposeTexture;
@@ -126,17 +126,15 @@ namespace SleekRender
 
             Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
 
-            Blit(_downsampledBrightpassTexture, _preBloomTexture, _brightpassMaterial);
+            Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _brightpassBlurMaterial);
 
-            Blit(_preBloomTexture, _horizontalBlurTexture, _blurMaterial);
-
-            Blit(_horizontalBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
+            Blit(_brightPassBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
 
             _preComposeMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
 
-            float gammaCompressionPower = settings.gammaCompressionPower;
-            _preComposeMaterial.SetFloat(Uniforms._GammaCompressionPower, gammaCompressionPower);
-            _preComposeMaterial.SetFloat(Uniforms._GammaCompressionFactor, Mathf.Pow(settings.hdrMaxIntensity, -gammaCompressionPower));
+            //float gammaCompressionPower = settings.gammaCompressionPower;
+            //_preComposeMaterial.SetFloat(Uniforms._GammaCompressionPower, gammaCompressionPower);
+            //_preComposeMaterial.SetFloat(Uniforms._GammaCompressionFactor, Mathf.Pow(settings.hdrMaxIntensity, -gammaCompressionPower));
 
             Blit(_downsampledBrightpassTexture, _preComposeTexture, _preComposeMaterial);
         }
@@ -153,7 +151,7 @@ namespace SleekRender
             _mainCamera = GetComponent<Camera>();
 
             var downsampleShader = Shader.Find("Sleek Render/Post Process/Downsample Brightpass");
-            var brightPassShader = Shader.Find("Sleek Render/Post Process/Brightpass");
+            var brightPassShader = Shader.Find("Sleek Render/Post Process/Brightpass Blur");
             var blurShader = Shader.Find("Sleek Render/Post Process/Horizontal Gaussian Blur");
             var verticalBlurGammaCorrectionShader = Shader.Find("Sleek Render/Post Process/Vertical Gaussian Blur Gamma Correction");
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
@@ -161,7 +159,7 @@ namespace SleekRender
             var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
 
             _downsampleMaterial = new Material(downsampleShader);
-            _brightpassMaterial = new Material(brightPassShader);
+            _brightpassBlurMaterial = new Material(brightPassShader);
             _blurMaterial = new Material(blurShader);
             _verticalBlurGammaCorrectionMaterial = new Material(verticalBlurGammaCorrectionShader);
             _preComposeMaterial = new Material(preComposeShader);
@@ -180,14 +178,14 @@ namespace SleekRender
             int blurWidth = 32;
             int blurHeight = 128;
 
-            int downsampleWidth = Mathf.RoundToInt((width * ratio) / 8);
-            int downsampleHeight = Mathf.RoundToInt((height * ratio) / 8);
+            int downsampleWidth = Mathf.RoundToInt((width * ratio) / 5);
+            int downsampleHeight = Mathf.RoundToInt((height * ratio) / 5);
 
             _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", downsampleWidth, downsampleHeight);
-            _preBloomTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
-            _horizontalBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
+            _brightPassBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
+            _horizontalBlurTexture = CreateTransientRenderTexture("Horizontal Blur", blurWidth, blurHeight);
+            _verticalBlurGammaCorrectedTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
             _preComposeTexture = CreateTransientRenderTexture("Pre Compose", downsampleWidth, downsampleHeight);
-            _verticalBlurGammaCorrectedTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
 
             _mainRenderTexture = CreateMainRenderTexture(width, height);
             _finalComposeTexture = CreateMainRenderTexture(width, height);
@@ -196,18 +194,18 @@ namespace SleekRender
             _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
 
             var ySpread = 1 / (float) blurHeight;
-            _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._YSpread, ySpread);
-
-            var xSpread = 1 / (float)blurWidth;
-            _blurMaterial.SetFloat(Uniforms._XSpread, xSpread);
+            var xSpread = 1 / (float) blurWidth;
+            var blurTexelSize = new Vector4(xSpread, ySpread);
+            _verticalBlurGammaCorrectionMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
+            _brightpassBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
 
             _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurGammaCorrectedTexture);
 
-            _downsampleMaterial.SetVector(Uniforms._TexelSize,
-                new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height, 
-                0f, 0f));
+            var downsampleTexelSize = new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height);
+            _downsampleMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);
 
             _composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
+            //_composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");
@@ -253,7 +251,7 @@ namespace SleekRender
         private void ReleaseResources()
         {
             DestroyImmediateIfNotNull(_downsampleMaterial);
-            DestroyImmediateIfNotNull(_brightpassMaterial);
+            DestroyImmediateIfNotNull(_brightpassBlurMaterial);
             DestroyImmediateIfNotNull(_blurMaterial);
             DestroyImmediateIfNotNull(_verticalBlurGammaCorrectionMaterial);
             DestroyImmediateIfNotNull(_preComposeMaterial);
@@ -262,7 +260,7 @@ namespace SleekRender
 
             DestroyImmediateIfNotNull(_mainRenderTexture);
             DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
-            DestroyImmediateIfNotNull(_preBloomTexture);
+            DestroyImmediateIfNotNull(_brightPassBlurTexture);
             DestroyImmediateIfNotNull(_horizontalBlurTexture);
             DestroyImmediateIfNotNull(_verticalBlurGammaCorrectedTexture);
             DestroyImmediateIfNotNull(_preComposeTexture);

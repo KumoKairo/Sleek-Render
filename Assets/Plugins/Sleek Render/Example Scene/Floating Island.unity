@@ -10372,6 +10372,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ae0f3a7e2d72c1428326c5518fdc2f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  StepScale: 1.66
   settings: {fileID: 11400000, guid: be2120d8dbb123647827ad8fd5937bd2, type: 2}
 --- !u!1 &1033136814
 GameObject:

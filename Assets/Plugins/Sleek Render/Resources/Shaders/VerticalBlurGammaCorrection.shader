@@ -4,7 +4,7 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		_BloomTex("Bloom", 2D) = "black" {}
-		_YSpread("Y Spread", float) = 0
+		_TexelSize("Texel Size", vector) = (0, 0, 0, 0)
 	}
 	SubShader
 	{
@@ -34,7 +34,8 @@
 				half2 uv_6 : TEXCOORD6;
 			};
 
-			half _BloomIntencity, _YSpread;
+			half _BloomIntencity;
+			half2 _TexelSize;
 			sampler2D _MainTex, _BloomTex;
 
 			v2f vert (appdata v)
@@ -42,17 +43,18 @@
 				v2f o;
 				o.vertex = v.vertex;
 
-				half4 stepVector = half4(0.0h, _YSpread, 0.0h, 0.0h);
-				half stepOne = 1.5h;
-				half stepTwo = 3.0h;
-				half stepThree = 4.2h;
-				o.uv_0 = v.uv + stepVector * stepOne;
-				o.uv_1 = v.uv - stepVector * stepOne;
-				o.uv_2 = v.uv + stepVector * stepTwo;
-				o.uv_3 = v.uv - stepVector * stepTwo;
-				o.uv_4 = v.uv + stepVector * stepThree;
-				o.uv_5 = v.uv - stepVector * stepThree;
-				o.uv_6 = v.uv;
+				half4 stepVector = half4(0.0h, _TexelSize.y, 0.0h, 0.0h);
+				half stepOne = 1.441h;
+				half stepTwo = 3.361h;
+				half stepThree = 5.04h;
+
+				o.uv_0 = v.uv;
+				o.uv_1 = v.uv + stepVector * stepOne;
+				o.uv_2 = v.uv - stepVector * stepOne;
+				o.uv_3 = v.uv + stepVector * stepTwo;
+				o.uv_4 = v.uv - stepVector * stepTwo;
+				o.uv_5 = v.uv + stepVector * stepThree;
+				o.uv_6 = v.uv - stepVector * stepThree;
 
 				if (_ProjectionParams.x < 0)
 				{
@@ -70,21 +72,21 @@
 			
 			half4 frag (v2f i) : SV_Target
 			{
-				half4 tap_0 = tex2D(_BloomTex, i.uv_6);
-				half4 tap_1 = tex2D(_BloomTex, i.uv_1);
-				half4 tap_2 = tex2D(_BloomTex, i.uv_2);
-				half4 tap_3 = tex2D(_BloomTex, i.uv_3);
-				half4 tap_4 = tex2D(_BloomTex, i.uv_4);
-				half4 tap_5 = tex2D(_BloomTex, i.uv_5);
-				half4 tap_6 = tex2D(_BloomTex, i.uv_0);
+				half4 tap_0 = tex2D(_MainTex, i.uv_0);
+				half4 tap_1 = tex2D(_MainTex, i.uv_1);
+				half4 tap_2 = tex2D(_MainTex, i.uv_2);
+				half4 tap_3 = tex2D(_MainTex, i.uv_3);
+				half4 tap_4 = tex2D(_MainTex, i.uv_4);
+				half4 tap_5 = tex2D(_MainTex, i.uv_5);
+				half4 tap_6 = tex2D(_MainTex, i.uv_6);
 
-				half4 bloomColor = 
-					tap_4 * 0.015625h + tap_5 * 0.015625h
-					+ tap_3 * 0.0937h + tap_2 * 0.0937h
-					+ tap_6 * 0.234375h + tap_1 * 0.234375h
-					+ tap_0 * 0.3125h;
+				half4 result 
+					= tap_0 * 0.159h
+					+ (tap_1 + tap_2) * 0.263h
+					+ (tap_3 + tap_4) * 0.122h
+					+ (tap_5 + tap_6) * 0.023h;
 
-				return bloomColor;
+				return result;
 			}
 			ENDCG
 		}

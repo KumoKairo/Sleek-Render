@@ -24,9 +24,9 @@ namespace SleekRender
 
         [Header("Vignette")]
         [Range(0f, 1f)]
-        public float vignetteBeginRadius = 0f;
+        public float vignetteBeginRadius = 0.166f;
 
-        public float vignetteExpandRadius = 1f;
+        public float vignetteExpandRadius = 1.34f;
 
         public Color vignetteColor = Color.black;
     }

@@ -63,10 +63,10 @@
 				half3 rawBloom = tex2D(_BloomTex, i.uv).rgb;
 				half3 bloom = rawBloom * _BloomIntencity;
 
-				half gammaCorrection = _GammaCompressionFactor * pow(dot(mainColor + rawBloom, half3(0.2126h, 0.7152h, 0.0722h)), _GammaCompressionPower);
-				half4 result = half4(bloom * gammaCorrection * vignette.a + vignette.rgb, gammaCorrection * vignette.a);
+				//half gammaCorrection = _GammaCompressionFactor * pow(dot(mainColor + rawBloom, half3(0.2126h, 0.7152h, 0.0722h)), _GammaCompressionPower);
+				//half4 result = half4(bloom * gammaCorrection * vignette.a + vignette.rgb, gammaCorrection * vignette.a);
+				half4 result = half4(bloom * vignette.a + vignette.rgb, vignette.a);
 				return result;
-				//return half4(mainColor, 0.0h);
 			}
 			ENDCG
 		}

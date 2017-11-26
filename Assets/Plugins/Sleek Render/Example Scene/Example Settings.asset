@@ -17,7 +17,7 @@ MonoBehaviour:
   hdrMaxIntensity: 0
   colorize:
     serializedVersion: 2
-    rgba: 905963982
+    rgba: 184549375
   vignetteBeginRadius: 0.166
   vignetteExpandRadius: 1.34
   vignetteColor: {r: 0.49264705, g: 0.24137707, b: 0.10504975, a: 0.441}

@@ -130,7 +130,6 @@ namespace SleekRender
 
             Blit(_preBloomTexture, _horizontalBlurTexture, _blurMaterial);
 
-            _verticalBlurGammaCorrectionMaterial.SetPass(0);
             Blit(_horizontalBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
 
             _preComposeMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
@@ -169,8 +168,8 @@ namespace SleekRender
             _composeMaterial = new Material(composeShader);
             _displayMainTextureMaterial = new Material(displayMainTextureShader);
 
-            _currentCameraPixelWidth = _mainCamera.pixelWidth;
-            _currentCameraPixelHeight = _mainCamera.pixelHeight;
+            _currentCameraPixelWidth = Mathf.RoundToInt(_mainCamera.pixelWidth);
+            _currentCameraPixelHeight = Mathf.RoundToInt(_mainCamera.pixelHeight);
 
             int width = _currentCameraPixelWidth;
             int height = _currentCameraPixelHeight;
@@ -195,18 +194,20 @@ namespace SleekRender
 
             _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
             _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
+
             var ySpread = 1 / (float) blurHeight;
             _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._YSpread, ySpread);
 
+            var xSpread = 1 / (float)blurWidth;
+            _blurMaterial.SetFloat(Uniforms._XSpread, xSpread);
+
             _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurGammaCorrectedTexture);
 
-            _blurMaterial.SetFloat(Uniforms._XSpread, 1.0f / blurWidth);
             _downsampleMaterial.SetVector(Uniforms._TexelSize,
                 new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height, 
                 0f, 0f));
 
             _composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
-            //_composeMaterial.SetTexture(Uniforms._PreComposeTex, _verticalBlurGammaCorrectedTexture);
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");

@@ -167,12 +167,15 @@ namespace SleekRender
 
             _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
             _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
-            var ySpread = 1 / (float) blurHeight;
+
+            var ySpread = 1f / blurHeight;
             _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._YSpread, ySpread);
 
             _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurGammaCorrectedTexture);
 
-            _blurMaterial.SetFloat(Uniforms._XSpread, 1.0f / blurWidth);
+            var xSpread = 1f / blurWidth;
+            _blurMaterial.SetFloat(Uniforms._XSpread, xSpread);
+
             _downsampleMaterial.SetVector(Uniforms._TexelSize,
                 new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height, 
                 0f, 0f));
@@ -211,7 +214,7 @@ namespace SleekRender
             }
 
 #if UNITY_EDITOR
-            //textureFormat = RenderTextureFormat.ARGB32;
+            textureFormat = RenderTextureFormat.ARGB32;
 #endif
 
             var renderTexture = new RenderTexture(width, height, 16, textureFormat);

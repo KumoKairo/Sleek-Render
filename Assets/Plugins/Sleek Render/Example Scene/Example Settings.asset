@@ -11,8 +11,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
   m_Name: Example Settings
   m_EditorClassIdentifier: 
-  bloomThreshold: 0.965
-  bloomIntensity: 1.95
+  bloomThreshold: 0.126
+  bloomIntensity: 6.61
   colorize:
     serializedVersion: 2
     rgba: 0

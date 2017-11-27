@@ -122,6 +122,16 @@ namespace SleekRender
                     vignetteColor.b * vignetteColor.a,
                     vignetteColor.a));
 
+            _verticalBlurGammaCorrectionMaterial.SetVector(Uniforms._VignetteShape, new Vector4(
+                4f * oneOverVignetteRadiusDistance * oneOverVignetteRadiusDistance,
+                -oneOverVignetteRadiusDistance * squareVignetteBeginRaduis));
+
+            _verticalBlurGammaCorrectionMaterial.SetColor(Uniforms._VignetteColor, new Color(
+                vignetteColor.r * vignetteColor.a,
+                vignetteColor.g * vignetteColor.a,
+                vignetteColor.b * vignetteColor.a,
+                vignetteColor.a));
+
             _downsampleMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
 
             Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
@@ -132,9 +142,9 @@ namespace SleekRender
 
             _preComposeMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
 
-            //float gammaCompressionPower = settings.gammaCompressionPower;
-            //_preComposeMaterial.SetFloat(Uniforms._GammaCompressionPower, gammaCompressionPower);
-            //_preComposeMaterial.SetFloat(Uniforms._GammaCompressionFactor, Mathf.Pow(settings.hdrMaxIntensity, -gammaCompressionPower));
+            float gammaCompressionPower = settings.gammaCompressionPower;
+            _preComposeMaterial.SetFloat(Uniforms._GammaCompressionPower, gammaCompressionPower);
+            _preComposeMaterial.SetFloat(Uniforms._GammaCompressionFactor, Mathf.Pow(settings.hdrMaxIntensity, -gammaCompressionPower));
 
             Blit(_downsampledBrightpassTexture, _preComposeTexture, _preComposeMaterial);
         }
@@ -205,7 +215,6 @@ namespace SleekRender
             _downsampleMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);
 
             _composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
-            //_composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");

@@ -16,7 +16,7 @@ namespace SleekRender
         [Range(0f, 1f)]
         public float gammaCompressionPower = 0.05f;
 
-        [Range(0f, 100f)]
+        [Range(0.01f, 100f)]
         public float hdrMaxIntensity = 1f;
 
         [Header("Color overlay (alpha sets intensity)")]

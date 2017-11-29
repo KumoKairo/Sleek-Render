@@ -23,8 +23,6 @@ namespace SleekRender
         public Color32 colorize = Color.clear;
 
         [Header("Vignette")]
-        public Texture vignetteTexture;
-
         [Range(0f, 1f)]
         public float vignetteBeginRadius = 0.166f;
 

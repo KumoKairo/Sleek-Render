@@ -210,7 +210,6 @@ namespace SleekRender
             _brightpassBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
 
             _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurGammaCorrectedTexture);
-            _preComposeMaterial.SetTexture("_VignetteTex", settings.vignetteTexture);
 
             var downsampleTexelSize = new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height);
             _downsampleMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);

@@ -6,7 +6,7 @@ public class FPSDisplay : MonoBehaviour, IPointerClickHandler
 {
     public Text text;
 
-    private const float UPDATE_EVERY = 0.3f;
+    private const float UPDATE_EVERY = 0.15f;
 
     private float _accumulatedTime = 0f;
     private int _accumulatedFrames = 0;

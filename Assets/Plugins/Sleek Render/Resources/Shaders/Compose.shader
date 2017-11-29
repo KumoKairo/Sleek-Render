@@ -49,12 +49,11 @@
 			{
 				half4 col = tex2D(_MainTex, i.uv);
 				half4 precompose = tex2D(_PreComposeTex, i.uv);
-				//half3 mainColor = col.rgb * precompose.a + precompose.rgb;
-				half3 mainColor = col.rgb + precompose.rgb;
+				half3 mainColor = col.rgb * precompose.a + precompose.rgb;
 
-				//half3 result = mainColor * (1.0h - _Colorize.a) + _Colorize.a * _Colorize.rgb * dot(half3(0.2126h, 0.7152h, 0.0722h), mainColor);
+				half3 result = mainColor * (1.0h - _Colorize.a) + _Colorize.a * _Colorize.rgb * dot(half3(0.2126h, 0.7152h, 0.0722h), mainColor);
 
-				return half4(mainColor, 1.0h);
+				return half4(result, 1.0h);
 			}
 			ENDCG
 		}

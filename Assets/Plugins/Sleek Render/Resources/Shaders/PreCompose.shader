@@ -48,7 +48,7 @@
 				return o;
 			}
 			
-			sampler2D _BloomTex, _MainTex;
+			sampler2D_half _BloomTex, _MainTex;
 			half4 _VignetteShape, _VignetteColor;
 			half _GammaCompressionFactor, _GammaCompressionPower, _BloomIntencity;
 

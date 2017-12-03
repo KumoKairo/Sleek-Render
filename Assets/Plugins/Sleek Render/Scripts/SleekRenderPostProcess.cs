@@ -216,6 +216,7 @@ namespace SleekRender
 
             _composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
+            _composeMaterial.SetVector(Uniforms._LuminanceConst, new Vector4(0.2126f, 0.7152f, 0.0722f, 0f));
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");
             renderCameraGameObject.hideFlags = HideFlags.HideAndDontSave;

@@ -44,7 +44,7 @@
 				return o;
 			}
 			
-			sampler2D _MainTex;
+			sampler2D_half _MainTex;
 
 			fixed4 frag (v2f i) : SV_Target
 			{

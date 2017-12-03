@@ -68,7 +68,7 @@
 				return o;
 			}
 			
-			sampler2D _MainTex;
+			sampler2D_half _MainTex;
 
 			half4 frag (v2f i) : SV_Target
 			{

@@ -5,6 +5,7 @@
 		_MainTex ("Texture", 2D) = "white" {}
 		_PreComposeTex("PreCompose Texture", 2D) = "black" {}
 		_Colorize("Colorize", color) = (1.0, 1.0, 1.0, 0.0)
+		_LuminanceConst("Luminance Const", vector) = (0.2126, 0.7152, 0.0722, 0.0)
 	}
 	SubShader
 	{
@@ -42,18 +43,18 @@
 				return o;
 			}
 			
-			sampler2D _MainTex, _PreComposeTex;
-			half4 _Colorize;
+			sampler2D_half _MainTex, _PreComposeTex;
+			half4 _Colorize, _LuminanceConst;
 
 			half4 frag (v2f i) : SV_Target
 			{
 				half4 col = tex2D(_MainTex, i.uv);
 				half4 precompose = tex2D(_PreComposeTex, i.uv);
-				half3 mainColor = col.rgb * precompose.a + precompose.rgb;
+				half3 mainColor = col.rgb + precompose.rgb;//col.rgb * precompose.a + precompose.rgb;
 
-				half3 result = mainColor * (1.0h - _Colorize.a) + _Colorize.a * _Colorize.rgb * dot(half3(0.2126h, 0.7152h, 0.0722h), mainColor);
+				//half3 result = mainColor * (1.0h - _Colorize.a) + _Colorize.a * _Colorize.rgb * dot(_LuminanceConst, mainColor);
 
-				return half4(result, 1.0h);
+				return half4(mainColor, 1.0h);
 			}
 			ENDCG
 		}

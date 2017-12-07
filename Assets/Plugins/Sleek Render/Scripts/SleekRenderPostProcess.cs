@@ -151,7 +151,10 @@ namespace SleekRender
 
         private void Compose()
         {
-            _composeMaterial.SetColor(Uniforms._Colorize, settings.colorize);
+            Color colorize = settings.colorize;
+            var a = colorize.a;
+            var colorizeConstant = new Color(colorize.r * a, colorize.g * a, colorize.b * a, 1f - a);
+            _composeMaterial.SetColor(Uniforms._Colorize, colorizeConstant);
             _composeMaterial.SetPass(0);
             Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
         }

@@ -34,19 +34,14 @@ namespace SleekRender
         private Material _composeMaterial;
         private Material _displayMainTextureMaterial;
 
-        private RenderTexture _mainRenderTexture;
         private RenderTexture _downsampledBrightpassTexture;
         private RenderTexture _brightPassBlurTexture;
         private RenderTexture _horizontalBlurTexture;
         private RenderTexture _verticalBlurGammaCorrectedTexture;
         private RenderTexture _preComposeTexture;
-        private RenderTexture _finalComposeTexture;
 
         private Camera _mainCamera;
-        private Camera _renderCamera;
         private Mesh _fullscreenQuadMesh;
-        private int _originalCullingMask;
-        private CameraClearFlags _originalClearFlags;
 
         private int _currentCameraPixelWidth;
         private int _currentCameraPixelHeight;
@@ -62,37 +57,17 @@ namespace SleekRender
             ReleaseResources();
         }
 
-        private void LateUpdate()
+        private void OnRenderImage(RenderTexture source, RenderTexture target)
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             CheckScreenSizeAndRecreateTexturesIfNeeded(_mainCamera);
-            #endif
+#endif
 
-            PrepareRenderCamera(_renderCamera, _mainCamera);
-
-            _mainRenderTexture.DiscardContents(true, true);
-            _renderCamera.Render();
-            ApplyPostProcess();
+            ApplyPostProcess(source);
+            Compose(source, target);
         }
 
-        private void OnPreCull()
-        {
-            _originalCullingMask = _mainCamera.cullingMask;
-            _mainCamera.cullingMask = 0;
-
-            _originalClearFlags = _mainCamera.clearFlags;
-            _mainCamera.clearFlags = CameraClearFlags.SolidColor;
-        }
-
-        private void OnPostRender()
-        {
-            _mainCamera.cullingMask = _originalCullingMask;
-            _mainCamera.clearFlags = _originalClearFlags;
-
-            Compose();
-        }
-
-        private void ApplyPostProcess()
+        private void ApplyPostProcess(RenderTexture source)
         {
             #if UNITY_EDITOR
             CreateDefaultSettingsIfNoneLinked();
@@ -134,7 +109,7 @@ namespace SleekRender
 
             _downsampleMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
 
-            Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
+            Blit(source, _downsampledBrightpassTexture, _downsampleMaterial);
 
             Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _brightpassBlurMaterial);
 
@@ -149,14 +124,13 @@ namespace SleekRender
             Blit(_downsampledBrightpassTexture, _preComposeTexture, _preComposeMaterial);
         }
 
-        private void Compose()
+        private void Compose(RenderTexture source, RenderTexture target)
         {
             Color colorize = settings.colorize;
             var a = colorize.a;
             var colorizeConstant = new Color(colorize.r * a, colorize.g * a, colorize.b * a, 1f - a);
             _composeMaterial.SetColor(Uniforms._Colorize, colorizeConstant);
-            _composeMaterial.SetPass(0);
-            Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
+            Blit(source, target, _composeMaterial);
         }
 
         private void CreateResources()
@@ -200,9 +174,6 @@ namespace SleekRender
             _verticalBlurGammaCorrectedTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
             _preComposeTexture = CreateTransientRenderTexture("Pre Compose", downsampleWidth, downsampleHeight);
 
-            _mainRenderTexture = CreateMainRenderTexture(width, height);
-            _finalComposeTexture = CreateMainRenderTexture(width, height);
-
             _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
             _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
 
@@ -217,15 +188,11 @@ namespace SleekRender
             var downsampleTexelSize = new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height);
             _downsampleMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);
 
-            _composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
             _composeMaterial.SetVector(Uniforms._LuminanceConst, new Vector4(0.2126f, 0.7152f, 0.0722f, 0f));
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");
             renderCameraGameObject.hideFlags = HideFlags.HideAndDontSave;
-            _renderCamera = renderCameraGameObject.AddComponent<Camera>();
-            _renderCamera.CopyFrom(_mainCamera);
-            _renderCamera.enabled = false;
 
             _fullscreenQuadMesh = CreateScreenSpaceQuadMesh();
         }
@@ -271,20 +238,13 @@ namespace SleekRender
             DestroyImmediateIfNotNull(_composeMaterial);
             DestroyImmediateIfNotNull(_displayMainTextureMaterial);
 
-            DestroyImmediateIfNotNull(_mainRenderTexture);
             DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
             DestroyImmediateIfNotNull(_brightPassBlurTexture);
             DestroyImmediateIfNotNull(_horizontalBlurTexture);
             DestroyImmediateIfNotNull(_verticalBlurGammaCorrectedTexture);
             DestroyImmediateIfNotNull(_preComposeTexture);
-            DestroyImmediateIfNotNull(_finalComposeTexture);
 
             DestroyImmediateIfNotNull(_fullscreenQuadMesh);
-
-            if(_renderCamera != null)
-            {
-                DestroyImmediateIfNotNull(_renderCamera.gameObject);
-            }
         }
 
         private void DestroyImmediateIfNotNull(Object obj)
@@ -312,12 +272,6 @@ namespace SleekRender
             material.SetTexture(Uniforms._MainTex, source);
             material.SetPass(materialPass);
             Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
-        }
-
-        private void PrepareRenderCamera(Camera renderCamera, Camera mainCamera)
-        {
-            renderCamera.CopyFrom(mainCamera);
-            renderCamera.targetTexture = _mainRenderTexture;
         }
 
         private void CheckScreenSizeAndRecreateTexturesIfNeeded(Camera mainCamera)

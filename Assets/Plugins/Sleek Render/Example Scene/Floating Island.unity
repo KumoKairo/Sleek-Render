@@ -13915,7 +13915,7 @@ Prefab:
     - target: {fileID: 223373729041810858, guid: b39c91189cf83324a9336967e408edad,
         type: 2}
       propertyPath: m_RenderMode
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 223373729041810858, guid: b39c91189cf83324a9336967e408edad,
         type: 2}

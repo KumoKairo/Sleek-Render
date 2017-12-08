@@ -20,4 +20,4 @@ MonoBehaviour:
     rgba: 1291648959
   vignetteBeginRadius: 0.33
   vignetteExpandRadius: 1.03
-  vignetteColor: {r: 0, g: 0, b: 0, a: 0.672}
+  vignetteColor: {r: 0, g: 0, b: 0, a: 1}

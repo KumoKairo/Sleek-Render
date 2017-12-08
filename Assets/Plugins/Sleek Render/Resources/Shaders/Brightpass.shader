@@ -7,7 +7,6 @@
 	}
 	SubShader
 	{
-		// No culling or depth
 		Cull Off ZWrite Off ZTest Always
 
 		Pass
@@ -34,7 +33,7 @@
 				half2 uv_6 : TEXCOORD6;
 			};
 			
-			sampler2D _MainTex;
+			sampler2D_half _MainTex;
 			float4 _TexelSize;
 			half _StepScale;
 

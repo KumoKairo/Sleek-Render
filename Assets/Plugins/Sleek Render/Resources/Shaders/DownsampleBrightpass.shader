@@ -32,7 +32,7 @@
 				half2 uv_4 : TEXCOORD4;
 			};
 
-			sampler2D _MainTex;
+			sampler2D_half _MainTex;
 			float4 _TexelSize;
 
 			v2f vert (appdata v)

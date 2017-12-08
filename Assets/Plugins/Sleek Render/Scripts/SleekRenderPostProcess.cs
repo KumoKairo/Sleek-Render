@@ -151,7 +151,10 @@ namespace SleekRender
 
         private void Compose()
         {
-            _composeMaterial.SetColor(Uniforms._Colorize, settings.colorize);
+            Color colorize = settings.colorize;
+            var a = colorize.a;
+            var colorizeConstant = new Color(colorize.r * a, colorize.g * a, colorize.b * a, 1f - a);
+            _composeMaterial.SetColor(Uniforms._Colorize, colorizeConstant);
             _composeMaterial.SetPass(0);
             Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
         }
@@ -216,6 +219,7 @@ namespace SleekRender
 
             _composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
+            _composeMaterial.SetVector(Uniforms._LuminanceConst, new Vector4(0.2126f, 0.7152f, 0.0722f, 0f));
 
             var renderCameraGameObject = new GameObject("Bloom Render Camera");
             renderCameraGameObject.hideFlags = HideFlags.HideAndDontSave;

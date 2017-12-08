@@ -38,7 +38,7 @@
 
 			half _BloomIntencity;
 			half2 _TexelSize;
-			sampler2D _MainTex, _BloomTex;
+			sampler2D_half _MainTex, _BloomTex;
 			half4 _VignetteShape, _VignetteColor;
 
 			v2f vert (appdata v)

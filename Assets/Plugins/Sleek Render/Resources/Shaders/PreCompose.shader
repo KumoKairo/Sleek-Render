@@ -32,14 +32,6 @@
 			{
 				half4 vertex : SV_POSITION;
 				half2 uv : TEXCOORD0;
-				half2 uv1 : TEXCOORD1;
-				half2 uv2 : TEXCOORD2;
-				half2 uv3 : TEXCOORD3;
-				half2 uv4 : TEXCOORD4;
-				half2 uv5 : TEXCOORD5;
-				half2 uv6 : TEXCOORD6;
-				half2 uv7 : TEXCOORD7;
-				half2 uv8 : TEXCOORD8;
 			};
 
 			v2f vert (appdata v)
@@ -56,7 +48,7 @@
 				return o;
 			}
 			
-			sampler2D _BloomTex, _MainTex;
+			sampler2D_half _BloomTex, _MainTex;
 			half4 _VignetteShape, _VignetteColor;
 			half _GammaCompressionFactor, _GammaCompressionPower, _BloomIntencity;
 

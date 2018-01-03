@@ -56,10 +56,12 @@ namespace SleekRender
             DrawColorizeEditor();
             EditorGUILayout.Space();
 
-            _vignetteEnabledProperty.boolValue = EditorGUILayout.ToggleLeft("Vignette", _vignetteEnabledProperty.boolValue);
+            _vignetteEnabledProperty.boolValue = EditorGUIHelper.Header("Vignette",
+                _vignetteEnabledProperty, _vignetteEnabledProperty);
+
             if (_vignetteEnabledProperty.boolValue)
             {
-                EditorGUI.indentLevel += 2;
+                EditorGUI.indentLevel += 1;
 
                 EditorGUILayout.LabelField("Begin radius");
                 EditorGUILayout.Slider(_vignetteBeginRadiusProperty, 0f, 1f, "");
@@ -70,7 +72,7 @@ namespace SleekRender
                 EditorGUILayout.LabelField("Color");
                 _vignetteColorProperty.colorValue = EditorGUILayout.ColorField("", _vignetteColorProperty.colorValue);
 
-                EditorGUI.indentLevel -= 2;
+                EditorGUI.indentLevel -= 1;
             }
 
             EditorGUI.indentLevel = indent;
@@ -79,7 +81,9 @@ namespace SleekRender
 
         private void DrawColorizeEditor()
         {
-            _colorizeEnabledProperty.boolValue = EditorGUILayout.ToggleLeft("Colorize", _colorizeEnabledProperty.boolValue);
+            _colorizeEnabledProperty.boolValue = EditorGUIHelper.Header("Colorize",
+                _colorizeEnabledProperty, _colorizeEnabledProperty);
+
             if (_colorizeEnabledProperty.boolValue)
             {
                 EditorGUI.indentLevel += 2;
@@ -91,8 +95,8 @@ namespace SleekRender
 
         private void DrawHdrCompressionEditor()
         {
-            _hdrCompressionEnabledProperty.boolValue = EditorGUILayout.ToggleLeft("HDR Compression",
-                _hdrCompressionEnabledProperty.boolValue);
+            _hdrCompressionEnabledProperty.boolValue = EditorGUIHelper.Header("HDR Compression",
+                _hdrCompressionEnabledProperty, _hdrCompressionEnabledProperty);
 
             if (_hdrCompressionEnabledProperty.boolValue)
             {
@@ -109,8 +113,8 @@ namespace SleekRender
 
         private void DrawBloomEditor()
         {
-            _bloomEnabledProperty.boolValue = EditorGUILayout.ToggleLeft("Bloom",
-                _bloomEnabledProperty.boolValue);
+            _bloomEnabledProperty.boolValue = EditorGUIHelper.Header("Bloom",
+                _bloomEnabledProperty, _bloomEnabledProperty);
 
             if (_bloomEnabledProperty.boolValue)
             {

@@ -6,17 +6,21 @@ namespace SleekRender
     [CustomEditor(typeof(SleekRenderSettings))]
     public class SleekRenderSettingsInspector : Editor
     {
+        private SerializedProperty _isBloomGroupExpandedProperty;
         private SerializedProperty _bloomEnabledProperty;
         private SerializedProperty _bloomThresholdProperty;
         private SerializedProperty _bloomIntensityProperty;
 
+        private SerializedProperty _isHdrGroupExpandedProperty;
         private SerializedProperty _hdrCompressionEnabledProperty;
         private SerializedProperty _gammaCompressionPowerProperty;
         private SerializedProperty _hdrMaxIntensityProperty;
 
+        private SerializedProperty _isColorizeGroupExpandedProperty;
         private SerializedProperty _colorizeEnabledProperty;
         private SerializedProperty _colorizeProperty;
 
+        private SerializedProperty _isVignetteExpandedProperty;
         private SerializedProperty _vignetteEnabledProperty;
         private SerializedProperty _vignetteBeginRadiusProperty;
         private SerializedProperty _vignetteExpandRadiusProperty;
@@ -24,17 +28,21 @@ namespace SleekRender
 
         private void OnEnable()
         {
+            _isBloomGroupExpandedProperty = serializedObject.FindProperty("bloomExpanded");
             _bloomEnabledProperty = serializedObject.FindProperty("bloomEnabled");
             _bloomThresholdProperty = serializedObject.FindProperty("bloomThreshold");
             _bloomIntensityProperty = serializedObject.FindProperty("bloomIntensity");
 
+            _isHdrGroupExpandedProperty = serializedObject.FindProperty("hdrExpanded");
             _hdrCompressionEnabledProperty = serializedObject.FindProperty("hdrCompressionEnabled");
             _gammaCompressionPowerProperty = serializedObject.FindProperty("gammaCompressionPower");
             _hdrMaxIntensityProperty = serializedObject.FindProperty("hdrMaxIntensity");
 
+            _isColorizeGroupExpandedProperty = serializedObject.FindProperty("colorizeExpanded");
             _colorizeEnabledProperty = serializedObject.FindProperty("colorizeEnabled");
             _colorizeProperty = serializedObject.FindProperty("colorize");
 
+            _isVignetteExpandedProperty = serializedObject.FindProperty("vignetteExpanded");
             _vignetteEnabledProperty = serializedObject.FindProperty("vignetteEnabled");
             _vignetteBeginRadiusProperty = serializedObject.FindProperty("vignetteBeginRadius");
             _vignetteExpandRadiusProperty = serializedObject.FindProperty("vignetteExpandRadius");
@@ -56,10 +64,18 @@ namespace SleekRender
             DrawColorizeEditor();
             EditorGUILayout.Space();
 
-            _vignetteEnabledProperty.boolValue = EditorGUIHelper.Header("Vignette",
-                _vignetteEnabledProperty, _vignetteEnabledProperty);
+            DrawVignetteEditor();
 
-            if (_vignetteEnabledProperty.boolValue)
+            EditorGUI.indentLevel = indent;
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawVignetteEditor()
+        {
+            EditorGUIHelper.Header("Vignette",
+                _isVignetteExpandedProperty, _vignetteEnabledProperty);
+
+            if (_isVignetteExpandedProperty.boolValue)
             {
                 EditorGUI.indentLevel += 1;
 
@@ -74,17 +90,14 @@ namespace SleekRender
 
                 EditorGUI.indentLevel -= 1;
             }
-
-            EditorGUI.indentLevel = indent;
-            serializedObject.ApplyModifiedProperties();
         }
 
         private void DrawColorizeEditor()
         {
-            _colorizeEnabledProperty.boolValue = EditorGUIHelper.Header("Colorize",
-                _colorizeEnabledProperty, _colorizeEnabledProperty);
+            EditorGUIHelper.Header("Colorize",
+                _isColorizeGroupExpandedProperty, _colorizeEnabledProperty);
 
-            if (_colorizeEnabledProperty.boolValue)
+            if (_isColorizeGroupExpandedProperty.boolValue)
             {
                 EditorGUI.indentLevel += 2;
                 EditorGUILayout.LabelField("Color");
@@ -95,10 +108,10 @@ namespace SleekRender
 
         private void DrawHdrCompressionEditor()
         {
-            _hdrCompressionEnabledProperty.boolValue = EditorGUIHelper.Header("HDR Compression",
-                _hdrCompressionEnabledProperty, _hdrCompressionEnabledProperty);
+            EditorGUIHelper.Header("HDR Compression",
+                _isHdrGroupExpandedProperty, _hdrCompressionEnabledProperty);
 
-            if (_hdrCompressionEnabledProperty.boolValue)
+            if (_isHdrGroupExpandedProperty.boolValue)
             {
                 EditorGUI.indentLevel += 2;
 
@@ -113,10 +126,10 @@ namespace SleekRender
 
         private void DrawBloomEditor()
         {
-            _bloomEnabledProperty.boolValue = EditorGUIHelper.Header("Bloom",
-                _bloomEnabledProperty, _bloomEnabledProperty);
+            EditorGUIHelper.Header("Bloom",
+                _isBloomGroupExpandedProperty, _bloomEnabledProperty);
 
-            if (_bloomEnabledProperty.boolValue)
+            if (_isBloomGroupExpandedProperty.boolValue)
             {
                 EditorGUI.indentLevel += 2;
 

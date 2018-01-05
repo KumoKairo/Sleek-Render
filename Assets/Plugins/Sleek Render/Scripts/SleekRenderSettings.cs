@@ -6,6 +6,7 @@ namespace SleekRender
     public class SleekRenderSettings : ScriptableObject
     {
         [Header("Bloom")]
+        public bool bloomExpanded = false;
         public bool bloomEnabled = true;
 
         public float bloomThreshold = 0.6f;
@@ -15,6 +16,7 @@ namespace SleekRender
 
 
         [Header("HDR Compression")]
+        public bool hdrExpanded = true;
         public bool hdrCompressionEnabled = true;
 
         [Range(0f, 1f)]
@@ -24,11 +26,13 @@ namespace SleekRender
         public float hdrMaxIntensity = 1f;
 
         [Header("Color overlay (alpha sets intensity)")]
+        public bool colorizeExpanded = true;
         public bool colorizeEnabled = true;
 
         public Color32 colorize = Color.clear;
 
         [Header("Vignette")]
+        public bool vignetteExpanded = true;
         public bool vignetteEnabled = true;
 
         [Range(0f, 1f)]

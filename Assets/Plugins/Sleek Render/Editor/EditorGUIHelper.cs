@@ -70,10 +70,10 @@ namespace SleekRender
             return display;
         }
 
-        public static bool Header(string title, SerializedProperty group, 
+        public static bool Header(string title, SerializedProperty isExpanded, 
             SerializedProperty enabledField)
         {
-            var display = group == null || group.isExpanded;
+            var display = isExpanded == null || isExpanded.boolValue;
             var enabled = enabledField.boolValue;
 
             var rect = GUILayoutUtility.GetRect(16f, 22f, FxStyles.header);
@@ -83,7 +83,9 @@ namespace SleekRender
             var e = Event.current;
 
             if (e.type == EventType.Repaint)
+            {
                 FxStyles.headerCheckbox.Draw(toggleRect, false, false, enabled, false);
+            }
 
             if (e.type == EventType.MouseDown)
             {
@@ -96,15 +98,12 @@ namespace SleekRender
                 if (toggleRect.Contains(e.mousePosition))
                 {
                     enabledField.boolValue = !enabledField.boolValue;
-
-                    // TODO DISABLE PROPERTY
-
                     e.Use();
                 }
-                else if (rect.Contains(e.mousePosition) && group != null)
+                else if (rect.Contains(e.mousePosition) && isExpanded != null)
                 {
                     display = !display;
-                    group.isExpanded = !group.isExpanded;
+                    isExpanded.boolValue = !isExpanded.boolValue;
                     e.Use();
                 }
             }

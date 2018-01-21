@@ -11,16 +11,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
   m_Name: Test Settings
   m_EditorClassIdentifier: 
-  bloomEnabled: 1
+  bloomExpanded: 1
+  bloomEnabled: 0
   bloomThreshold: 0.685
   bloomIntensity: 5.83
+  hdrExpanded: 1
   hdrCompressionEnabled: 1
   gammaCompressionPower: 0.07
   hdrMaxIntensity: 82.59
+  colorizeExpanded: 1
   colorizeEnabled: 1
   colorize:
     serializedVersion: 2
     rgba: 1291648959
+  vignetteExpanded: 1
   vignetteEnabled: 1
   vignetteBeginRadius: 0.444
   vignetteExpandRadius: 1.1

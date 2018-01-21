@@ -15,21 +15,24 @@ namespace SleekRender
             public static readonly int _MainTex = Shader.PropertyToID("_MainTex");
             public static readonly int _BloomTex = Shader.PropertyToID("_BloomTex");
             public static readonly int _PreComposeTex = Shader.PropertyToID("_PreComposeTex");
-            public static readonly int _YSpread = Shader.PropertyToID("_YSpread");
-            public static readonly int _XSpread = Shader.PropertyToID("_XSpread");
             public static readonly int _TexelSize = Shader.PropertyToID("_TexelSize");
             public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
             public static readonly int _VignetteShape = Shader.PropertyToID("_VignetteShape");
             public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
             public static readonly int _GammaCompressionPower = Shader.PropertyToID("_GammaCompressionPower");
             public static readonly int _GammaCompressionFactor = Shader.PropertyToID("_GammaCompressionFactor");
+
+            // Static flow
+            public static readonly int _IsBloomEnabled = Shader.PropertyToID("_IsBloomEnabled");
+            public static readonly int _IsHdrCompressionEnabled = Shader.PropertyToID("_IsHdrCompressionEnabled");
+            public static readonly int _IsColorizeEnabled = Shader.PropertyToID("_IsColorizeEnabled");
+            public static readonly int _IsVignetteEnabled = Shader.PropertyToID("_IsVignetteEnabled");
         }
 
         public SleekRenderSettings settings;
         private Material _downsampleMaterial;
-        private Material _brightpassBlurMaterial;
-        private Material _blurMaterial;
-        private Material _verticalBlurGammaCorrectionMaterial;
+        private Material _horizontalBlurMaterial;
+        private Material _verticalBlurMaterial;
         private Material _preComposeMaterial;
         private Material _composeMaterial;
         private Material _displayMainTextureMaterial;
@@ -37,7 +40,7 @@ namespace SleekRender
         private RenderTexture _downsampledBrightpassTexture;
         private RenderTexture _brightPassBlurTexture;
         private RenderTexture _horizontalBlurTexture;
-        private RenderTexture _verticalBlurGammaCorrectedTexture;
+        private RenderTexture _verticalBlurTexture;
         private RenderTexture _preComposeTexture;
 
         private Camera _mainCamera;
@@ -73,6 +76,15 @@ namespace SleekRender
             CreateDefaultSettingsIfNoneLinked();
             #endif
 
+            var isBloomEnabled = settings.bloomEnabled;
+
+            Downsample(source);
+            Bloom(isBloomEnabled);
+            Precompose(isBloomEnabled);
+        }
+
+        private void Downsample(RenderTexture source)
+        {
             float oneOverOneMinusBloomThreshold = 1f / (1f - settings.bloomThreshold);
             Vector4 luminanceConst = new Vector4(
                 0.2126f * oneOverOneMinusBloomThreshold,
@@ -80,6 +92,23 @@ namespace SleekRender
                 0.0722f * oneOverOneMinusBloomThreshold,
                 -settings.bloomThreshold * oneOverOneMinusBloomThreshold);
 
+            _downsampleMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
+
+            Blit(source, _downsampledBrightpassTexture, _downsampleMaterial);
+        }
+
+        private void Bloom(bool isBloomEnabled)
+        {
+            if (isBloomEnabled)
+            {
+                Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _horizontalBlurMaterial);
+                Blit(_brightPassBlurTexture, _verticalBlurTexture, _verticalBlurMaterial);
+                _preComposeMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
+            }
+        }
+
+        private void Precompose(bool isBloomEnabled)
+        {
             float vignetteBeginRadius = settings.vignetteBeginRadius;
             float squareVignetteBeginRaduis = vignetteBeginRadius * vignetteBeginRadius;
             float vignetteRadii = vignetteBeginRadius + settings.vignetteExpandRadius;
@@ -96,26 +125,8 @@ namespace SleekRender
                     vignetteColor.g * vignetteColor.a,
                     vignetteColor.b * vignetteColor.a,
                     vignetteColor.a));
-
-            _verticalBlurGammaCorrectionMaterial.SetVector(Uniforms._VignetteShape, new Vector4(
-                4f * oneOverVignetteRadiusDistance * oneOverVignetteRadiusDistance,
-                -oneOverVignetteRadiusDistance * squareVignetteBeginRaduis));
-
-            _verticalBlurGammaCorrectionMaterial.SetColor(Uniforms._VignetteColor, new Color(
-                vignetteColor.r * vignetteColor.a,
-                vignetteColor.g * vignetteColor.a,
-                vignetteColor.b * vignetteColor.a,
-                vignetteColor.a));
-
-            _downsampleMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
-
-            Blit(source, _downsampledBrightpassTexture, _downsampleMaterial);
-
-            Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _brightpassBlurMaterial);
-
-            Blit(_brightPassBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
-
-            _preComposeMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
+                    
+            _preComposeMaterial.SetFloat(Uniforms._IsBloomEnabled, isBloomEnabled ? 1f : 0f);
 
             float gammaCompressionPower = settings.gammaCompressionPower;
             _preComposeMaterial.SetFloat(Uniforms._GammaCompressionPower, gammaCompressionPower);
@@ -138,17 +149,15 @@ namespace SleekRender
             _mainCamera = GetComponent<Camera>();
 
             var downsampleShader = Shader.Find("Sleek Render/Post Process/Downsample Brightpass");
-            var brightPassShader = Shader.Find("Sleek Render/Post Process/Brightpass Blur");
-            var blurShader = Shader.Find("Sleek Render/Post Process/Horizontal Gaussian Blur");
+            var horizontalBlurShader = Shader.Find("Sleek Render/Post Process/Horizontal Blur");
             var verticalBlurGammaCorrectionShader = Shader.Find("Sleek Render/Post Process/Vertical Gaussian Blur Gamma Correction");
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
             var displayMainTextureShader = Shader.Find("Sleek Render/Post Process/Display Main Texture");
             var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
 
             _downsampleMaterial = new Material(downsampleShader);
-            _brightpassBlurMaterial = new Material(brightPassShader);
-            _blurMaterial = new Material(blurShader);
-            _verticalBlurGammaCorrectionMaterial = new Material(verticalBlurGammaCorrectionShader);
+            _horizontalBlurMaterial = new Material(horizontalBlurShader);
+            _verticalBlurMaterial = new Material(verticalBlurGammaCorrectionShader);
             _preComposeMaterial = new Material(preComposeShader);
             _composeMaterial = new Material(composeShader);
             _displayMainTextureMaterial = new Material(displayMainTextureShader);
@@ -171,19 +180,19 @@ namespace SleekRender
             _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", downsampleWidth, downsampleHeight);
             _brightPassBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
             _horizontalBlurTexture = CreateTransientRenderTexture("Horizontal Blur", blurWidth, blurHeight);
-            _verticalBlurGammaCorrectedTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
+            _verticalBlurTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
             _preComposeTexture = CreateTransientRenderTexture("Pre Compose", downsampleWidth, downsampleHeight);
 
-            _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
-            _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
+            _verticalBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
+            _verticalBlurMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
 
             var ySpread = 1 / (float) blurHeight;
             var xSpread = 1 / (float) blurWidth;
             var blurTexelSize = new Vector4(xSpread, ySpread);
-            _verticalBlurGammaCorrectionMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
-            _brightpassBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
+            _verticalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
+            _horizontalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
 
-            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurGammaCorrectedTexture);
+            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurTexture);
 
             var downsampleTexelSize = new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height);
             _downsampleMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);
@@ -231,9 +240,8 @@ namespace SleekRender
         private void ReleaseResources()
         {
             DestroyImmediateIfNotNull(_downsampleMaterial);
-            DestroyImmediateIfNotNull(_brightpassBlurMaterial);
-            DestroyImmediateIfNotNull(_blurMaterial);
-            DestroyImmediateIfNotNull(_verticalBlurGammaCorrectionMaterial);
+            DestroyImmediateIfNotNull(_horizontalBlurMaterial);
+            DestroyImmediateIfNotNull(_verticalBlurMaterial);
             DestroyImmediateIfNotNull(_preComposeMaterial);
             DestroyImmediateIfNotNull(_composeMaterial);
             DestroyImmediateIfNotNull(_displayMainTextureMaterial);
@@ -241,7 +249,7 @@ namespace SleekRender
             DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
             DestroyImmediateIfNotNull(_brightPassBlurTexture);
             DestroyImmediateIfNotNull(_horizontalBlurTexture);
-            DestroyImmediateIfNotNull(_verticalBlurGammaCorrectedTexture);
+            DestroyImmediateIfNotNull(_verticalBlurTexture);
             DestroyImmediateIfNotNull(_preComposeTexture);
 
             DestroyImmediateIfNotNull(_fullscreenQuadMesh);

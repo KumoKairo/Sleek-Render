@@ -12,19 +12,19 @@ MonoBehaviour:
   m_Name: Example Settings
   m_EditorClassIdentifier: 
   bloomExpanded: 1
-  bloomEnabled: 1
-  bloomThreshold: 0.075
-  bloomIntensity: 3.63
-  hdrExpanded: 1
+  bloomEnabled: 0
+  bloomThreshold: 0.201
+  bloomIntensity: 3.71
+  hdrExpanded: 0
   hdrCompressionEnabled: 1
   gammaCompressionPower: 0.059
   hdrMaxIntensity: 30
-  colorizeExpanded: 1
+  colorizeExpanded: 0
   colorizeEnabled: 1
   colorize:
     serializedVersion: 2
     rgba: 1979709390
-  vignetteExpanded: 1
+  vignetteExpanded: 0
   vignetteEnabled: 1
   vignetteBeginRadius: 0.714
   vignetteExpandRadius: 0.97

@@ -5,8 +5,6 @@
 		_MainTex ("Texture", 2D) = "white" {}
 		_BloomTex("Bloom", 2D) = "black" {}
 		_TexelSize("Texel Size", vector) = (0, 0, 0, 0)
-		_VignetteShape("Vignette Form", vector) = (1.0, 1.0, 1.0, 1.0)
-		_VignetteColor("Vignette Color", color) = (0.0, 0.0, 0.0, 1.0)
 	}
 	SubShader
 	{
@@ -36,10 +34,8 @@
 				half2 uv_6 : TEXCOORD6;
 			};
 
-			half _BloomIntencity;
 			half2 _TexelSize;
-			sampler2D_half _MainTex, _BloomTex;
-			half4 _VignetteShape, _VignetteColor;
+			sampler2D_half _MainTex;
 
 			v2f vert (appdata v)
 			{

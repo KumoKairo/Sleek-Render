@@ -72,7 +72,7 @@ namespace SleekRender
 
         private void DrawVignetteEditor()
         {
-            EditorGUIHelper.Header("Vignette",
+            Header("Vignette",
                 _isVignetteExpandedProperty, _vignetteEnabledProperty);
 
             if (_isVignetteExpandedProperty.boolValue)
@@ -94,7 +94,7 @@ namespace SleekRender
 
         private void DrawColorizeEditor()
         {
-            EditorGUIHelper.Header("Colorize",
+            Header("Colorize",
                 _isColorizeGroupExpandedProperty, _colorizeEnabledProperty);
 
             if (_isColorizeGroupExpandedProperty.boolValue)
@@ -108,7 +108,7 @@ namespace SleekRender
 
         private void DrawHdrCompressionEditor()
         {
-            EditorGUIHelper.Header("HDR Compression",
+            Header("HDR Compression",
                 _isHdrGroupExpandedProperty, _hdrCompressionEnabledProperty);
 
             if (_isHdrGroupExpandedProperty.boolValue)
@@ -126,7 +126,7 @@ namespace SleekRender
 
         private void DrawBloomEditor()
         {
-            EditorGUIHelper.Header("Bloom",
+            Header("Bloom",
                 _isBloomGroupExpandedProperty, _bloomEnabledProperty);
 
             if (_isBloomGroupExpandedProperty.boolValue)
@@ -140,6 +140,47 @@ namespace SleekRender
 
                 EditorGUI.indentLevel -= 2;
             }
+        }
+
+        public static bool Header(string title, SerializedProperty isExpanded,
+            SerializedProperty enabledField)
+        {
+            var display = isExpanded == null || isExpanded.boolValue;
+            var enabled = enabledField.boolValue;
+
+            var rect = GUILayoutUtility.GetRect(16f, 22f, FxStyles.header);
+            GUI.Box(rect, title, FxStyles.header);
+
+            var toggleRect = new Rect(rect.x + 4f, rect.y + 4f, 13f, 13f);
+            var e = Event.current;
+
+            if (e.type == EventType.Repaint)
+            {
+                FxStyles.headerCheckbox.Draw(toggleRect, false, false, enabled, false);
+            }
+
+            if (e.type == EventType.MouseDown)
+            {
+                const float kOffset = 2f;
+                toggleRect.x -= kOffset;
+                toggleRect.y -= kOffset;
+                toggleRect.width += kOffset * 2f;
+                toggleRect.height += kOffset * 2f;
+
+                if (toggleRect.Contains(e.mousePosition))
+                {
+                    enabledField.boolValue = !enabledField.boolValue;
+                    e.Use();
+                }
+                else if (rect.Contains(e.mousePosition) && isExpanded != null)
+                {
+                    display = !display;
+                    isExpanded.boolValue = !isExpanded.boolValue;
+                    e.Use();
+                }
+            }
+
+            return display;
         }
     }
 }

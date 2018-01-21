@@ -108,6 +108,23 @@ NavMeshSettings:
     tileSize: 256
     accuratePlacement: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &267473173 stripped
+GameObject:
+  m_PrefabParentObject: {fileID: 1039119774396536, guid: b39c91189cf83324a9336967e408edad,
+    type: 2}
+  m_PrefabInternal: {fileID: 1564990318}
+--- !u!114 &267473176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 267473173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0384eac184bef224fb7de6a13bcc577c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings: {fileID: 11400000, guid: 0add8ba1a908883458e7a4558ea4c535, type: 2}
 --- !u!1 &475393532
 GameObject:
   m_ObjectHideFlags: 0
@@ -565,6 +582,16 @@ Prefab:
         type: 2}
       propertyPath: m_AnchoredPosition.x
       value: 7.619995
+      objectReference: {fileID: 0}
+    - target: {fileID: 114242858764264090, guid: b39c91189cf83324a9336967e408edad,
+        type: 2}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 267473176}
+    - target: {fileID: 114242858764264090, guid: b39c91189cf83324a9336967e408edad,
+        type: 2}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnToggleChanged
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: b39c91189cf83324a9336967e408edad, type: 2}

@@ -19,8 +19,7 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			
-			#include "UnityCG.cginc"
+			#pragma multi_compile _ BLOOM_ON
 
 			struct appdata
 			{
@@ -50,7 +49,7 @@
 			
 			sampler2D_half _BloomTex, _MainTex;
 			half4 _VignetteShape, _VignetteColor;
-			half _GammaCompressionFactor, _GammaCompressionPower, _BloomIntencity, _IsBloomEnabled;
+			half _GammaCompressionFactor, _GammaCompressionPower, _BloomIntencity;
 
 			half4 frag (v2f i) : SV_Target
 			{
@@ -60,14 +59,17 @@
 				half4 vignette = half4(_VignetteColor.rgb * vignetteShape, 1.0h - _VignetteColor.a * vignetteShape);
 				half3 mainColor = tex2D(_MainTex, i.uv).rgb;
 
+				#ifdef BLOOM_ON
 				half3 bloom = half3(0.0h, 0.0h, 0.0h);
-				if(_IsBloomEnabled > 0.0h)
-				{
-					half4 rawBloom = tex2D(_BloomTex, i.uv);
-					bloom = rawBloom * _BloomIntencity;
-				}
+				half4 rawBloom = tex2D(_BloomTex, i.uv);
+				bloom = rawBloom * _BloomIntencity;
+				mainColor = mainColor + bloom;
+				#else
+				half3 bloom = half3(0.0h, 0.0h, 0.0h);
+				#endif
 
-				half gammaCorrection = _GammaCompressionFactor * pow(dot(mainColor + bloom, half3(0.2126h, 0.7152h, 0.0722h)), _GammaCompressionPower);
+				half gammaCorrection = _GammaCompressionFactor * pow(dot(mainColor, half3(0.2126h, 0.7152h, 0.0722h)), _GammaCompressionPower);
+
 				half4 result = half4(bloom * gammaCorrection * vignette.a + vignette.rgb, vignette.a);
 				return result;
 			}

@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Name: Test Settings
   m_EditorClassIdentifier: 
   bloomExpanded: 1
-  bloomEnabled: 0
+  bloomEnabled: 1
   bloomThreshold: 0.685
-  bloomIntensity: 5.83
-  hdrExpanded: 1
+  bloomIntensity: 2.11
+  hdrExpanded: 0
   hdrCompressionEnabled: 1
   gammaCompressionPower: 0.07
   hdrMaxIntensity: 82.59
@@ -23,8 +23,8 @@ MonoBehaviour:
   colorizeEnabled: 1
   colorize:
     serializedVersion: 2
-    rgba: 1291648959
-  vignetteExpanded: 1
+    rgba: 1286384863
+  vignetteExpanded: 0
   vignetteEnabled: 1
   vignetteBeginRadius: 0.444
   vignetteExpandRadius: 1.1

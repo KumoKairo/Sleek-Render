@@ -16,6 +16,8 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
+
+			#pragma multi_compile _ COLORIZE_ON
 			
 			struct appdata
 			{
@@ -45,6 +47,7 @@
 			
 			sampler2D_half _MainTex, _PreComposeTex;
 			half4 _Colorize, _LuminanceConst;
+			half _IsColorizeEnabled;
 
 			half4 frag (v2f i) : SV_Target
 			{
@@ -52,7 +55,11 @@
 				half4 precompose = tex2D(_PreComposeTex, i.uv);
 				half3 mainColor = col.rgb * precompose.a + precompose.rgb;
 
+				#ifdef COLORIZE_ON
 				half3 result = mainColor * _Colorize.a + _Colorize.rgb * dot(_LuminanceConst, mainColor);
+				#else 
+				half3 result = mainColor;
+				#endif
 
 				return half4(result, 1.0h);
 			}

@@ -22,11 +22,12 @@ namespace SleekRender
             public static readonly int _GammaCompressionPower = Shader.PropertyToID("_GammaCompressionPower");
             public static readonly int _GammaCompressionFactor = Shader.PropertyToID("_GammaCompressionFactor");
 
-            // Static flow
-            public static readonly int _IsBloomEnabled = Shader.PropertyToID("_IsBloomEnabled");
-            public static readonly int _IsHdrCompressionEnabled = Shader.PropertyToID("_IsHdrCompressionEnabled");
-            public static readonly int _IsColorizeEnabled = Shader.PropertyToID("_IsColorizeEnabled");
-            public static readonly int _IsVignetteEnabled = Shader.PropertyToID("_IsVignetteEnabled");
+        }
+
+        private static class Keywords
+        {
+            public const string COLORIZE_ON = "COLORIZE_ON";
+            public const string BLOOM_ON = "BLOOM_ON";
         }
 
         public SleekRenderSettings settings;
@@ -48,6 +49,9 @@ namespace SleekRender
 
         private int _currentCameraPixelWidth;
         private int _currentCameraPixelHeight;
+
+        private bool _isColorizeAlreadyEnabled = false;
+        private bool _isBloomAlreadyEnabled = false;
 
         private void OnEnable()
         {
@@ -72,9 +76,9 @@ namespace SleekRender
 
         private void ApplyPostProcess(RenderTexture source)
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             CreateDefaultSettingsIfNoneLinked();
-            #endif
+#endif
 
             var isBloomEnabled = settings.bloomEnabled;
 
@@ -121,16 +125,25 @@ namespace SleekRender
                 -oneOverVignetteRadiusDistance * squareVignetteBeginRaduis));
 
             _preComposeMaterial.SetColor(Uniforms._VignetteColor, new Color(
-                    vignetteColor.r * vignetteColor.a, 
+                    vignetteColor.r * vignetteColor.a,
                     vignetteColor.g * vignetteColor.a,
                     vignetteColor.b * vignetteColor.a,
                     vignetteColor.a));
-                    
-            _preComposeMaterial.SetFloat(Uniforms._IsBloomEnabled, isBloomEnabled ? 1f : 0f);
 
             float gammaCompressionPower = settings.gammaCompressionPower;
             _preComposeMaterial.SetFloat(Uniforms._GammaCompressionPower, gammaCompressionPower);
             _preComposeMaterial.SetFloat(Uniforms._GammaCompressionFactor, Mathf.Pow(settings.hdrMaxIntensity, -gammaCompressionPower));
+
+            if (settings.bloomEnabled && !_isBloomAlreadyEnabled)
+            {
+                _preComposeMaterial.EnableKeyword(Keywords.BLOOM_ON);
+                _isBloomAlreadyEnabled = true;
+            }
+            else if (!settings.bloomEnabled && _isBloomAlreadyEnabled)
+            {
+                _preComposeMaterial.DisableKeyword(Keywords.BLOOM_ON);
+                _isBloomAlreadyEnabled = false;
+            }
 
             Blit(_downsampledBrightpassTexture, _preComposeTexture, _preComposeMaterial);
         }
@@ -141,6 +154,18 @@ namespace SleekRender
             var a = colorize.a;
             var colorizeConstant = new Color(colorize.r * a, colorize.g * a, colorize.b * a, 1f - a);
             _composeMaterial.SetColor(Uniforms._Colorize, colorizeConstant);
+
+            if (settings.colorizeEnabled && !_isColorizeAlreadyEnabled)
+            {
+                _composeMaterial.EnableKeyword(Keywords.COLORIZE_ON);
+                _isColorizeAlreadyEnabled = true;
+            }
+            else if (!settings.colorizeEnabled && _isColorizeAlreadyEnabled)
+            {
+                _composeMaterial.DisableKeyword(Keywords.COLORIZE_ON);
+                _isColorizeAlreadyEnabled = false;
+            }
+
             Blit(source, target, _composeMaterial);
         }
 
@@ -169,7 +194,7 @@ namespace SleekRender
             int height = _currentCameraPixelHeight;
 
             var maxHeight = Mathf.Min(height, 720);
-            var ratio = (float) maxHeight / height;
+            var ratio = (float)maxHeight / height;
 
             int blurWidth = 32;
             int blurHeight = 128;
@@ -186,8 +211,8 @@ namespace SleekRender
             _verticalBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
             _verticalBlurMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
 
-            var ySpread = 1 / (float) blurHeight;
-            var xSpread = 1 / (float) blurWidth;
+            var ySpread = 1 / (float)blurHeight;
+            var xSpread = 1 / (float)blurWidth;
             var blurTexelSize = new Vector4(xSpread, ySpread);
             _verticalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
             _horizontalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
@@ -204,6 +229,9 @@ namespace SleekRender
             renderCameraGameObject.hideFlags = HideFlags.HideAndDontSave;
 
             _fullscreenQuadMesh = CreateScreenSpaceQuadMesh();
+
+            _isColorizeAlreadyEnabled = false;
+            _isBloomAlreadyEnabled = false;
         }
 
         private RenderTexture CreateTransientRenderTexture(string textureName, int width, int height)
@@ -257,7 +285,7 @@ namespace SleekRender
 
         private void DestroyImmediateIfNotNull(Object obj)
         {
-            if(obj != null)
+            if (obj != null)
             {
                 DestroyImmediate(obj);
             }
@@ -284,7 +312,7 @@ namespace SleekRender
 
         private void CheckScreenSizeAndRecreateTexturesIfNeeded(Camera mainCamera)
         {
-            if(mainCamera.pixelWidth != _currentCameraPixelWidth || mainCamera.pixelHeight != _currentCameraPixelHeight)
+            if (mainCamera.pixelWidth != _currentCameraPixelWidth || mainCamera.pixelHeight != _currentCameraPixelHeight)
             {
                 ReleaseResources();
                 CreateResources();
@@ -293,7 +321,7 @@ namespace SleekRender
 
         private void CreateDefaultSettingsIfNoneLinked()
         {
-            if(settings == null)
+            if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<SleekRenderSettings>();
                 settings.name = "Default Settings";

@@ -69,10 +69,12 @@
 				#endif
 
 				#ifdef BLOOM_ON
-				half4 rawBloom = tex2D(_BloomTex, i.uv) * _BloomTint;
-				half3 bloom = rawBloom * _BloomIntencity;
+				half4 rawBloom = tex2D(_BloomTex, i.uv);
+				half rawBloomIntencity = dot(rawBloom.rgb, half3(0.2126h, 0.7152h, 0.0722h));
+				half3 bloom = rawBloom * _BloomIntencity * _BloomTint;
 				mainColor = mainColor + bloom;
 				alphaMultiplier *= bloom;
+				vignetteAlpha *= 1.0h - rawBloomIntencity;
 				#else
 				alphaMultiplier *= 0.0h;
 				#endif

@@ -11,11 +11,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
   m_Name: Test Settings
   m_EditorClassIdentifier: 
-  bloomExpanded: 0
+  bloomExpanded: 1
   bloomEnabled: 1
   bloomThreshold: 0.685
   bloomIntensity: 1.59
-  bloomTint: {r: 1, g: 1, b: 1, a: 1}
+  bloomTint: {r: 0.8235294, g: 0.01211069, b: 0.29750624, a: 1}
   colorizeExpanded: 0
   colorizeEnabled: 0
   colorize:

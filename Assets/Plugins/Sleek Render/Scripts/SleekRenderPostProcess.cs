@@ -35,7 +35,6 @@ namespace SleekRender
         private Material _verticalBlurMaterial;
         private Material _preComposeMaterial;
         private Material _composeMaterial;
-        private Material _displayMainTextureMaterial;
 
         private RenderTexture _downsampledBrightpassTexture;
         private RenderTexture _brightPassBlurTexture;
@@ -193,7 +192,6 @@ namespace SleekRender
             var horizontalBlurShader = Shader.Find("Sleek Render/Post Process/Horizontal Blur");
             var verticalBlurShader = Shader.Find("Sleek Render/Post Process/Vertical Blur");
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
-            var displayMainTextureShader = Shader.Find("Sleek Render/Post Process/Display Main Texture");
             var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
 
             _downsampleMaterial = new Material(downsampleShader);
@@ -201,7 +199,6 @@ namespace SleekRender
             _verticalBlurMaterial = new Material(verticalBlurShader);
             _preComposeMaterial = new Material(preComposeShader);
             _composeMaterial = new Material(composeShader);
-            _displayMainTextureMaterial = new Material(displayMainTextureShader);
 
             _currentCameraPixelWidth = Mathf.RoundToInt(_mainCamera.pixelWidth);
             _currentCameraPixelHeight = Mathf.RoundToInt(_mainCamera.pixelHeight);
@@ -289,7 +286,6 @@ namespace SleekRender
             DestroyImmediateIfNotNull(_verticalBlurMaterial);
             DestroyImmediateIfNotNull(_preComposeMaterial);
             DestroyImmediateIfNotNull(_composeMaterial);
-            DestroyImmediateIfNotNull(_displayMainTextureMaterial);
 
             DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
             DestroyImmediateIfNotNull(_brightPassBlurTexture);
@@ -343,13 +339,6 @@ namespace SleekRender
                 settings = ScriptableObject.CreateInstance<SleekRenderSettings>();
                 settings.name = "Default Settings";
             }
-        }
-
-        private void DrawDebugTexture(Texture texture)
-        {
-            _displayMainTextureMaterial.SetTexture(Uniforms._MainTex, texture);
-            _displayMainTextureMaterial.SetPass(0);
-            Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
         }
 
         private Mesh CreateScreenSpaceQuadMesh()

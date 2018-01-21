@@ -1,4 +1,4 @@
-﻿Shader "Sleek Render/Post Process/Vertical Gaussian Blur Gamma Correction"
+﻿Shader "Sleek Render/Post Process/Vertical Blur"
 {
 	Properties
 	{

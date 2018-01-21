@@ -12,6 +12,7 @@ namespace SleekRender
         {
             public static readonly int _LuminanceConst = Shader.PropertyToID("_LuminanceConst");
             public static readonly int _BloomIntencity = Shader.PropertyToID("_BloomIntencity");
+            public static readonly int _BloomTint = Shader.PropertyToID("_BloomTint");
             public static readonly int _MainTex = Shader.PropertyToID("_MainTex");
             public static readonly int _BloomTex = Shader.PropertyToID("_BloomTex");
             public static readonly int _PreComposeTex = Shader.PropertyToID("_PreComposeTex");
@@ -106,7 +107,6 @@ namespace SleekRender
             {
                 Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _horizontalBlurMaterial);
                 Blit(_brightPassBlurTexture, _verticalBlurTexture, _verticalBlurMaterial);
-                _preComposeMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
             }
         }
 
@@ -144,12 +144,18 @@ namespace SleekRender
                         vignetteColor.a));
             }
 
-            if (settings.bloomEnabled && !_isBloomAlreadyEnabled)
+            if (isBloomEnabled)
             {
-                _preComposeMaterial.EnableKeyword(Keywords.BLOOM_ON);
-                _isBloomAlreadyEnabled = true;
+                _preComposeMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
+                _preComposeMaterial.SetColor(Uniforms._BloomTint, settings.bloomTint);
+
+                if (!_isBloomAlreadyEnabled)
+                {
+                    _preComposeMaterial.EnableKeyword(Keywords.BLOOM_ON);
+                    _isBloomAlreadyEnabled = true;
+                }
             }
-            else if (!settings.bloomEnabled && _isBloomAlreadyEnabled)
+            else if (!isBloomEnabled && _isBloomAlreadyEnabled)
             {
                 _preComposeMaterial.DisableKeyword(Keywords.BLOOM_ON);
                 _isBloomAlreadyEnabled = false;
@@ -185,14 +191,14 @@ namespace SleekRender
 
             var downsampleShader = Shader.Find("Sleek Render/Post Process/Downsample Brightpass");
             var horizontalBlurShader = Shader.Find("Sleek Render/Post Process/Horizontal Blur");
-            var verticalBlurGammaCorrectionShader = Shader.Find("Sleek Render/Post Process/Vertical Gaussian Blur Gamma Correction");
+            var verticalBlurShader = Shader.Find("Sleek Render/Post Process/Vertical Blur");
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
             var displayMainTextureShader = Shader.Find("Sleek Render/Post Process/Display Main Texture");
             var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
 
             _downsampleMaterial = new Material(downsampleShader);
             _horizontalBlurMaterial = new Material(horizontalBlurShader);
-            _verticalBlurMaterial = new Material(verticalBlurGammaCorrectionShader);
+            _verticalBlurMaterial = new Material(verticalBlurShader);
             _preComposeMaterial = new Material(preComposeShader);
             _composeMaterial = new Material(composeShader);
             _displayMainTextureMaterial = new Material(displayMainTextureShader);

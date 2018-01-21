@@ -12,16 +12,17 @@ MonoBehaviour:
   m_Name: Test Settings
   m_EditorClassIdentifier: 
   bloomExpanded: 0
-  bloomEnabled: 0
+  bloomEnabled: 1
   bloomThreshold: 0.685
   bloomIntensity: 1.59
+  bloomTint: {r: 1, g: 1, b: 1, a: 1}
   colorizeExpanded: 0
   colorizeEnabled: 0
   colorize:
     serializedVersion: 2
     rgba: 4291428096
   vignetteExpanded: 0
-  vignetteEnabled: 0
+  vignetteEnabled: 1
   vignetteBeginRadius: 0.444
   vignetteExpandRadius: 1.1
   vignetteColor: {r: 0.64705884, g: 0, b: 0, a: 1}

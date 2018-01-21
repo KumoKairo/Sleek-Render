@@ -47,7 +47,7 @@
 			}
 			
 			sampler2D_half _BloomTex, _MainTex;
-			half4 _VignetteShape, _VignetteColor;
+			half4 _VignetteShape, _VignetteColor, _BloomTint;
 			half _BloomIntencity;
 
 			half4 frag (v2f i) : SV_Target
@@ -69,7 +69,7 @@
 				#endif
 
 				#ifdef BLOOM_ON
-				half4 rawBloom = tex2D(_BloomTex, i.uv);
+				half4 rawBloom = tex2D(_BloomTex, i.uv) * _BloomTint;
 				half3 bloom = rawBloom * _BloomIntencity;
 				mainColor = mainColor + bloom;
 				alphaMultiplier *= bloom;

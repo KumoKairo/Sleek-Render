@@ -12,6 +12,7 @@ namespace SleekRender
         public float bloomThreshold = 0.6f;
 
         public float bloomIntensity = 2.5f;
+        public Color bloomTint = Color.white;
 
         [Header("Color overlay (alpha sets intensity)")]
         public bool colorizeExpanded = true;

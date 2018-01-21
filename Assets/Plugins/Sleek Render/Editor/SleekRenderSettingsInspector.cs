@@ -10,6 +10,7 @@ namespace SleekRender
         private SerializedProperty _bloomEnabledProperty;
         private SerializedProperty _bloomThresholdProperty;
         private SerializedProperty _bloomIntensityProperty;
+        private SerializedProperty _bloomTintProperty;
 
         private SerializedProperty _isColorizeGroupExpandedProperty;
         private SerializedProperty _colorizeEnabledProperty;
@@ -27,6 +28,7 @@ namespace SleekRender
             _bloomEnabledProperty = serializedObject.FindProperty("bloomEnabled");
             _bloomThresholdProperty = serializedObject.FindProperty("bloomThreshold");
             _bloomIntensityProperty = serializedObject.FindProperty("bloomIntensity");
+            _bloomTintProperty = serializedObject.FindProperty("bloomTint");
 
             _isColorizeGroupExpandedProperty = serializedObject.FindProperty("colorizeExpanded");
             _colorizeEnabledProperty = serializedObject.FindProperty("colorizeEnabled");
@@ -86,10 +88,10 @@ namespace SleekRender
 
             if (_isColorizeGroupExpandedProperty.boolValue)
             {
-                EditorGUI.indentLevel += 2;
+                EditorGUI.indentLevel += 1;
                 EditorGUILayout.LabelField("Color");
                 _colorizeProperty.colorValue = EditorGUILayout.ColorField("", _colorizeProperty.colorValue);
-                EditorGUI.indentLevel -= 2;
+                EditorGUI.indentLevel -= 1;
             }
         }
 
@@ -100,14 +102,16 @@ namespace SleekRender
 
             if (_isBloomGroupExpandedProperty.boolValue)
             {
-                EditorGUI.indentLevel += 2;
+                EditorGUI.indentLevel += 1;
 
                 EditorGUILayout.LabelField("Bloom threshold");
                 EditorGUILayout.Slider(_bloomThresholdProperty, 0f, 1f, "");
                 EditorGUILayout.LabelField("Bloom intensity");
                 EditorGUILayout.Slider(_bloomIntensityProperty, 0f, 15f, "");
+                EditorGUILayout.LabelField("Bloom tint");
+                _bloomTintProperty.colorValue = EditorGUILayout.ColorField("", _bloomTintProperty.colorValue);
 
-                EditorGUI.indentLevel -= 2;
+                EditorGUI.indentLevel -= 1;
             }
         }
 

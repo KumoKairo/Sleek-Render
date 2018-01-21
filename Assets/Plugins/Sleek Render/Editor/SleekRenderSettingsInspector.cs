@@ -11,11 +11,6 @@ namespace SleekRender
         private SerializedProperty _bloomThresholdProperty;
         private SerializedProperty _bloomIntensityProperty;
 
-        private SerializedProperty _isHdrGroupExpandedProperty;
-        private SerializedProperty _hdrCompressionEnabledProperty;
-        private SerializedProperty _gammaCompressionPowerProperty;
-        private SerializedProperty _hdrMaxIntensityProperty;
-
         private SerializedProperty _isColorizeGroupExpandedProperty;
         private SerializedProperty _colorizeEnabledProperty;
         private SerializedProperty _colorizeProperty;
@@ -32,11 +27,6 @@ namespace SleekRender
             _bloomEnabledProperty = serializedObject.FindProperty("bloomEnabled");
             _bloomThresholdProperty = serializedObject.FindProperty("bloomThreshold");
             _bloomIntensityProperty = serializedObject.FindProperty("bloomIntensity");
-
-            _isHdrGroupExpandedProperty = serializedObject.FindProperty("hdrExpanded");
-            _hdrCompressionEnabledProperty = serializedObject.FindProperty("hdrCompressionEnabled");
-            _gammaCompressionPowerProperty = serializedObject.FindProperty("gammaCompressionPower");
-            _hdrMaxIntensityProperty = serializedObject.FindProperty("hdrMaxIntensity");
 
             _isColorizeGroupExpandedProperty = serializedObject.FindProperty("colorizeExpanded");
             _colorizeEnabledProperty = serializedObject.FindProperty("colorizeEnabled");
@@ -56,9 +46,6 @@ namespace SleekRender
             int indent = EditorGUI.indentLevel;
 
             DrawBloomEditor();
-            EditorGUILayout.Space();
-
-            DrawHdrCompressionEditor();
             EditorGUILayout.Space();
 
             DrawColorizeEditor();
@@ -102,24 +89,6 @@ namespace SleekRender
                 EditorGUI.indentLevel += 2;
                 EditorGUILayout.LabelField("Color");
                 _colorizeProperty.colorValue = EditorGUILayout.ColorField("", _colorizeProperty.colorValue);
-                EditorGUI.indentLevel -= 2;
-            }
-        }
-
-        private void DrawHdrCompressionEditor()
-        {
-            Header("HDR Compression",
-                _isHdrGroupExpandedProperty, _hdrCompressionEnabledProperty);
-
-            if (_isHdrGroupExpandedProperty.boolValue)
-            {
-                EditorGUI.indentLevel += 2;
-
-                EditorGUILayout.LabelField("Gamma compression power");
-                EditorGUILayout.Slider(_gammaCompressionPowerProperty, 0f, 1f, "");
-                EditorGUILayout.LabelField("HDR Max Intensity");
-                EditorGUILayout.Slider(_hdrMaxIntensityProperty, 0f, 15f, "");
-
                 EditorGUI.indentLevel -= 2;
             }
         }

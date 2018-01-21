@@ -11,19 +11,7 @@ namespace SleekRender
 
         public float bloomThreshold = 0.6f;
 
-        [Range(0f, 15f)]
         public float bloomIntensity = 2.5f;
-
-
-        [Header("HDR Compression")]
-        public bool hdrExpanded = true;
-        public bool hdrCompressionEnabled = true;
-
-        [Range(0f, 1f)]
-        public float gammaCompressionPower = 0.05f;
-
-        [Range(0.01f, 100f)]
-        public float hdrMaxIntensity = 1f;
 
         [Header("Color overlay (alpha sets intensity)")]
         public bool colorizeExpanded = true;
@@ -35,7 +23,6 @@ namespace SleekRender
         public bool vignetteExpanded = true;
         public bool vignetteEnabled = true;
 
-        [Range(0f, 1f)]
         public float vignetteBeginRadius = 0.166f;
 
         public float vignetteExpandRadius = 1.34f;

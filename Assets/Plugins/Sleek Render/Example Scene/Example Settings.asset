@@ -11,14 +11,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
   m_Name: Example Settings
   m_EditorClassIdentifier: 
-  bloomExpanded: 0
+  bloomExpanded: 1
   bloomEnabled: 0
   bloomThreshold: 0.201
   bloomIntensity: 3.71
-  hdrExpanded: 1
-  hdrCompressionEnabled: 1
-  gammaCompressionPower: 0.059
-  hdrMaxIntensity: 30
   colorizeExpanded: 1
   colorizeEnabled: 1
   colorize:

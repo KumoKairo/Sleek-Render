@@ -4,8 +4,6 @@
 	{
 		_MainTex("Main Texture", 2D) = "black" {}
 		_BloomTex("Bloom", 2D) = "black" {}
-		_GammaCompressionPower("Gamma Compression Power", float) = 0.05
-		_GammaCompressionFactor("Gamma Compression Factor", float) = 0.933033
 		_BloomIntencity("Bloom Intensity", float) = 0.672
 		_VignetteShape("Vignette Form", vector) = (1.0, 1.0, 1.0, 1.0)
 		_VignetteColor("Vignette Color", color) = (0.0, 0.0, 0.0, 1.0)
@@ -50,7 +48,7 @@
 			
 			sampler2D_half _BloomTex, _MainTex;
 			half4 _VignetteShape, _VignetteColor;
-			half _GammaCompressionFactor, _GammaCompressionPower, _BloomIntencity;
+			half _BloomIntencity;
 
 			half4 frag (v2f i) : SV_Target
 			{
@@ -71,16 +69,15 @@
 				#endif
 
 				#ifdef BLOOM_ON
-				half3 bloom = half3(0.0h, 0.0h, 0.0h);
 				half4 rawBloom = tex2D(_BloomTex, i.uv);
-				bloom = rawBloom * _BloomIntencity;
+				half3 bloom = rawBloom * _BloomIntencity;
 				mainColor = mainColor + bloom;
 				alphaMultiplier *= bloom;
+				#else
+				alphaMultiplier *= 0.0h;
 				#endif
 
-				half gammaCorrection = _GammaCompressionFactor * pow(dot(mainColor, half3(0.2126h, 0.7152h, 0.0722h)), _GammaCompressionPower);
-
-				half4 result = half4(gammaCorrection * alphaMultiplier + vignetteRGB, vignetteAlpha);
+				half4 result = half4(alphaMultiplier + vignetteRGB, vignetteAlpha);
 				return result;
 			}
 			ENDCG

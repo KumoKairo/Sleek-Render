@@ -19,9 +19,6 @@ namespace SleekRender
             public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
             public static readonly int _VignetteShape = Shader.PropertyToID("_VignetteShape");
             public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
-            public static readonly int _GammaCompressionPower = Shader.PropertyToID("_GammaCompressionPower");
-            public static readonly int _GammaCompressionFactor = Shader.PropertyToID("_GammaCompressionFactor");
-
         }
 
         private static class Keywords
@@ -146,10 +143,6 @@ namespace SleekRender
                         vignetteColor.b * vignetteColor.a,
                         vignetteColor.a));
             }
-
-            float gammaCompressionPower = settings.gammaCompressionPower;
-            _preComposeMaterial.SetFloat(Uniforms._GammaCompressionPower, gammaCompressionPower);
-            _preComposeMaterial.SetFloat(Uniforms._GammaCompressionFactor, Mathf.Pow(settings.hdrMaxIntensity, -gammaCompressionPower));
 
             if (settings.bloomEnabled && !_isBloomAlreadyEnabled)
             {

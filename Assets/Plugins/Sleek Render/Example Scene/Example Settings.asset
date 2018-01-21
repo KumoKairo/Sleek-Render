@@ -24,7 +24,7 @@ MonoBehaviour:
   colorize:
     serializedVersion: 2
     rgba: 1979709390
-  vignetteExpanded: 0
+  vignetteExpanded: 1
   vignetteEnabled: 1
   vignetteBeginRadius: 0.714
   vignetteExpandRadius: 0.97

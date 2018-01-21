@@ -28,6 +28,7 @@ namespace SleekRender
         {
             public const string COLORIZE_ON = "COLORIZE_ON";
             public const string BLOOM_ON = "BLOOM_ON";
+            public const string VIGNETTE_ON = "VIGNETTE_ON";
         }
 
         public SleekRenderSettings settings;
@@ -52,6 +53,7 @@ namespace SleekRender
 
         private bool _isColorizeAlreadyEnabled = false;
         private bool _isBloomAlreadyEnabled = false;
+        private bool _isVignetteAlreadyEnabled = false;
 
         private void OnEnable()
         {
@@ -113,22 +115,37 @@ namespace SleekRender
 
         private void Precompose(bool isBloomEnabled)
         {
-            float vignetteBeginRadius = settings.vignetteBeginRadius;
-            float squareVignetteBeginRaduis = vignetteBeginRadius * vignetteBeginRadius;
-            float vignetteRadii = vignetteBeginRadius + settings.vignetteExpandRadius;
-            float oneOverVignetteRadiusDistance = 1f / (vignetteRadii - squareVignetteBeginRaduis);
+            var isVignetteEnabledInSettings = settings.vignetteEnabled;
+            if (isVignetteEnabledInSettings && !_isVignetteAlreadyEnabled)
+            {
+                _preComposeMaterial.EnableKeyword(Keywords.VIGNETTE_ON);
+                _isVignetteAlreadyEnabled = true;
+            }
+            else if (!isVignetteEnabledInSettings && _isVignetteAlreadyEnabled)
+            {
+                _preComposeMaterial.DisableKeyword(Keywords.VIGNETTE_ON);
+                _isVignetteAlreadyEnabled = false;
+            }
 
-            var vignetteColor = settings.vignetteColor;
+            if (isVignetteEnabledInSettings)
+            {
+                float vignetteBeginRadius = settings.vignetteBeginRadius;
+                float squareVignetteBeginRaduis = vignetteBeginRadius * vignetteBeginRadius;
+                float vignetteRadii = vignetteBeginRadius + settings.vignetteExpandRadius;
+                float oneOverVignetteRadiusDistance = 1f / (vignetteRadii - squareVignetteBeginRaduis);
 
-            _preComposeMaterial.SetVector(Uniforms._VignetteShape, new Vector4(
-                4f * oneOverVignetteRadiusDistance * oneOverVignetteRadiusDistance,
-                -oneOverVignetteRadiusDistance * squareVignetteBeginRaduis));
+                var vignetteColor = settings.vignetteColor;
 
-            _preComposeMaterial.SetColor(Uniforms._VignetteColor, new Color(
-                    vignetteColor.r * vignetteColor.a,
-                    vignetteColor.g * vignetteColor.a,
-                    vignetteColor.b * vignetteColor.a,
-                    vignetteColor.a));
+                _preComposeMaterial.SetVector(Uniforms._VignetteShape, new Vector4(
+                    4f * oneOverVignetteRadiusDistance * oneOverVignetteRadiusDistance,
+                    -oneOverVignetteRadiusDistance * squareVignetteBeginRaduis));
+
+                _preComposeMaterial.SetColor(Uniforms._VignetteColor, new Color(
+                        vignetteColor.r * vignetteColor.a,
+                        vignetteColor.g * vignetteColor.a,
+                        vignetteColor.b * vignetteColor.a,
+                        vignetteColor.a));
+            }
 
             float gammaCompressionPower = settings.gammaCompressionPower;
             _preComposeMaterial.SetFloat(Uniforms._GammaCompressionPower, gammaCompressionPower);
@@ -232,6 +249,7 @@ namespace SleekRender
 
             _isColorizeAlreadyEnabled = false;
             _isBloomAlreadyEnabled = false;
+            _isVignetteAlreadyEnabled = false;
         }
 
         private RenderTexture CreateTransientRenderTexture(string textureName, int width, int height)

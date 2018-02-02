@@ -89,10 +89,11 @@ namespace SleekRender
         private void Downsample(RenderTexture source)
         {
             float oneOverOneMinusBloomThreshold = 1f / (1f - settings.bloomThreshold);
+            var luma = settings.bloomLumaVector;
             Vector4 luminanceConst = new Vector4(
-                0.2126f * oneOverOneMinusBloomThreshold,
-                0.7152f * oneOverOneMinusBloomThreshold,
-                0.0722f * oneOverOneMinusBloomThreshold,
+                luma.x * oneOverOneMinusBloomThreshold,
+                luma.y * oneOverOneMinusBloomThreshold,
+                luma.z * oneOverOneMinusBloomThreshold,
                 -settings.bloomThreshold * oneOverOneMinusBloomThreshold);
 
             _downsampleMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);

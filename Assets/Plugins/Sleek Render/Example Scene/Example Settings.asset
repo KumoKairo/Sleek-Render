@@ -16,12 +16,16 @@ MonoBehaviour:
   bloomThreshold: 0.201
   bloomIntensity: 3.71
   bloomTint: {r: 0.33088237, g: 0.75000554, b: 1, a: 1}
-  colorizeExpanded: 1
+  bloomTextureWidth: 128
+  bloomTextureHeight: 128
+  bloomLumaCalculationType: 2
+  bloomLumaVector: {x: 0.333333, y: 0.33333334, z: 0.33333334}
+  colorizeExpanded: 0
   colorizeEnabled: 1
   colorize:
     serializedVersion: 2
     rgba: 1979709390
-  vignetteExpanded: 1
+  vignetteExpanded: 0
   vignetteEnabled: 1
   vignetteBeginRadius: 0.714
   vignetteExpandRadius: 0.97

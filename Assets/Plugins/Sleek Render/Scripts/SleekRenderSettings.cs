@@ -19,6 +19,9 @@ namespace SleekRender
         public int bloomTextureWidth = 128;
         public int bloomTextureHeight = 128;
 
+        public LumaVectorType bloomLumaCalculationType = LumaVectorType.Average;
+        public Vector3 bloomLumaVector = new Vector3(1f / 3f, 1f / 3f, 1f / 3f);
+
         [Header("Color overlay (alpha sets intensity)")]
         public bool colorizeExpanded = true;
         public bool colorizeEnabled = true;
@@ -34,5 +37,12 @@ namespace SleekRender
         public float vignetteExpandRadius = 1.34f;
 
         public Color vignetteColor = Color.black;
+    }
+
+    public enum LumaVectorType
+    {
+        Average,
+        sRGB,
+        Custom
     }
 }

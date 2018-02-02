@@ -15,11 +15,15 @@ namespace SleekRender
         private SerializedProperty _bloomTintProperty;
         private SerializedProperty _bloomWidthProperty;
         private SerializedProperty _bloomHeightProperty;
+        private SerializedProperty _bloomLumaVectorProperty;
+        private SerializedProperty _bloomSelectedLumaVectorTypeProperty;
 
         private string[] _bloomSizeVariants = new[] {"32", "64", "128"};
         private int[] _bloomSizeVariantInts = new[] {32, 64, 128};
         private int _selectedBloomWidthIndex = -1;
         private int _selectedBloomHeightIndex = -1;
+
+        private LumaVectorType _selectedLumaVectorType;
 
         private SerializedProperty _isColorizeGroupExpandedProperty;
         private SerializedProperty _colorizeEnabledProperty;
@@ -33,16 +37,7 @@ namespace SleekRender
 
         private void OnEnable()
         {
-            _isBloomGroupExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomExpanded));
-            _bloomEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomEnabled));
-            _bloomThresholdProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomThreshold));
-            _bloomIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomIntensity));
-            _bloomTintProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTint));
-
-            _bloomWidthProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTextureWidth));
-            _selectedBloomWidthIndex = Array.IndexOf(_bloomSizeVariantInts, _bloomWidthProperty.intValue);
-            _bloomHeightProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTextureHeight));
-            _selectedBloomHeightIndex = Array.IndexOf(_bloomSizeVariantInts, _bloomHeightProperty.intValue);
+            SetupBloomProperties();
 
             _isColorizeGroupExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.colorizeExpanded));
             _colorizeEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.colorizeEnabled));
@@ -53,6 +48,28 @@ namespace SleekRender
             _vignetteBeginRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteBeginRadius));
             _vignetteExpandRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteExpandRadius));
             _vignetteColorProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteColor));
+        }
+
+        private void SetupBloomProperties()
+        {
+            _isBloomGroupExpandedProperty =
+                serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomExpanded));
+            _bloomEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomEnabled));
+            _bloomThresholdProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomThreshold));
+            _bloomIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomIntensity));
+            _bloomTintProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTint));
+
+            _bloomWidthProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTextureWidth));
+            _selectedBloomWidthIndex = Array.IndexOf(_bloomSizeVariantInts, _bloomWidthProperty.intValue);
+            _bloomHeightProperty =
+                serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTextureHeight));
+            _selectedBloomHeightIndex = Array.IndexOf(_bloomSizeVariantInts, _bloomHeightProperty.intValue);
+
+            _bloomLumaVectorProperty =
+                serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomLumaVector));
+            _bloomSelectedLumaVectorTypeProperty =
+                serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomLumaCalculationType));
+            _selectedLumaVectorType = (LumaVectorType) _bloomSelectedLumaVectorTypeProperty.enumValueIndex;
         }
 
         public override void OnInspectorGUI()
@@ -127,25 +144,52 @@ namespace SleekRender
 
                 EditorGUILayout.LabelField("Bloom texture size");
 
-                var rect = EditorGUILayout.GetControlRect();
-                var oneFourthOfWidth = rect.width * 0.25f;
-                var xLabelRect = new Rect(rect.x, rect.y, oneFourthOfWidth, rect.height);
-                var widthRect = new Rect(rect.x + oneFourthOfWidth, rect.y, oneFourthOfWidth, rect.height);
-                var yLabelRect = new Rect(rect.x + oneFourthOfWidth * 2.0f, rect.y, oneFourthOfWidth, rect.height);
-                var heightRect = new Rect(rect.x + oneFourthOfWidth * 3.0f, rect.y, oneFourthOfWidth, rect.height);
+                DrawBloomWidthProperties();
 
-                EditorGUI.LabelField(xLabelRect, "X");
-                _selectedBloomWidthIndex = _selectedBloomWidthIndex != -1 ? _selectedBloomWidthIndex : 2;
-                _selectedBloomWidthIndex = EditorGUI.Popup(widthRect, _selectedBloomWidthIndex, _bloomSizeVariants);
-                _bloomWidthProperty.intValue = _bloomSizeVariantInts[_selectedBloomWidthIndex];
+                _selectedLumaVectorType = (LumaVectorType) EditorGUILayout.EnumPopup(_selectedLumaVectorType);
+                _bloomSelectedLumaVectorTypeProperty.enumValueIndex = (int) _selectedLumaVectorType;
+                switch (_selectedLumaVectorType)
+                {
+                    case LumaVectorType.Custom:
+                        EditorGUILayout.PropertyField(_bloomLumaVectorProperty, new GUIContent(""));
+                        break;
+                    case LumaVectorType.Average:
+                        var oneOverThree = 1f / 3f;
+                        _bloomLumaVectorProperty.vector3Value = new Vector3(oneOverThree, oneOverThree, oneOverThree);
+                        break;
+                    case LumaVectorType.sRGB:
+                        _bloomLumaVectorProperty.vector3Value = new Vector3(0.2126f, 0.7152f, 0.0722f);
+                        break;
+                }
 
-                EditorGUI.LabelField(yLabelRect, "Y");
-                _selectedBloomHeightIndex = _selectedBloomHeightIndex != -1 ? _selectedBloomHeightIndex : 2;
-                _selectedBloomHeightIndex = EditorGUI.Popup(heightRect, _selectedBloomHeightIndex, _bloomSizeVariants);
-                _bloomHeightProperty.intValue = _bloomSizeVariantInts[_selectedBloomHeightIndex];
+                var vector = _bloomLumaVectorProperty.vector3Value;
+                if (!Mathf.Approximately(vector.x + vector.y + vector.z, 1f))
+                {
+                    EditorGUILayout.HelpBox("Luma vector is not normalized.\nVector values should sum up to 1.", MessageType.Warning);
+                }
 
                 EditorGUI.indentLevel -= 1;
             }
+        }
+
+        private void DrawBloomWidthProperties()
+        {
+            var rect = EditorGUILayout.GetControlRect();
+            var oneFourthOfWidth = rect.width * 0.25f;
+            var xLabelRect = new Rect(rect.x, rect.y, oneFourthOfWidth, rect.height);
+            var widthRect = new Rect(rect.x + oneFourthOfWidth, rect.y, oneFourthOfWidth, rect.height);
+            var yLabelRect = new Rect(rect.x + oneFourthOfWidth * 2.0f, rect.y, oneFourthOfWidth, rect.height);
+            var heightRect = new Rect(rect.x + oneFourthOfWidth * 3.0f, rect.y, oneFourthOfWidth, rect.height);
+
+            EditorGUI.LabelField(xLabelRect, "X");
+            _selectedBloomWidthIndex = _selectedBloomWidthIndex != -1 ? _selectedBloomWidthIndex : 2;
+            _selectedBloomWidthIndex = EditorGUI.Popup(widthRect, _selectedBloomWidthIndex, _bloomSizeVariants);
+            _bloomWidthProperty.intValue = _bloomSizeVariantInts[_selectedBloomWidthIndex];
+
+            EditorGUI.LabelField(yLabelRect, "Y");
+            _selectedBloomHeightIndex = _selectedBloomHeightIndex != -1 ? _selectedBloomHeightIndex : 2;
+            _selectedBloomHeightIndex = EditorGUI.Popup(heightRect, _selectedBloomHeightIndex, _bloomSizeVariants);
+            _bloomHeightProperty.intValue = _bloomSizeVariantInts[_selectedBloomHeightIndex];
         }
 
         public static bool Header(string title, SerializedProperty isExpanded,

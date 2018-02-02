@@ -8,7 +8,7 @@ namespace SleekRender
     [ExecuteInEditMode, DisallowMultipleComponent]
     public class SleekRenderPostProcess : MonoBehaviour
     {
-        private static class Uniforms
+        public static class Uniforms
         {
             public static readonly int _LuminanceConst = Shader.PropertyToID("_LuminanceConst");
             public static readonly int _BloomIntencity = Shader.PropertyToID("_BloomIntencity");
@@ -209,8 +209,8 @@ namespace SleekRender
             var maxHeight = Mathf.Min(height, 720);
             var ratio = (float)maxHeight / height;
 
-            int blurWidth = 32;
-            int blurHeight = 128;
+            int blurWidth = settings.bloomTextureWidth;
+            int blurHeight = settings.bloomTextureHeight;
 
             int downsampleWidth = Mathf.RoundToInt((width * ratio) / 5);
             int downsampleHeight = Mathf.RoundToInt((height * ratio) / 5);
@@ -325,7 +325,13 @@ namespace SleekRender
 
         private void CheckScreenSizeAndRecreateTexturesIfNeeded(Camera mainCamera)
         {
-            if (mainCamera.pixelWidth != _currentCameraPixelWidth || mainCamera.pixelHeight != _currentCameraPixelHeight)
+            var cameraSizeHasChanged = mainCamera.pixelWidth != _currentCameraPixelWidth ||
+                                       mainCamera.pixelHeight != _currentCameraPixelHeight;
+
+            var bloomSizeHasChanged = _horizontalBlurTexture.width != settings.bloomTextureWidth ||
+                                      _horizontalBlurTexture.height != settings.bloomTextureHeight;
+
+            if (cameraSizeHasChanged || bloomSizeHasChanged)
             {
                 ReleaseResources();
                 CreateResources();

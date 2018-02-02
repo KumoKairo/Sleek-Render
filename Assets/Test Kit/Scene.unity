@@ -587,11 +587,11 @@ Prefab:
         type: 2}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 267473176}
+      objectReference: {fileID: 475393538}
     - target: {fileID: 114242858764264090, guid: b39c91189cf83324a9336967e408edad,
         type: 2}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnToggleChanged
+      value: set_enabled
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: b39c91189cf83324a9336967e408edad, type: 2}

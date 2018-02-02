@@ -1,8 +1,10 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace SleekRender
 {
     [CreateAssetMenu(menuName = "Sleek Render Settings")]
+    [Serializable]
     public class SleekRenderSettings : ScriptableObject
     {
         [Header("Bloom")]
@@ -13,6 +15,9 @@ namespace SleekRender
 
         public float bloomIntensity = 2.5f;
         public Color bloomTint = Color.white;
+
+        public int bloomTextureWidth = 128;
+        public int bloomTextureHeight = 128;
 
         [Header("Color overlay (alpha sets intensity)")]
         public bool colorizeExpanded = true;

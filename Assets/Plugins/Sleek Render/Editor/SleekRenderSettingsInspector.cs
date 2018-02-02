@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System;
+using System.Linq.Expressions;
+using UnityEditor;
 using UnityEngine;
 
 namespace SleekRender
@@ -11,6 +13,13 @@ namespace SleekRender
         private SerializedProperty _bloomThresholdProperty;
         private SerializedProperty _bloomIntensityProperty;
         private SerializedProperty _bloomTintProperty;
+        private SerializedProperty _bloomWidthProperty;
+        private SerializedProperty _bloomHeightProperty;
+
+        private string[] _bloomSizeVariants = new[] {"32", "64", "128"};
+        private int[] _bloomSizeVariantInts = new[] {32, 64, 128};
+        private int _selectedBloomWidthIndex = -1;
+        private int _selectedBloomHeightIndex = -1;
 
         private SerializedProperty _isColorizeGroupExpandedProperty;
         private SerializedProperty _colorizeEnabledProperty;
@@ -24,21 +33,26 @@ namespace SleekRender
 
         private void OnEnable()
         {
-            _isBloomGroupExpandedProperty = serializedObject.FindProperty("bloomExpanded");
-            _bloomEnabledProperty = serializedObject.FindProperty("bloomEnabled");
-            _bloomThresholdProperty = serializedObject.FindProperty("bloomThreshold");
-            _bloomIntensityProperty = serializedObject.FindProperty("bloomIntensity");
-            _bloomTintProperty = serializedObject.FindProperty("bloomTint");
+            _isBloomGroupExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomExpanded));
+            _bloomEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomEnabled));
+            _bloomThresholdProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomThreshold));
+            _bloomIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomIntensity));
+            _bloomTintProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTint));
 
-            _isColorizeGroupExpandedProperty = serializedObject.FindProperty("colorizeExpanded");
-            _colorizeEnabledProperty = serializedObject.FindProperty("colorizeEnabled");
-            _colorizeProperty = serializedObject.FindProperty("colorize");
+            _bloomWidthProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTextureWidth));
+            _selectedBloomWidthIndex = Array.IndexOf(_bloomSizeVariantInts, _bloomWidthProperty.intValue);
+            _bloomHeightProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTextureHeight));
+            _selectedBloomHeightIndex = Array.IndexOf(_bloomSizeVariantInts, _bloomHeightProperty.intValue);
 
-            _isVignetteExpandedProperty = serializedObject.FindProperty("vignetteExpanded");
-            _vignetteEnabledProperty = serializedObject.FindProperty("vignetteEnabled");
-            _vignetteBeginRadiusProperty = serializedObject.FindProperty("vignetteBeginRadius");
-            _vignetteExpandRadiusProperty = serializedObject.FindProperty("vignetteExpandRadius");
-            _vignetteColorProperty = serializedObject.FindProperty("vignetteColor");
+            _isColorizeGroupExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.colorizeExpanded));
+            _colorizeEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.colorizeEnabled));
+            _colorizeProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.colorize));
+
+            _isVignetteExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteExpanded));
+            _vignetteEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteEnabled));
+            _vignetteBeginRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteBeginRadius));
+            _vignetteExpandRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteExpandRadius));
+            _vignetteColorProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteColor));
         }
 
         public override void OnInspectorGUI()
@@ -111,6 +125,25 @@ namespace SleekRender
                 EditorGUILayout.LabelField("Bloom tint");
                 _bloomTintProperty.colorValue = EditorGUILayout.ColorField("", _bloomTintProperty.colorValue);
 
+                EditorGUILayout.LabelField("Bloom texture size");
+
+                var rect = EditorGUILayout.GetControlRect();
+                var oneFourthOfWidth = rect.width * 0.25f;
+                var xLabelRect = new Rect(rect.x, rect.y, oneFourthOfWidth, rect.height);
+                var widthRect = new Rect(rect.x + oneFourthOfWidth, rect.y, oneFourthOfWidth, rect.height);
+                var yLabelRect = new Rect(rect.x + oneFourthOfWidth * 2.0f, rect.y, oneFourthOfWidth, rect.height);
+                var heightRect = new Rect(rect.x + oneFourthOfWidth * 3.0f, rect.y, oneFourthOfWidth, rect.height);
+
+                EditorGUI.LabelField(xLabelRect, "X");
+                _selectedBloomWidthIndex = _selectedBloomWidthIndex != -1 ? _selectedBloomWidthIndex : 2;
+                _selectedBloomWidthIndex = EditorGUI.Popup(widthRect, _selectedBloomWidthIndex, _bloomSizeVariants);
+                _bloomWidthProperty.intValue = _bloomSizeVariantInts[_selectedBloomWidthIndex];
+
+                EditorGUI.LabelField(yLabelRect, "Y");
+                _selectedBloomHeightIndex = _selectedBloomHeightIndex != -1 ? _selectedBloomHeightIndex : 2;
+                _selectedBloomHeightIndex = EditorGUI.Popup(heightRect, _selectedBloomHeightIndex, _bloomSizeVariants);
+                _bloomHeightProperty.intValue = _bloomSizeVariantInts[_selectedBloomHeightIndex];
+
                 EditorGUI.indentLevel -= 1;
             }
         }
@@ -154,6 +187,11 @@ namespace SleekRender
             }
 
             return display;
+        }
+
+        public static string GetMemberName<T, TValue>(Expression<Func<T, TValue>> memberAccess)
+        {
+            return ((MemberExpression)memberAccess.Body).Member.Name;
         }
     }
 }

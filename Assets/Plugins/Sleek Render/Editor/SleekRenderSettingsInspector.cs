@@ -145,30 +145,35 @@ namespace SleekRender
                 EditorGUILayout.LabelField("Bloom texture size");
 
                 DrawBloomWidthProperties();
-
-                _selectedLumaVectorType = (LumaVectorType) EditorGUILayout.EnumPopup(_selectedLumaVectorType);
-                _bloomSelectedLumaVectorTypeProperty.enumValueIndex = (int) _selectedLumaVectorType;
-                switch (_selectedLumaVectorType)
-                {
-                    case LumaVectorType.Custom:
-                        EditorGUILayout.PropertyField(_bloomLumaVectorProperty, new GUIContent(""));
-                        break;
-                    case LumaVectorType.Average:
-                        var oneOverThree = 1f / 3f;
-                        _bloomLumaVectorProperty.vector3Value = new Vector3(oneOverThree, oneOverThree, oneOverThree);
-                        break;
-                    case LumaVectorType.sRGB:
-                        _bloomLumaVectorProperty.vector3Value = new Vector3(0.2126f, 0.7152f, 0.0722f);
-                        break;
-                }
-
-                var vector = _bloomLumaVectorProperty.vector3Value;
-                if (!Mathf.Approximately(vector.x + vector.y + vector.z, 1f))
-                {
-                    EditorGUILayout.HelpBox("Luma vector is not normalized.\nVector values should sum up to 1.", MessageType.Warning);
-                }
+                DisplayLumaVectorProperties();
 
                 EditorGUI.indentLevel -= 1;
+            }
+        }
+
+        private void DisplayLumaVectorProperties()
+        {
+            _selectedLumaVectorType = (LumaVectorType) EditorGUILayout.EnumPopup(_selectedLumaVectorType);
+            _bloomSelectedLumaVectorTypeProperty.enumValueIndex = (int) _selectedLumaVectorType;
+            switch (_selectedLumaVectorType)
+            {
+                case LumaVectorType.Custom:
+                    EditorGUILayout.PropertyField(_bloomLumaVectorProperty, new GUIContent(""));
+                    break;
+                case LumaVectorType.Uniform:
+                    var oneOverThree = 1f / 3f;
+                    _bloomLumaVectorProperty.vector3Value = new Vector3(oneOverThree, oneOverThree, oneOverThree);
+                    break;
+                case LumaVectorType.sRGB:
+                    _bloomLumaVectorProperty.vector3Value = new Vector3(0.2126f, 0.7152f, 0.0722f);
+                    break;
+            }
+
+            var vector = _bloomLumaVectorProperty.vector3Value;
+            if (!Mathf.Approximately(vector.x + vector.y + vector.z, 1f))
+            {
+                EditorGUILayout.HelpBox("Luma vector is not normalized.\nVector values should sum up to 1.",
+                    MessageType.Warning);
             }
         }
 

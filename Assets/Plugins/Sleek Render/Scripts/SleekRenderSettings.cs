@@ -19,7 +19,7 @@ namespace SleekRender
         public int bloomTextureWidth = 128;
         public int bloomTextureHeight = 128;
 
-        public LumaVectorType bloomLumaCalculationType = LumaVectorType.Average;
+        public LumaVectorType bloomLumaCalculationType = LumaVectorType.Uniform;
         public Vector3 bloomLumaVector = new Vector3(1f / 3f, 1f / 3f, 1f / 3f);
 
         [Header("Color overlay (alpha sets intensity)")]
@@ -41,7 +41,7 @@ namespace SleekRender
 
     public enum LumaVectorType
     {
-        Average,
+        Uniform,
         sRGB,
         Custom
     }

@@ -18,8 +18,8 @@ namespace SleekRender
         private SerializedProperty _bloomLumaVectorProperty;
         private SerializedProperty _bloomSelectedLumaVectorTypeProperty;
 
-        private string[] _bloomSizeVariants = new[] {"32", "64", "128"};
-        private int[] _bloomSizeVariantInts = new[] {32, 64, 128};
+        private string[] _bloomSizeVariants = new[] { "32", "64", "128" };
+        private int[] _bloomSizeVariantInts = new[] { 32, 64, 128 };
         private int _selectedBloomWidthIndex = -1;
         private int _selectedBloomHeightIndex = -1;
 
@@ -69,7 +69,7 @@ namespace SleekRender
                 serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomLumaVector));
             _bloomSelectedLumaVectorTypeProperty =
                 serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomLumaCalculationType));
-            _selectedLumaVectorType = (LumaVectorType) _bloomSelectedLumaVectorTypeProperty.enumValueIndex;
+            _selectedLumaVectorType = (LumaVectorType)_bloomSelectedLumaVectorTypeProperty.enumValueIndex;
         }
 
         public override void OnInspectorGUI()
@@ -142,8 +142,6 @@ namespace SleekRender
                 EditorGUILayout.LabelField("Bloom tint");
                 _bloomTintProperty.colorValue = EditorGUILayout.ColorField("", _bloomTintProperty.colorValue);
 
-                EditorGUILayout.LabelField("Bloom texture size");
-
                 DrawBloomWidthProperties();
                 DisplayLumaVectorProperties();
 
@@ -153,8 +151,11 @@ namespace SleekRender
 
         private void DisplayLumaVectorProperties()
         {
-            _selectedLumaVectorType = (LumaVectorType) EditorGUILayout.EnumPopup(_selectedLumaVectorType);
-            _bloomSelectedLumaVectorTypeProperty.enumValueIndex = (int) _selectedLumaVectorType;
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Brightpass Luma calculation");
+
+            _selectedLumaVectorType = (LumaVectorType)EditorGUILayout.EnumPopup(_selectedLumaVectorType);
+            _bloomSelectedLumaVectorTypeProperty.enumValueIndex = (int)_selectedLumaVectorType;
             switch (_selectedLumaVectorType)
             {
                 case LumaVectorType.Custom:
@@ -179,6 +180,8 @@ namespace SleekRender
 
         private void DrawBloomWidthProperties()
         {
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Bloom texture size");
             var rect = EditorGUILayout.GetControlRect();
             var oneFourthOfWidth = rect.width * 0.25f;
             var xLabelRect = new Rect(rect.x, rect.y, oneFourthOfWidth, rect.height);

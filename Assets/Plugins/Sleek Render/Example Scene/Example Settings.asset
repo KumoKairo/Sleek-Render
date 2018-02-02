@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
   m_Name: Example Settings
   m_EditorClassIdentifier: 
-  bloomExpanded: 1
+  bloomExpanded: 0
   bloomEnabled: 1
   bloomThreshold: 0.201
   bloomIntensity: 3.71
@@ -20,7 +20,7 @@ MonoBehaviour:
   bloomTextureHeight: 128
   bloomLumaCalculationType: 2
   bloomLumaVector: {x: 0.333333, y: 0.33333334, z: 0.33333334}
-  colorizeExpanded: 0
+  colorizeExpanded: 1
   colorizeEnabled: 1
   colorize:
     serializedVersion: 2

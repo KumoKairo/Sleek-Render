@@ -18,8 +18,8 @@ MonoBehaviour:
   bloomTint: {r: 0.33088237, g: 0.75000554, b: 1, a: 1}
   bloomTextureWidth: 128
   bloomTextureHeight: 128
-  bloomLumaCalculationType: 2
-  bloomLumaVector: {x: 0.333333, y: 0.33333334, z: 0.33333334}
+  bloomLumaCalculationType: 0
+  bloomLumaVector: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
   colorizeExpanded: 0
   colorizeEnabled: 1
   colorize:

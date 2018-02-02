@@ -4,6 +4,7 @@
 	{
 		_MainTex("Main Texture", 2D) = "black" {}
 		_BloomTex("Bloom", 2D) = "black" {}
+		_PrevBloomTex("Prev Bloom", 2D) = "black" {}
 		_BloomIntencity("Bloom Intensity", float) = 0.672
 		_VignetteShape("Vignette Form", vector) = (1.0, 1.0, 1.0, 1.0)
 		_VignetteColor("Vignette Color", color) = (0.0, 0.0, 0.0, 1.0)
@@ -46,7 +47,7 @@
 				return o;
 			}
 			
-			sampler2D_half _BloomTex, _MainTex;
+			sampler2D_half _PrevBloomTex, _BloomTex, _MainTex;
 			half4 _VignetteShape, _VignetteColor, _BloomTint;
 			half _BloomIntencity;
 
@@ -70,6 +71,8 @@
 
 				#ifdef BLOOM_ON
 				half4 rawBloom = tex2D(_BloomTex, i.uv);
+				half4 prevRawBloom = tex2D(_PrevBloomTex, i.uv);
+				rawBloom = lerp(prevRawBloom, rawBloom, 0.5h);
 				half rawBloomIntencity = dot(rawBloom.rgb, half3(0.2126h, 0.7152h, 0.0722h));
 				half3 bloom = rawBloom * _BloomIntencity * _BloomTint;
 				mainColor = mainColor + bloom;

@@ -14,7 +14,6 @@ namespace SleekRender
             public static readonly int _BloomIntencity = Shader.PropertyToID("_BloomIntencity");
             public static readonly int _BloomTint = Shader.PropertyToID("_BloomTint");
             public static readonly int _MainTex = Shader.PropertyToID("_MainTex");
-            public static readonly int _PrevBloomTex = Shader.PropertyToID("_PrevBloomTex");
             public static readonly int _BloomTex = Shader.PropertyToID("_BloomTex");
             public static readonly int _PreComposeTex = Shader.PropertyToID("_PreComposeTex");
             public static readonly int _TexelSize = Shader.PropertyToID("_TexelSize");
@@ -40,8 +39,7 @@ namespace SleekRender
         private RenderTexture _downsampledBrightpassTexture;
         private RenderTexture _brightPassBlurTexture;
         private RenderTexture _horizontalBlurTexture;
-        private RenderTexture[] _verticalBlurTexturePingPong;
-        private int _currentBlurTextureIndex = 0;
+        private RenderTexture _verticalBlurTexture;
         private RenderTexture _preComposeTexture;
 
         private Camera _mainCamera;
@@ -107,15 +105,8 @@ namespace SleekRender
         {
             if (isBloomEnabled)
             {
-                var prevBloomTexture = _verticalBlurTexturePingPong[_currentBlurTextureIndex];
-                _currentBlurTextureIndex += 1;
-                _currentBlurTextureIndex %= 2;
-
-                var currentVerticalTexture = _verticalBlurTexturePingPong[_currentBlurTextureIndex];
                 Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _horizontalBlurMaterial);
-                Blit(_brightPassBlurTexture, currentVerticalTexture, _verticalBlurMaterial);
-                _preComposeMaterial.SetTexture(Uniforms._PrevBloomTex, prevBloomTexture);
-                _preComposeMaterial.SetTexture(Uniforms._BloomTex, currentVerticalTexture);
+                Blit(_brightPassBlurTexture, _verticalBlurTexture, _verticalBlurMaterial);
             }
         }
 
@@ -197,7 +188,6 @@ namespace SleekRender
         private void CreateResources()
         {
             _mainCamera = GetComponent<Camera>();
-            _verticalBlurTexturePingPong = new RenderTexture[2];
 
             var downsampleShader = Shader.Find("Sleek Render/Post Process/Downsample Brightpass");
             var horizontalBlurShader = Shader.Find("Sleek Render/Post Process/Horizontal Blur");
@@ -229,10 +219,7 @@ namespace SleekRender
             _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", downsampleWidth, downsampleHeight);
             _brightPassBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
             _horizontalBlurTexture = CreateTransientRenderTexture("Horizontal Blur", blurWidth, blurHeight);
-
-            _verticalBlurTexturePingPong[0] = CreateTransientRenderTexture("Vertical Blur 0", blurWidth, blurHeight);
-            _verticalBlurTexturePingPong[1] = CreateTransientRenderTexture("Vertical Blur 1", blurWidth, blurHeight);
-
+            _verticalBlurTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
             _preComposeTexture = CreateTransientRenderTexture("Pre Compose", downsampleWidth, downsampleHeight);
 
             _verticalBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
@@ -243,6 +230,8 @@ namespace SleekRender
             var blurTexelSize = new Vector4(xSpread, ySpread);
             _verticalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
             _horizontalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
+
+            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurTexture);
 
             var downsampleTexelSize = new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height);
             _downsampleMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);
@@ -302,10 +291,7 @@ namespace SleekRender
             DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
             DestroyImmediateIfNotNull(_brightPassBlurTexture);
             DestroyImmediateIfNotNull(_horizontalBlurTexture);
-            DestroyImmediateIfNotNull(_verticalBlurTexturePingPong[0]);
-            DestroyImmediateIfNotNull(_verticalBlurTexturePingPong[1]);
-            _verticalBlurTexturePingPong = null;
-
+            DestroyImmediateIfNotNull(_verticalBlurTexture);
             DestroyImmediateIfNotNull(_preComposeTexture);
 
             DestroyImmediateIfNotNull(_fullscreenQuadMesh);

@@ -16,6 +16,7 @@ namespace SleekRender
         public float bloomIntensity = 2.5f;
         public Color bloomTint = Color.white;
 
+        public bool preserveAspectRatio = false;
         public int bloomTextureWidth = 128;
         public int bloomTextureHeight = 128;
 

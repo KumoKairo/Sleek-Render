@@ -13,6 +13,7 @@ namespace SleekRender
         private SerializedProperty _bloomThresholdProperty;
         private SerializedProperty _bloomIntensityProperty;
         private SerializedProperty _bloomTintProperty;
+        private SerializedProperty _bloomPreserveAspectRatioProperty;
         private SerializedProperty _bloomWidthProperty;
         private SerializedProperty _bloomHeightProperty;
         private SerializedProperty _bloomLumaVectorProperty;
@@ -58,6 +59,9 @@ namespace SleekRender
             _bloomThresholdProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomThreshold));
             _bloomIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomIntensity));
             _bloomTintProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTint));
+
+            _bloomPreserveAspectRatioProperty =
+                serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.preserveAspectRatio));
 
             _bloomWidthProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTextureWidth));
             _selectedBloomWidthIndex = Array.IndexOf(_bloomSizeVariantInts, _bloomWidthProperty.intValue);
@@ -182,6 +186,9 @@ namespace SleekRender
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Bloom texture size");
+
+            _bloomPreserveAspectRatioProperty.boolValue = EditorGUILayout.ToggleLeft("Preserve aspect ratio", _bloomPreserveAspectRatioProperty.boolValue);
+
             var rect = EditorGUILayout.GetControlRect();
             var oneFourthOfWidth = rect.width * 0.25f;
             var xLabelRect = new Rect(rect.x, rect.y, oneFourthOfWidth, rect.height);
@@ -189,10 +196,13 @@ namespace SleekRender
             var yLabelRect = new Rect(rect.x + oneFourthOfWidth * 2.0f, rect.y, oneFourthOfWidth, rect.height);
             var heightRect = new Rect(rect.x + oneFourthOfWidth * 3.0f, rect.y, oneFourthOfWidth, rect.height);
 
-            EditorGUI.LabelField(xLabelRect, "X");
-            _selectedBloomWidthIndex = _selectedBloomWidthIndex != -1 ? _selectedBloomWidthIndex : 2;
-            _selectedBloomWidthIndex = EditorGUI.Popup(widthRect, _selectedBloomWidthIndex, _bloomSizeVariants);
-            _bloomWidthProperty.intValue = _bloomSizeVariantInts[_selectedBloomWidthIndex];
+            if (!_bloomPreserveAspectRatioProperty.boolValue)
+            {
+                EditorGUI.LabelField(xLabelRect, "X");
+                _selectedBloomWidthIndex = _selectedBloomWidthIndex != -1 ? _selectedBloomWidthIndex : 2;
+                _selectedBloomWidthIndex = EditorGUI.Popup(widthRect, _selectedBloomWidthIndex, _bloomSizeVariants);
+                _bloomWidthProperty.intValue = _bloomSizeVariantInts[_selectedBloomWidthIndex];
+            }
 
             EditorGUI.LabelField(yLabelRect, "Y");
             _selectedBloomHeightIndex = _selectedBloomHeightIndex != -1 ? _selectedBloomHeightIndex : 2;

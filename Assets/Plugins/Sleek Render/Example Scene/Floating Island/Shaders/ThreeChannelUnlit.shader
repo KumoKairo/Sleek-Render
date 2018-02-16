@@ -4,7 +4,6 @@
 	{
 		_MainTex ("Island Texture", 2D) = "white" {}
 		_FlickerNoise ("Flicker Noise Texture", 2D) = "white" {}
-		_Luminance ("Luminance", Vector) = (1, 1, 1, 1)
 		_BonfireColor("Bonfire Light Color", Color) = (1, 1, 1, 1)
 		_TentColor ("Tent Color", Color) = (1, 1, 1, 1)
 		_FillLightColor ("Fill Color", Color) = (1, 1, 1, 1)
@@ -39,14 +38,14 @@
 			};
 
 			sampler2D _MainTex, _FlickerNoise;
-			half4 _MainTex_ST, _FlickerNoise_ST, _Luminance, _TentColor, _BonfireColor, _FillLightColor;
+			half4 _MainTex_ST, _FlickerNoise_ST, _TentColor, _BonfireColor, _FillLightColor;
 			
 			v2f vert (appdata v)
 			{
 				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-				half sinTime = _SinTime.x * 0.5h;
+				half sinTime = sin(_Time) * 0.5h + 0.5h;
 				o.noise_uv = half2(sinTime, sinTime);
 				UNITY_TRANSFER_FOG(o, o.vertex);
 				return o;
@@ -54,15 +53,12 @@
 			
 			half4 frag (v2f i) : SV_Target
 			{
-				// sample the texture
 				half4 col = tex2D(_MainTex, i.uv);
 				half4 noise = tex2D(_FlickerNoise, i.noise_uv);
 
-				half4 bonfireColor = col.r * _BonfireColor * _BonfireColor.a * saturate(noise.g + _Luminance.g);
-				half4 tentColor = col.g * _TentColor * _TentColor.a * saturate(noise.x + _Luminance.r);
+				half4 bonfireColor = col.r * _BonfireColor * _BonfireColor.a * saturate(noise.g);
+				half4 tentColor = col.g * _TentColor * _TentColor.a * saturate(noise.x);
 				half4 fillColor = col.b * _FillLightColor * _FillLightColor.a;
-				// apply fog
-				//UNITY_APPLY_FOG(i.fogCoord, col);
 
 				return tentColor + bonfireColor + fillColor;
 			}

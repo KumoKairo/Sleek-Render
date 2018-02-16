@@ -15,7 +15,7 @@ MonoBehaviour:
   bloomEnabled: 1
   bloomThreshold: 0.201
   bloomIntensity: 3.71
-  bloomTint: {r: 0.33088237, g: 0.75000554, b: 1, a: 1}
+  bloomTint: {r: 1, g: 1, b: 1, a: 1}
   preserveAspectRatio: 1
   bloomTextureWidth: 32
   bloomTextureHeight: 128
@@ -26,8 +26,8 @@ MonoBehaviour:
   colorize:
     serializedVersion: 2
     rgba: 1979709390
-  vignetteExpanded: 0
+  vignetteExpanded: 1
   vignetteEnabled: 1
   vignetteBeginRadius: 0.714
   vignetteExpandRadius: 0.97
-  vignetteColor: {r: 0.003676474, g: 0.066531405, b: 0.25, a: 1}
+  vignetteColor: {r: 0, g: 0, b: 0, a: 1}

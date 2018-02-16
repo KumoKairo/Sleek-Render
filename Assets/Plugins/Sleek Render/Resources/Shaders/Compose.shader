@@ -41,13 +41,13 @@
 
 				if (_ProjectionParams.x < 0)
 				{
-					o.uv.y = 1 - o.uv.y;
+					o.uv.y = 1 - v.uv.y;
 				}
 
 				#if UNITY_UV_STARTS_AT_TOP
 				if (_MainTex_TexelSize.y < 0)
 				{
-					o.uv.y = 1 - o.uv.y;
+					o.uv.y = 1 - v.uv.y;
 				}
 				#endif
 

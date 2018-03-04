@@ -19,8 +19,8 @@ MonoBehaviour:
   preserveAspectRatio: 1
   bloomTextureWidth: 128
   bloomTextureHeight: 128
-  bloomLumaCalculationType: 0
-  bloomLumaVector: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+  bloomLumaCalculationType: 1
+  bloomLumaVector: {x: 0.2126, y: 0.7152, z: 0.0722}
   colorizeExpanded: 1
   colorizeEnabled: 1
   colorize:

@@ -35,7 +35,7 @@
 			v2f vert (appdata v)
 			{
 				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
 				o.color = v.color;
 				UNITY_TRANSFER_FOG(o,o.vertex);
 				return o;

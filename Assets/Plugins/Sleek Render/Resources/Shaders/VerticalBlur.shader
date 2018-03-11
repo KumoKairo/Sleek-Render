@@ -1,8 +1,9 @@
-﻿Shader "Sleek Render/Post Process/Horizontal Blur"
+﻿Shader "Sleek Render/Post Process/Vertical Blur"
 {
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
+		_BloomTex("Bloom", 2D) = "black" {}
 		_TexelSize("Texel Size", vector) = (0, 0, 0, 0)
 	}
 	SubShader
@@ -18,7 +19,7 @@
 			struct appdata
 			{
 				half4 vertex : POSITION;
-				half2 uv : TEXCOORD0;
+				half4 uv : TEXCOORD0;
 			};
 
 			struct v2f
@@ -32,20 +33,19 @@
 				half2 uv_5 : TEXCOORD5;
 				half2 uv_6 : TEXCOORD6;
 			};
-			
+
+			half2 _TexelSize;
 			sampler2D_half _MainTex;
-			float4 _TexelSize;
-			half _StepScale;
 
 			v2f vert (appdata v)
 			{
 				v2f o;
 				o.vertex = v.vertex;
 
-				half4 stepVector = half4(_TexelSize.x, 0.0h, 0.0h, 0.0h);
-				half stepOne = 1.041h;
-				half stepTwo = 2.31h;
-				half stepThree = 3.04h;
+				half4 stepVector = half4(0.0h, _TexelSize.y, 0.0h, 0.0h);
+				half stepOne = 1.441h;
+				half stepTwo = 3.361h;
+				half stepThree = 5.04h;
 
 				o.uv_0 = v.uv;
 				o.uv_1 = v.uv + stepVector * stepOne;
@@ -68,7 +68,7 @@
 
 				return o;
 			}
-
+			
 			half4 frag (v2f i) : SV_Target
 			{
 				half4 tap_0 = tex2D(_MainTex, i.uv_0);
@@ -80,10 +80,10 @@
 				half4 tap_6 = tex2D(_MainTex, i.uv_6);
 
 				half4 result 
-					= tap_0 * tap_0.a * 0.263h
-					+ (tap_1 * tap_1.a + tap_2* tap_2.a) * 0.159h
-					+ (tap_3 * tap_3.a + tap_4 * tap_4.a) * 0.122h
-					+ (tap_5 * tap_5.a + tap_6 * tap_6.a) * 0.023h;
+					= tap_0 * 0.159h
+					+ (tap_1 + tap_2) * 0.263h
+					+ (tap_3 + tap_4) * 0.122h
+					+ (tap_5 + tap_6) * 0.023h;
 
 				return result;
 			}

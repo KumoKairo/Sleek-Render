@@ -11,8 +11,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
   m_Name: Example Settings
   m_EditorClassIdentifier: 
-  bloomThreshold: 0.965
-  bloomIntensity: 1.95
+  bloomExpanded: 1
+  bloomEnabled: 1
+  bloomThreshold: 0.201
+  bloomIntensity: 3.71
+  bloomTint: {r: 1, g: 1, b: 1, a: 1}
+  preserveAspectRatio: 1
+  bloomTextureWidth: 128
+  bloomTextureHeight: 128
+  bloomLumaCalculationType: 0
+  bloomLumaVector: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+  colorizeExpanded: 1
+  colorizeEnabled: 1
   colorize:
     serializedVersion: 2
-    rgba: 0
+    rgba: 2600465364
+  vignetteExpanded: 1
+  vignetteEnabled: 1
+  vignetteBeginRadius: 0.714
+  vignetteExpandRadius: 0.97
+  vignetteColor: {r: 0, g: 0, b: 0, a: 1}

@@ -3,52 +3,70 @@ using UnityEngine.Rendering;
 
 namespace SleekRender
 {
+    // Custom component editor view definition
     [AddComponentMenu("Effects/Sleek Render Post Process")]
     [RequireComponent(typeof(Camera))]
     [ExecuteInEditMode, DisallowMultipleComponent]
     public class SleekRenderPostProcess : MonoBehaviour
     {
-        private static class Uniforms
+        public static class Uniforms
         {
             public static readonly int _LuminanceConst = Shader.PropertyToID("_LuminanceConst");
             public static readonly int _BloomIntencity = Shader.PropertyToID("_BloomIntencity");
+            public static readonly int _BloomTint = Shader.PropertyToID("_BloomTint");
             public static readonly int _MainTex = Shader.PropertyToID("_MainTex");
             public static readonly int _BloomTex = Shader.PropertyToID("_BloomTex");
             public static readonly int _PreComposeTex = Shader.PropertyToID("_PreComposeTex");
-            public static readonly int _YSpread = Shader.PropertyToID("_YSpread");
-            public static readonly int _XSpread = Shader.PropertyToID("_XSpread");
             public static readonly int _TexelSize = Shader.PropertyToID("_TexelSize");
             public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
+            public static readonly int _VignetteShape = Shader.PropertyToID("_VignetteShape");
+            public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
         }
 
+        // Keywords for shader variants
+        private static class Keywords
+        {
+            public const string COLORIZE_ON = "COLORIZE_ON";
+            public const string BLOOM_ON = "BLOOM_ON";
+            public const string VIGNETTE_ON = "VIGNETTE_ON";
+        }
+
+        // Currently linked settings in the inspector
         public SleekRenderSettings settings;
+
+        // Various Material cached objects
+        // Created dynamically from found and loaded shaders
         private Material _downsampleMaterial;
-        private Material _brightpassMaterial;
-        private Material _blurMaterial;
-        private Material _verticalBlurGammaCorrectionMaterial;
+        private Material _horizontalBlurMaterial;
+        private Material _verticalBlurMaterial;
         private Material _preComposeMaterial;
         private Material _composeMaterial;
-        private Material _displayMainTextureMaterial;
 
-        private RenderTexture _mainRenderTexture;
+        // Various RenderTextures used in post processing render passes
         private RenderTexture _downsampledBrightpassTexture;
-        private RenderTexture _preBloomTexture;
+        private RenderTexture _brightPassBlurTexture;
         private RenderTexture _horizontalBlurTexture;
-        private RenderTexture _verticalBlurGammaCorrectedTexture;
+        private RenderTexture _verticalBlurTexture;
         private RenderTexture _preComposeTexture;
-        private RenderTexture _finalComposeTexture;
 
+        // Currenly cached camera on which Post Processing stack is applied
         private Camera _mainCamera;
-        private Camera _renderCamera;
+        // Quad mesh used in full screen custom Blitting
         private Mesh _fullscreenQuadMesh;
-        private int _originalCullingMask;
-        private CameraClearFlags _originalClearFlags;
 
+        // Cached camera width and height. Used in editor code for checking updated size for recreating resources
         private int _currentCameraPixelWidth;
         private int _currentCameraPixelHeight;
 
+        // Various cached variables needed to avoid excessive shader enabling / disabling
+        private bool _isColorizeAlreadyEnabled = false;
+        private bool _isBloomAlreadyEnabled = false;
+        private bool _isVignetteAlreadyEnabled = false;
+        private bool _isAlreadyPreservingAspectRatio = false;
+
         private void OnEnable()
         {
+            // If we are adding a component from scratch, we should supply fake settings with default values (until normal ones are linked)
             CreateDefaultSettingsIfNoneLinked();
             CreateResources();
         }
@@ -58,67 +76,143 @@ namespace SleekRender
             ReleaseResources();
         }
 
-        private void LateUpdate()
+        private void OnRenderImage(RenderTexture source, RenderTexture target)
         {
-            #if UNITY_EDITOR
+            // Editor only behaviour needed to recreate resources if viewport size changes (resizing editor window)
+#if UNITY_EDITOR
             CheckScreenSizeAndRecreateTexturesIfNeeded(_mainCamera);
-            #endif
+#endif
 
-            PrepareRenderCamera(_renderCamera, _mainCamera);
-
-            _mainRenderTexture.DiscardContents(true, true);
-            _renderCamera.Render();
-            ApplyPostProcess();
+            // Applying post processing steps
+            ApplyPostProcess(source);
+            // Last step as separate pass
+            Compose(source, target);
         }
 
-        private void OnPreCull()
+        private void ApplyPostProcess(RenderTexture source)
         {
-            _originalCullingMask = _mainCamera.cullingMask;
-            _mainCamera.cullingMask = 0;
-
-            _originalClearFlags = _mainCamera.clearFlags;
-            _mainCamera.clearFlags = CameraClearFlags.SolidColor;
-        }
-
-        private void OnPostRender()
-        {
-            _mainCamera.cullingMask = _originalCullingMask;
-            _mainCamera.clearFlags = _originalClearFlags;
-
-            Compose();
-        }
-
-        private void Compose()
-        {
-            _composeMaterial.SetColor(Uniforms._Colorize, settings.colorize);
-            _composeMaterial.SetPass(0);
-            Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
-        }
-
-        private void ApplyPostProcess()
-        {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             CreateDefaultSettingsIfNoneLinked();
-            #endif
+#endif
 
+            var isBloomEnabled = settings.bloomEnabled;
+
+            Downsample(source);
+            Bloom(isBloomEnabled);
+            Precompose(isBloomEnabled);
+        }
+
+        private void Downsample(RenderTexture source)
+        {
+            // Precomputing brightpass parameters
+            // It's better to do it once per frame rather than once per pixel
             float oneOverOneMinusBloomThreshold = 1f / (1f - settings.bloomThreshold);
+            var luma = settings.bloomLumaVector;
             Vector4 luminanceConst = new Vector4(
-                0.2126f * oneOverOneMinusBloomThreshold,
-                0.7152f * oneOverOneMinusBloomThreshold,
-                0.0722f * oneOverOneMinusBloomThreshold,
+                luma.x * oneOverOneMinusBloomThreshold,
+                luma.y * oneOverOneMinusBloomThreshold,
+                luma.z * oneOverOneMinusBloomThreshold,
                 -settings.bloomThreshold * oneOverOneMinusBloomThreshold);
 
+            // Changing current Luminance Const value just to make sure that we have the latest settings in our Uniforms
             _downsampleMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
 
-            Blit(_mainRenderTexture, _downsampledBrightpassTexture, _downsampleMaterial);
+            // Applying downsample + brightpass (stored in Alpha)
+            Blit(source, _downsampledBrightpassTexture, _downsampleMaterial);
+        }
 
-            Blit(_downsampledBrightpassTexture, _preBloomTexture, _brightpassMaterial);
+        private void Bloom(bool isBloomEnabled)
+        {
+            if (isBloomEnabled)
+            {
+                // Applying horizontal and vertical Separable Gaussian Blur passes
+                Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _horizontalBlurMaterial);
+                Blit(_brightPassBlurTexture, _verticalBlurTexture, _verticalBlurMaterial);
+            }
+        }
 
-            Blit(_preBloomTexture, _horizontalBlurTexture, _blurMaterial);
+        private void Precompose(bool isBloomEnabled)
+        {
+            // Setting up vignette effect
+            var isVignetteEnabledInSettings = settings.vignetteEnabled;
+            if (isVignetteEnabledInSettings && !_isVignetteAlreadyEnabled)
+            {
+                _preComposeMaterial.EnableKeyword(Keywords.VIGNETTE_ON);
+                _isVignetteAlreadyEnabled = true;
+            }
+            else if (!isVignetteEnabledInSettings && _isVignetteAlreadyEnabled)
+            {
+                _preComposeMaterial.DisableKeyword(Keywords.VIGNETTE_ON);
+                _isVignetteAlreadyEnabled = false;
+            }
 
-            _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
-            _verticalBlurGammaCorrectionMaterial.SetPass(0);
-            Blit(_horizontalBlurTexture, _verticalBlurGammaCorrectedTexture, _verticalBlurGammaCorrectionMaterial);
+            if (isVignetteEnabledInSettings)
+            {
+                // Calculating Vignette parameters once per frame rather than once per pixel
+                float vignetteBeginRadius = settings.vignetteBeginRadius;
+                float squareVignetteBeginRaduis = vignetteBeginRadius * vignetteBeginRadius;
+                float vignetteRadii = vignetteBeginRadius + settings.vignetteExpandRadius;
+                float oneOverVignetteRadiusDistance = 1f / (vignetteRadii - squareVignetteBeginRaduis);
+
+                var vignetteColor = settings.vignetteColor;
+
+                _preComposeMaterial.SetVector(Uniforms._VignetteShape, new Vector4(
+                    4f * oneOverVignetteRadiusDistance * oneOverVignetteRadiusDistance,
+                    -oneOverVignetteRadiusDistance * squareVignetteBeginRaduis));
+
+                // Premultiplying Alpha of vignette color
+                _preComposeMaterial.SetColor(Uniforms._VignetteColor, new Color(
+                        vignetteColor.r * vignetteColor.a,
+                        vignetteColor.g * vignetteColor.a,
+                        vignetteColor.b * vignetteColor.a,
+                        vignetteColor.a));
+            }
+
+            // Bloom is handled in two different passes (two blurring bloom passes and one precompose pass)
+            // So we need to check for whether it's enabled in precompose step too (shader has variants without bloom)
+            if (isBloomEnabled)
+            {
+                _preComposeMaterial.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
+                _preComposeMaterial.SetColor(Uniforms._BloomTint, settings.bloomTint);
+
+                if (!_isBloomAlreadyEnabled)
+                {
+                    _preComposeMaterial.EnableKeyword(Keywords.BLOOM_ON);
+                    _isBloomAlreadyEnabled = true;
+                }
+            }
+            else if (_isBloomAlreadyEnabled)
+            {
+                _preComposeMaterial.DisableKeyword(Keywords.BLOOM_ON);
+                _isBloomAlreadyEnabled = false;
+            }
+
+            // Finally applying precompose step. It slaps bloom and vignette together
+            Blit(_downsampledBrightpassTexture, _preComposeTexture, _preComposeMaterial);
+        }
+
+        private void Compose(RenderTexture source, RenderTexture target)
+        {
+            // Composing pass includes using full size main render texture + precompose texture
+            // Precompose texture contains valuable info in its Alpha channel (whether to apply it on the final image or not)
+            // Compose step also includes uniform colorizing which is calculated and enabled / disabled separately
+            Color colorize = settings.colorize;
+            var a = colorize.a;
+            var colorizeConstant = new Color(colorize.r * a, colorize.g * a, colorize.b * a, 1f - a);
+            _composeMaterial.SetColor(Uniforms._Colorize, colorizeConstant);
+
+            if (settings.colorizeEnabled && !_isColorizeAlreadyEnabled)
+            {
+                _composeMaterial.EnableKeyword(Keywords.COLORIZE_ON);
+                _isColorizeAlreadyEnabled = true;
+            }
+            else if (!settings.colorizeEnabled && _isColorizeAlreadyEnabled)
+            {
+                _composeMaterial.DisableKeyword(Keywords.COLORIZE_ON);
+                _isColorizeAlreadyEnabled = false;
+            }
+
+            Blit(source, target, _composeMaterial);
         }
 
         private void CreateResources()
@@ -126,67 +220,66 @@ namespace SleekRender
             _mainCamera = GetComponent<Camera>();
 
             var downsampleShader = Shader.Find("Sleek Render/Post Process/Downsample Brightpass");
-            var brightPassShader = Shader.Find("Sleek Render/Post Process/Brightpass");
-            var blurShader = Shader.Find("Sleek Render/Post Process/Horizontal Gaussian Blur");
-            var verticalBlurGammaCorrectionShader = Shader.Find("Sleek Render/Post Process/Vertical Gaussian Blur Gamma Correction");
+            var horizontalBlurShader = Shader.Find("Sleek Render/Post Process/Horizontal Blur");
+            var verticalBlurShader = Shader.Find("Sleek Render/Post Process/Vertical Blur");
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
-            var displayMainTextureShader = Shader.Find("Sleek Render/Post Process/Display Main Texture");
             var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
 
             _downsampleMaterial = new Material(downsampleShader);
-            _brightpassMaterial = new Material(brightPassShader);
-            _blurMaterial = new Material(blurShader);
-            _verticalBlurGammaCorrectionMaterial = new Material(verticalBlurGammaCorrectionShader);
+            _horizontalBlurMaterial = new Material(horizontalBlurShader);
+            _verticalBlurMaterial = new Material(verticalBlurShader);
             _preComposeMaterial = new Material(preComposeShader);
             _composeMaterial = new Material(composeShader);
-            _displayMainTextureMaterial = new Material(displayMainTextureShader);
 
-            _currentCameraPixelWidth = _mainCamera.pixelWidth;
-            _currentCameraPixelHeight = _mainCamera.pixelHeight;
+            _currentCameraPixelWidth = Mathf.RoundToInt(_mainCamera.pixelWidth);
+            _currentCameraPixelHeight = Mathf.RoundToInt(_mainCamera.pixelHeight);
 
+            // Point for future main render target size changing
             int width = _currentCameraPixelWidth;
             int height = _currentCameraPixelHeight;
 
+            // Capping max base texture height in pixels
+            // We usually don't need extra pixels for precompose and blur passes
             var maxHeight = Mathf.Min(height, 720);
-            var ratio = (float) maxHeight / height;
+            var ratio = (float)maxHeight / height;
 
-            int blurWidth = 32;
-            int blurHeight = 128;
+            // Constant used to make the bloom look completely uniform on square or circle objects
+            const float squareAspectWidthCorrection = 0.7f;
+            int blurHeight = settings.bloomTextureHeight;
+            int blurWidth = settings.preserveAspectRatio ? Mathf.RoundToInt(blurHeight * _mainCamera.aspect * squareAspectWidthCorrection) : settings.bloomTextureWidth;
 
-            int downsampleWidth = Mathf.RoundToInt((width * ratio) / 8);
-            int downsampleHeight = Mathf.RoundToInt((height * ratio) / 8);
+            // Downsampling texture size (downscale + brightpass and precompose)
+            int downsampleWidth = Mathf.RoundToInt((width * ratio) / 5f);
+            int downsampleHeight = Mathf.RoundToInt((height * ratio) / 5f);
 
             _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", downsampleWidth, downsampleHeight);
-            _preBloomTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
-            _horizontalBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
+            _brightPassBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
+            _horizontalBlurTexture = CreateTransientRenderTexture("Horizontal Blur", blurWidth, blurHeight);
+            _verticalBlurTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
             _preComposeTexture = CreateTransientRenderTexture("Pre Compose", downsampleWidth, downsampleHeight);
-            _verticalBlurGammaCorrectedTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
 
-            _mainRenderTexture = CreateMainRenderTexture(width, height);
-            _finalComposeTexture = CreateMainRenderTexture(width, height);
+            _verticalBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
+            _verticalBlurMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
 
-            _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
-            _verticalBlurGammaCorrectionMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
-            var ySpread = 1 / (float) blurHeight;
-            _verticalBlurGammaCorrectionMaterial.SetFloat(Uniforms._YSpread, ySpread);
+            var xSpread = 1 / (float)blurWidth;
+            var ySpread = 1 / (float)blurHeight;
+            var blurTexelSize = new Vector4(xSpread, ySpread);
+            _verticalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
+            _horizontalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
 
-            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurGammaCorrectedTexture);
+            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurTexture);
 
-            _blurMaterial.SetFloat(Uniforms._XSpread, 1.0f / blurWidth);
-            _downsampleMaterial.SetVector(Uniforms._TexelSize,
-                new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height, 
-                0f, 0f));
+            var downsampleTexelSize = new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height);
+            _downsampleMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);
 
-            _composeMaterial.SetTexture(Uniforms._MainTex, _mainRenderTexture);
-            _composeMaterial.SetTexture(Uniforms._PreComposeTex, _verticalBlurGammaCorrectedTexture);
-
-            var renderCameraGameObject = new GameObject("Bloom Render Camera");
-            renderCameraGameObject.hideFlags = HideFlags.HideAndDontSave;
-            _renderCamera = renderCameraGameObject.AddComponent<Camera>();
-            _renderCamera.CopyFrom(_mainCamera);
-            _renderCamera.enabled = false;
+            _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
+            _composeMaterial.SetVector(Uniforms._LuminanceConst, new Vector4(0.2126f, 0.7152f, 0.0722f, 0f));
 
             _fullscreenQuadMesh = CreateScreenSpaceQuadMesh();
+
+            _isColorizeAlreadyEnabled = false;
+            _isBloomAlreadyEnabled = false;
+            _isVignetteAlreadyEnabled = false;
         }
 
         private RenderTexture CreateTransientRenderTexture(string textureName, int width, int height)
@@ -211,7 +304,7 @@ namespace SleekRender
             }
 
 #if UNITY_EDITOR
-            //textureFormat = RenderTextureFormat.ARGB32;
+            textureFormat = RenderTextureFormat.ARGB32;
 #endif
 
             var renderTexture = new RenderTexture(width, height, 16, textureFormat);
@@ -223,32 +316,23 @@ namespace SleekRender
         private void ReleaseResources()
         {
             DestroyImmediateIfNotNull(_downsampleMaterial);
-            DestroyImmediateIfNotNull(_brightpassMaterial);
-            DestroyImmediateIfNotNull(_blurMaterial);
-            DestroyImmediateIfNotNull(_verticalBlurGammaCorrectionMaterial);
+            DestroyImmediateIfNotNull(_horizontalBlurMaterial);
+            DestroyImmediateIfNotNull(_verticalBlurMaterial);
             DestroyImmediateIfNotNull(_preComposeMaterial);
             DestroyImmediateIfNotNull(_composeMaterial);
-            DestroyImmediateIfNotNull(_displayMainTextureMaterial);
 
-            DestroyImmediateIfNotNull(_mainRenderTexture);
             DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
-            DestroyImmediateIfNotNull(_preBloomTexture);
+            DestroyImmediateIfNotNull(_brightPassBlurTexture);
             DestroyImmediateIfNotNull(_horizontalBlurTexture);
-            DestroyImmediateIfNotNull(_verticalBlurGammaCorrectedTexture);
+            DestroyImmediateIfNotNull(_verticalBlurTexture);
             DestroyImmediateIfNotNull(_preComposeTexture);
-            DestroyImmediateIfNotNull(_finalComposeTexture);
 
             DestroyImmediateIfNotNull(_fullscreenQuadMesh);
-
-            if(_renderCamera != null)
-            {
-                DestroyImmediateIfNotNull(_renderCamera.gameObject);
-            }
         }
 
         private void DestroyImmediateIfNotNull(Object obj)
         {
-            if(obj != null)
+            if (obj != null)
             {
                 DestroyImmediate(obj);
             }
@@ -273,15 +357,19 @@ namespace SleekRender
             Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
         }
 
-        private void PrepareRenderCamera(Camera renderCamera, Camera mainCamera)
-        {
-            renderCamera.CopyFrom(mainCamera);
-            renderCamera.targetTexture = _mainRenderTexture;
-        }
-
         private void CheckScreenSizeAndRecreateTexturesIfNeeded(Camera mainCamera)
         {
-            if(mainCamera.pixelWidth != _currentCameraPixelWidth || mainCamera.pixelHeight != _currentCameraPixelHeight)
+            var cameraSizeHasChanged = mainCamera.pixelWidth != _currentCameraPixelWidth ||
+                                       mainCamera.pixelHeight != _currentCameraPixelHeight;
+
+            var bloomSizeHasChanged = _horizontalBlurTexture.width != settings.bloomTextureWidth ||
+                                      _horizontalBlurTexture.height != settings.bloomTextureHeight;
+
+            // XORing already changed vs preserve aspect
+            // True only when values are different
+            bloomSizeHasChanged |= _isAlreadyPreservingAspectRatio ^ settings.preserveAspectRatio;
+
+            if (cameraSizeHasChanged || bloomSizeHasChanged)
             {
                 ReleaseResources();
                 CreateResources();
@@ -290,18 +378,11 @@ namespace SleekRender
 
         private void CreateDefaultSettingsIfNoneLinked()
         {
-            if(settings == null)
+            if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<SleekRenderSettings>();
                 settings.name = "Default Settings";
             }
-        }
-
-        private void DrawDebugTexture(Texture texture)
-        {
-            _displayMainTextureMaterial.SetTexture(Uniforms._MainTex, texture);
-            _displayMainTextureMaterial.SetPass(0);
-            Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
         }
 
         private Mesh CreateScreenSpaceQuadMesh()

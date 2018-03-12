@@ -36,6 +36,10 @@ namespace SleekRender
         private SerializedProperty _vignetteExpandRadiusProperty;
         private SerializedProperty _vignetteColorProperty;
 
+        private static Texture2D greenLight = EditorGUIUtility.FindTexture("lightMeter/greenLight");
+        private static Texture2D orangeLight = EditorGUIUtility.FindTexture("lightMeter/orangeLight");
+        private static Texture2D redLight = EditorGUIUtility.FindTexture("lightMeter/redLight"); 
+
         private void OnEnable()
         {
             SetupBloomProperties();
@@ -96,7 +100,7 @@ namespace SleekRender
 
         private void DrawVignetteEditor()
         {
-            Header("Vignette",
+            Header("Vignette", "Vignette effect info", redLight,
                 _isVignetteExpandedProperty, _vignetteEnabledProperty);
 
             if (_isVignetteExpandedProperty.boolValue)
@@ -118,7 +122,7 @@ namespace SleekRender
 
         private void DrawColorizeEditor()
         {
-            Header("Colorize",
+            Header("Colorize", "Colorize effect number", orangeLight,
                 _isColorizeGroupExpandedProperty, _colorizeEnabledProperty);
 
             if (_isColorizeGroupExpandedProperty.boolValue)
@@ -132,9 +136,9 @@ namespace SleekRender
 
         private void DrawBloomEditor()
         {
-            Header("Bloom",
+            Header("Bloom", "Bloom effect value", greenLight,
                 _isBloomGroupExpandedProperty, _bloomEnabledProperty);
-
+            
             if (_isBloomGroupExpandedProperty.boolValue)
             {
                 EditorGUI.indentLevel += 1;
@@ -210,15 +214,16 @@ namespace SleekRender
             _bloomHeightProperty.intValue = _bloomSizeVariantInts[_selectedBloomHeightIndex];
         }
 
-        public static bool Header(string title, SerializedProperty isExpanded,
-            SerializedProperty enabledField)
+        public static bool Header(string title, string effectCost, Texture2D light,
+                SerializedProperty isExpanded,SerializedProperty enabledField)
         {
             var display = isExpanded == null || isExpanded.boolValue;
             var enabled = enabledField.boolValue;
-
             var rect = GUILayoutUtility.GetRect(16f, 22f, FxStyles.header);
-            GUI.Box(rect, title, FxStyles.header);
-
+            GUI.Box(rect, new GUIContent(title, effectCost) ,FxStyles.header);
+            GUI.DrawTexture(new Rect(rect.xMax - rect.height, rect.y, rect.height, rect.height), light);
+            
+            
             var toggleRect = new Rect(rect.x + 4f, rect.y + 4f, 13f, 13f);
             var e = Event.current;
 

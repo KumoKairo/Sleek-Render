@@ -100,7 +100,7 @@ namespace SleekRender
 
         private void DrawVignetteEditor()
         {
-            Header("Vignette", "Vignette effect info", redLight,
+            Header("Vignette", "Some Vignette effect value", redLight,
                 _isVignetteExpandedProperty, _vignetteEnabledProperty);
 
             if (_isVignetteExpandedProperty.boolValue)
@@ -122,7 +122,7 @@ namespace SleekRender
 
         private void DrawColorizeEditor()
         {
-            Header("Colorize", "Colorize effect number", orangeLight,
+            Header("Colorize", "Colorize effect value", orangeLight,
                 _isColorizeGroupExpandedProperty, _colorizeEnabledProperty);
 
             if (_isColorizeGroupExpandedProperty.boolValue)
@@ -220,9 +220,11 @@ namespace SleekRender
             var display = isExpanded == null || isExpanded.boolValue;
             var enabled = enabledField.boolValue;
             var rect = GUILayoutUtility.GetRect(16f, 22f, FxStyles.header);
-            GUI.Box(rect, new GUIContent(title, effectCost) ,FxStyles.header);
+            GUI.Box(rect, title, FxStyles.header);
             GUI.DrawTexture(new Rect(rect.xMax - rect.height, rect.y, rect.height, rect.height), light);
-            
+            Vector2 effectCostSize = GUI.skin.label.CalcSize(new GUIContent(effectCost));
+            GUI.Label(new Rect(rect.xMax - rect.height - effectCostSize.x, 
+                        rect.y, effectCostSize.x, effectCostSize.y), effectCost);
             
             var toggleRect = new Rect(rect.x + 4f, rect.y + 4f, 13f, 13f);
             var e = Event.current;

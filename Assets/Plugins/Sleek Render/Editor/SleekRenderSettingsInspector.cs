@@ -221,10 +221,10 @@ namespace SleekRender
             var enabled = enabledField.boolValue;
             var rect = GUILayoutUtility.GetRect(16f, 22f, FxStyles.header);
             GUI.Box(rect, title, FxStyles.header);
-            GUI.DrawTexture(new Rect(rect.xMax - rect.height, rect.y, rect.height, rect.height), light);
+            GUI.DrawTexture(new Rect(rect.xMax - rect.height, rect.y - 0.6f, rect.height, rect.height), light);
             Vector2 effectCostSize = GUI.skin.label.CalcSize(new GUIContent(effectCost));
             GUI.Label(new Rect(rect.xMax - rect.height - effectCostSize.x, 
-                        rect.y, effectCostSize.x, effectCostSize.y), effectCost);
+                        rect.y + 1.8f, effectCostSize.x, effectCostSize.y), effectCost);
             
             var toggleRect = new Rect(rect.x + 4f, rect.y + 4f, 13f, 13f);
             var e = Event.current;

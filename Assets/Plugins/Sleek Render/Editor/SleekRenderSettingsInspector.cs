@@ -18,6 +18,7 @@ namespace SleekRender
         private SerializedProperty _bloomHeightProperty;
         private SerializedProperty _bloomLumaVectorProperty;
         private SerializedProperty _bloomSelectedLumaVectorTypeProperty;
+        private SerializedProperty _isTotalCostExpandedProperty;
 
         private string[] _bloomSizeVariants = new[] { "32", "64", "128" };
         private int[] _bloomSizeVariantInts = new[] { 32, 64, 128 };
@@ -53,6 +54,8 @@ namespace SleekRender
             _vignetteBeginRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteBeginRadius));
             _vignetteExpandRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteExpandRadius));
             _vignetteColorProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteColor));
+
+            _isTotalCostExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.totalCostExpanded));
         }
 
         private void SetupBloomProperties()
@@ -93,6 +96,9 @@ namespace SleekRender
             EditorGUILayout.Space();
 
             DrawVignetteEditor();
+            
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            DrawTotalCost();
 
             EditorGUI.indentLevel = indent;
             serializedObject.ApplyModifiedProperties();
@@ -157,6 +163,24 @@ namespace SleekRender
             }
         }
 
+        private void DrawTotalCost()
+        {
+            TextHeader("Total Cost", _isTotalCostExpandedProperty);
+            if (_isTotalCostExpandedProperty.boolValue)
+            {
+                EditorGUI.indentLevel += 1;
+
+                EditorGUILayout.LabelField("Bloom values: ");
+                EditorGUILayout.LabelField("Random Informaton");
+                EditorGUILayout.LabelField("Colorize values: ");
+                EditorGUILayout.LabelField("Random Informaton");
+                EditorGUILayout.LabelField("Vingeta values: ");
+                EditorGUILayout.LabelField("Random Informaton");
+
+                EditorGUI.indentLevel -= 1;
+            }
+        }
+
         private void DisplayLumaVectorProperties()
         {
             EditorGUILayout.Space();
@@ -212,6 +236,37 @@ namespace SleekRender
             _selectedBloomHeightIndex = _selectedBloomHeightIndex != -1 ? _selectedBloomHeightIndex : 2;
             _selectedBloomHeightIndex = EditorGUI.Popup(heightRect, _selectedBloomHeightIndex, _bloomSizeVariants);
             _bloomHeightProperty.intValue = _bloomSizeVariantInts[_selectedBloomHeightIndex];
+        }
+
+        public static bool TextHeader(string title, SerializedProperty isExpanded)
+        {
+            var display = isExpanded == null || isExpanded.boolValue;
+            var rect = GUILayoutUtility.GetRect(16f, 22f);
+            GUI.Label(rect, title);
+            Texture2D panel;
+            if((EditorPrefs.GetInt("UserSkin") == 1)) //dark skin
+            { 
+                panel = (Texture2D)EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
+            } 
+            else 
+            {
+                panel = (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
+            }
+            GUI.DrawTexture(new Rect(rect.xMax - rect.height, rect.y + 4, panel.width, panel.height), panel);
+            
+            var e = Event.current;
+
+            if (e.type == EventType.MouseDown)
+            {
+                if (rect.Contains(e.mousePosition) && isExpanded != null)
+                {
+                    display = !display;
+                    isExpanded.boolValue = !isExpanded.boolValue;
+                    e.Use();
+                }
+            }
+
+            return display;
         }
 
         public static bool Header(string title, string effectCost, Texture2D light,

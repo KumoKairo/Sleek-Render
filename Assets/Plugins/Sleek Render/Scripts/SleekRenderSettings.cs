@@ -33,6 +33,9 @@ namespace SleekRender
         public bool vignetteExpanded = true;
         public bool vignetteEnabled = true;
 
+        [Header("Total Cost")]
+        public bool totalCostExpanded = false;
+
         public float vignetteBeginRadius = 0.166f;
 
         public float vignetteExpandRadius = 1.34f;

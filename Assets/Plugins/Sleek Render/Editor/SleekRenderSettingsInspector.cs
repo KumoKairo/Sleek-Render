@@ -18,6 +18,8 @@ namespace SleekRender
         private SerializedProperty _bloomHeightProperty;
         private SerializedProperty _bloomLumaVectorProperty;
         private SerializedProperty _bloomSelectedLumaVectorTypeProperty;
+        private SerializedProperty _kawasePassesProperty;
+
 
         private string[] _bloomSizeVariants = new[] { "32", "64", "128" };
         private int[] _bloomSizeVariantInts = new[] { 32, 64, 128 };
@@ -69,11 +71,15 @@ namespace SleekRender
                 serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomTextureHeight));
             _selectedBloomHeightIndex = Array.IndexOf(_bloomSizeVariantInts, _bloomHeightProperty.intValue);
 
+            _kawasePassesProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.numberOfPasses));
+
             _bloomLumaVectorProperty =
                 serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomLumaVector));
             _bloomSelectedLumaVectorTypeProperty =
                 serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomLumaCalculationType));
             _selectedLumaVectorType = (LumaVectorType)_bloomSelectedLumaVectorTypeProperty.enumValueIndex;
+
+
         }
 
         public override void OnInspectorGUI()
@@ -145,6 +151,10 @@ namespace SleekRender
                 EditorGUILayout.Slider(_bloomIntensityProperty, 0f, 15f, "");
                 EditorGUILayout.LabelField("Bloom tint");
                 _bloomTintProperty.colorValue = EditorGUILayout.ColorField("", _bloomTintProperty.colorValue);
+
+                EditorGUILayout.LabelField("Number of Passes");
+                EditorGUILayout.IntSlider(_kawasePassesProperty, 1, 10, "");
+
 
                 DrawBloomWidthProperties();
                 DisplayLumaVectorProperties();

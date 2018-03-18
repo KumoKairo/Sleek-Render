@@ -42,7 +42,7 @@
 				v2f o;
 				o.vertex = v.vertex;
 				float2 halfTexelSize = _TexelSize/2; 				//Check if possible _TexelSize/2
-				float2 duv = (_TexelSize * _Iteration) + halfTexelSize;
+				float2 duv = (_TexelSize * (_Iteration-1)) + halfTexelSize;
 
 				//top left
 				o.uv_0.x = v.uv.x - duv.x;

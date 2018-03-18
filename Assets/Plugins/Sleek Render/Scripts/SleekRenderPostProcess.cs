@@ -39,8 +39,7 @@ namespace SleekRender
         // Created dynamically from found and loaded shaders
         private Material _downsampleMaterial;
         
-        //private Material _horizontalBlurMaterial;
-        //private Material _verticalBlurMaterial;
+        
         private Material _kawaseBlurMaterial1;
         private Material _kawaseBlurMaterial2;
         
@@ -51,8 +50,7 @@ namespace SleekRender
         private RenderTexture _downsampledBrightpassTexture;
         private RenderTexture _brightPassBlurTexture;
         
-        //private RenderTexture _horizontalBlurTexture;
-        //private RenderTexture _verticalBlurTexture;
+        
         private RenderTexture _kawaseBlurTexture1;
         private RenderTexture _kawaseBlurTexture2;
         private RenderTexture _preComposeTexture;
@@ -129,15 +127,33 @@ namespace SleekRender
             Blit(source, _downsampledBrightpassTexture, _downsampleMaterial);
         }
 
+
+        
         private void Bloom(bool isBloomEnabled)
         {
+
+            
             if (isBloomEnabled)
             {
-                // Applying horizontal and vertical Separable Gaussian Blur passes
+                // Applying Kawase Multiple Pass Blur
 
-               // Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _horizontalBlurMaterial);
-                //Blit(_brightPassBlurTexture, _verticalBlurTexture, _verticalBlurMaterial);
+                _kawaseBlurMaterial1.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
+                _kawaseBlurMaterial1.SetFloat(Uniforms._MainTex, 1);
                 Blit(_downsampledBrightpassTexture,_kawaseBlurTexture1, _kawaseBlurMaterial1);
+
+                for (int i = 2; i <= settings.numberOfPasses; i++)
+                {
+                    if( i % 2 == 0){
+                        _kawaseBlurMaterial2.SetTexture(Uniforms._MainTex, _kawaseBlurTexture1);
+                        _kawaseBlurMaterial2.SetFloat(Uniforms._Iteration, i);
+                        Blit(_kawaseBlurTexture1,_kawaseBlurTexture2,_kawaseBlurMaterial2);        
+                    }
+                    if (i % 2 != 0){
+                        _kawaseBlurMaterial1.SetTexture(Uniforms._MainTex, _kawaseBlurTexture2);
+                        _kawaseBlurMaterial1.SetFloat(Uniforms._Iteration, i);
+                        Blit(_kawaseBlurTexture2, _kawaseBlurTexture1, _kawaseBlurMaterial1);
+                    }
+                }    
             }
         }
 
@@ -279,7 +295,7 @@ namespace SleekRender
             _preComposeTexture = CreateTransientRenderTexture("Pre Compose", downsampleWidth, downsampleHeight);
 
 
-            _kawaseBlurMaterial1.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
+           
             //_verticalBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
             //_verticalBlurMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
 
@@ -290,10 +306,18 @@ namespace SleekRender
             //_verticalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
             //_horizontalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
             _kawaseBlurMaterial1.SetVector(Uniforms._TexelSize, blurTexelSize);
-            _kawaseBlurMaterial1.SetFloat(Uniforms._Iteration, settings.numberOfPasses);
+            _kawaseBlurMaterial2.SetVector(Uniforms._TexelSize, blurTexelSize);
 
           //  _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurTexture);
-            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _kawaseBlurTexture1);
+
+            if (settings.numberOfPasses % 2 == 0)
+            {
+                _preComposeMaterial.SetTexture(Uniforms._BloomTex, _kawaseBlurTexture2);
+            }
+            else
+            {
+                _preComposeMaterial.SetTexture(Uniforms._BloomTex, _kawaseBlurTexture1);
+            }
 
             var downsampleTexelSize = new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height);
             _downsampleMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);

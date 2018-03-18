@@ -138,7 +138,7 @@ namespace SleekRender
                 // Applying Kawase Multiple Pass Blur
 
                 _kawaseBlurMaterial1.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
-                _kawaseBlurMaterial1.SetFloat(Uniforms._MainTex, 1);
+                _kawaseBlurMaterial1.SetFloat(Uniforms._Iteration, 1);
                 Blit(_downsampledBrightpassTexture,_kawaseBlurTexture1, _kawaseBlurMaterial1);
 
                 for (int i = 2; i <= settings.numberOfPasses; i++)
@@ -246,8 +246,7 @@ namespace SleekRender
             _mainCamera = GetComponent<Camera>();
 
             var downsampleShader = Shader.Find("Sleek Render/Post Process/Downsample Brightpass");
-            //var horizontalBlurShader = Shader.Find("Sleek Render/Post Process/Horizontal Blur");
-            //var verticalBlurShader = Shader.Find("Sleek Render/Post Process/Vertical Blur");
+            
             var kawaseBlurShader = Shader.Find("Sleek Render/Post Process/Kawase");
 
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
@@ -255,8 +254,7 @@ namespace SleekRender
 
             _downsampleMaterial = new Material(downsampleShader);
 
-            //_horizontalBlurMaterial = new Material(horizontalBlurShader);
-            //_verticalBlurMaterial = new Material(verticalBlurShader);
+            
             _kawaseBlurMaterial1 = new Material(kawaseBlurShader);
             _kawaseBlurMaterial2 = new Material(kawaseBlurShader);
 
@@ -366,15 +364,15 @@ namespace SleekRender
         private void ReleaseResources()
         {
             DestroyImmediateIfNotNull(_downsampleMaterial);
-            //DestroyImmediateIfNotNull(_horizontalBlurMaterial);
-            //DestroyImmediateIfNotNull(_verticalBlurMaterial);
+            DestroyImmediateIfNotNull(_kawaseBlurMaterial1);
+            DestroyImmediateIfNotNull(_kawaseBlurMaterial2);
             DestroyImmediateIfNotNull(_preComposeMaterial);
             DestroyImmediateIfNotNull(_composeMaterial);
 
             DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
             DestroyImmediateIfNotNull(_brightPassBlurTexture);
-            //DestroyImmediateIfNotNull(_horizontalBlurTexture);
-           // DestroyImmediateIfNotNull(_verticalBlurTexture);
+            DestroyImmediateIfNotNull(_kawaseBlurTexture1);
+            DestroyImmediateIfNotNull(_kawaseBlurTexture2);
             DestroyImmediateIfNotNull(_preComposeTexture);
 
             DestroyImmediateIfNotNull(_fullscreenQuadMesh);
@@ -412,18 +410,20 @@ namespace SleekRender
             var cameraSizeHasChanged = mainCamera.pixelWidth != _currentCameraPixelWidth ||
                                        mainCamera.pixelHeight != _currentCameraPixelHeight;
 
-            //var bloomSizeHasChanged = _horizontalBlurTexture.width != settings.bloomTextureWidth ||
-            //                          _horizontalBlurTexture.height != settings.bloomTextureHeight;
+            var bloomSizeHasChanged = _kawaseBlurTexture1.width != settings.bloomTextureWidth ||
+                                      _kawaseBlurTexture1.height != settings.bloomTextureHeight ||
+                                      _kawaseBlurTexture2.width != settings.bloomTextureWidth ||
+                                      _kawaseBlurTexture2.height != settings.bloomTextureHeight;
 
             //// XORing already changed vs preserve aspect
             //// True only when values are different
-            //bloomSizeHasChanged |= _isAlreadyPreservingAspectRatio ^ settings.preserveAspectRatio;
+            bloomSizeHasChanged |= _isAlreadyPreservingAspectRatio ^ settings.preserveAspectRatio;
 
-            //if (cameraSizeHasChanged || bloomSizeHasChanged)
-            //{
-            //    ReleaseResources();
-            //    CreateResources();
-            //}
+            if (cameraSizeHasChanged || bloomSizeHasChanged)
+            {
+                ReleaseResources();
+                CreateResources();
+            }
         }
 
         private void CreateDefaultSettingsIfNoneLinked()

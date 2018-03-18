@@ -2,7 +2,7 @@
 {
 	Properties
 	{
-		_Iteration("Iteration", float) = 0
+		_Iteration("Iteration", float) = 1
 		_TexelSize("Texel Size", vector) = (0, 0, 0, 0)
 		_MainTex ("Texture", 2D) = "white" {}
 		

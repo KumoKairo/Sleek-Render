@@ -21,6 +21,7 @@ namespace SleekRender
             public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
             public static readonly int _VignetteShape = Shader.PropertyToID("_VignetteShape");
             public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
+            public static readonly int _Iteration = Shader.PropertyToID("_Iteration");
         }
 
         // Keywords for shader variants
@@ -37,16 +38,23 @@ namespace SleekRender
         // Various Material cached objects
         // Created dynamically from found and loaded shaders
         private Material _downsampleMaterial;
-        private Material _horizontalBlurMaterial;
-        private Material _verticalBlurMaterial;
+        
+        //private Material _horizontalBlurMaterial;
+        //private Material _verticalBlurMaterial;
+        private Material _kawaseBlurMaterial1;
+        private Material _kawaseBlurMaterial2;
+        
         private Material _preComposeMaterial;
         private Material _composeMaterial;
 
         // Various RenderTextures used in post processing render passes
         private RenderTexture _downsampledBrightpassTexture;
         private RenderTexture _brightPassBlurTexture;
-        private RenderTexture _horizontalBlurTexture;
-        private RenderTexture _verticalBlurTexture;
+        
+        //private RenderTexture _horizontalBlurTexture;
+        //private RenderTexture _verticalBlurTexture;
+        private RenderTexture _kawaseBlurTexture1;
+        private RenderTexture _kawaseBlurTexture2;
         private RenderTexture _preComposeTexture;
 
         // Currenly cached camera on which Post Processing stack is applied
@@ -126,8 +134,10 @@ namespace SleekRender
             if (isBloomEnabled)
             {
                 // Applying horizontal and vertical Separable Gaussian Blur passes
-                Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _horizontalBlurMaterial);
-                Blit(_brightPassBlurTexture, _verticalBlurTexture, _verticalBlurMaterial);
+
+               // Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _horizontalBlurMaterial);
+                //Blit(_brightPassBlurTexture, _verticalBlurTexture, _verticalBlurMaterial);
+                Blit(_downsampledBrightpassTexture,_kawaseBlurTexture1, _kawaseBlurMaterial1);
             }
         }
 
@@ -220,14 +230,20 @@ namespace SleekRender
             _mainCamera = GetComponent<Camera>();
 
             var downsampleShader = Shader.Find("Sleek Render/Post Process/Downsample Brightpass");
-            var horizontalBlurShader = Shader.Find("Sleek Render/Post Process/Horizontal Blur");
-            var verticalBlurShader = Shader.Find("Sleek Render/Post Process/Vertical Blur");
+            //var horizontalBlurShader = Shader.Find("Sleek Render/Post Process/Horizontal Blur");
+            //var verticalBlurShader = Shader.Find("Sleek Render/Post Process/Vertical Blur");
+            var kawaseBlurShader = Shader.Find("Sleek Render/Post Process/Kawase");
+
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
             var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
 
             _downsampleMaterial = new Material(downsampleShader);
-            _horizontalBlurMaterial = new Material(horizontalBlurShader);
-            _verticalBlurMaterial = new Material(verticalBlurShader);
+
+            //_horizontalBlurMaterial = new Material(horizontalBlurShader);
+            //_verticalBlurMaterial = new Material(verticalBlurShader);
+            _kawaseBlurMaterial1 = new Material(kawaseBlurShader);
+            _kawaseBlurMaterial2 = new Material(kawaseBlurShader);
+
             _preComposeMaterial = new Material(preComposeShader);
             _composeMaterial = new Material(composeShader);
 
@@ -254,20 +270,30 @@ namespace SleekRender
 
             _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", downsampleWidth, downsampleHeight);
             _brightPassBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
-            _horizontalBlurTexture = CreateTransientRenderTexture("Horizontal Blur", blurWidth, blurHeight);
-            _verticalBlurTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
+            
+            //_horizontalBlurTexture = CreateTransientRenderTexture("Horizontal Blur", blurWidth, blurHeight);
+            //_verticalBlurTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
+            _kawaseBlurTexture1 = CreateTransientRenderTexture("Kawase 1",blurWidth,blurHeight);
+            _kawaseBlurTexture2 = CreateTransientRenderTexture("Kawase 2", blurWidth, blurHeight);
+
             _preComposeTexture = CreateTransientRenderTexture("Pre Compose", downsampleWidth, downsampleHeight);
 
-            _verticalBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
-            _verticalBlurMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
+
+            _kawaseBlurMaterial1.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
+            //_verticalBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
+            //_verticalBlurMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
 
             var xSpread = 1 / (float)blurWidth;
             var ySpread = 1 / (float)blurHeight;
             var blurTexelSize = new Vector4(xSpread, ySpread);
-            _verticalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
-            _horizontalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
+            
+            //_verticalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
+            //_horizontalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
+            _kawaseBlurMaterial1.SetVector(Uniforms._TexelSize, blurTexelSize);
+            _kawaseBlurMaterial1.SetFloat(Uniforms._Iteration, settings.numberOfPasses);
 
-            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurTexture);
+          //  _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurTexture);
+            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _kawaseBlurTexture1);
 
             var downsampleTexelSize = new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height);
             _downsampleMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);
@@ -316,15 +342,15 @@ namespace SleekRender
         private void ReleaseResources()
         {
             DestroyImmediateIfNotNull(_downsampleMaterial);
-            DestroyImmediateIfNotNull(_horizontalBlurMaterial);
-            DestroyImmediateIfNotNull(_verticalBlurMaterial);
+            //DestroyImmediateIfNotNull(_horizontalBlurMaterial);
+            //DestroyImmediateIfNotNull(_verticalBlurMaterial);
             DestroyImmediateIfNotNull(_preComposeMaterial);
             DestroyImmediateIfNotNull(_composeMaterial);
 
             DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
             DestroyImmediateIfNotNull(_brightPassBlurTexture);
-            DestroyImmediateIfNotNull(_horizontalBlurTexture);
-            DestroyImmediateIfNotNull(_verticalBlurTexture);
+            //DestroyImmediateIfNotNull(_horizontalBlurTexture);
+           // DestroyImmediateIfNotNull(_verticalBlurTexture);
             DestroyImmediateIfNotNull(_preComposeTexture);
 
             DestroyImmediateIfNotNull(_fullscreenQuadMesh);
@@ -362,18 +388,18 @@ namespace SleekRender
             var cameraSizeHasChanged = mainCamera.pixelWidth != _currentCameraPixelWidth ||
                                        mainCamera.pixelHeight != _currentCameraPixelHeight;
 
-            var bloomSizeHasChanged = _horizontalBlurTexture.width != settings.bloomTextureWidth ||
-                                      _horizontalBlurTexture.height != settings.bloomTextureHeight;
+            //var bloomSizeHasChanged = _horizontalBlurTexture.width != settings.bloomTextureWidth ||
+            //                          _horizontalBlurTexture.height != settings.bloomTextureHeight;
 
-            // XORing already changed vs preserve aspect
-            // True only when values are different
-            bloomSizeHasChanged |= _isAlreadyPreservingAspectRatio ^ settings.preserveAspectRatio;
+            //// XORing already changed vs preserve aspect
+            //// True only when values are different
+            //bloomSizeHasChanged |= _isAlreadyPreservingAspectRatio ^ settings.preserveAspectRatio;
 
-            if (cameraSizeHasChanged || bloomSizeHasChanged)
-            {
-                ReleaseResources();
-                CreateResources();
-            }
+            //if (cameraSizeHasChanged || bloomSizeHasChanged)
+            //{
+            //    ReleaseResources();
+            //    CreateResources();
+            //}
         }
 
         private void CreateDefaultSettingsIfNoneLinked()

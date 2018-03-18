@@ -19,6 +19,7 @@ namespace SleekRender
         private SerializedProperty _bloomLumaVectorProperty;
         private SerializedProperty _bloomSelectedLumaVectorTypeProperty;
 
+
         private string[] _bloomSizeVariants = new[] { "32", "64", "128" };
         private int[] _bloomSizeVariantInts = new[] { 32, 64, 128 };
         private int _selectedBloomWidthIndex = -1;
@@ -74,6 +75,8 @@ namespace SleekRender
             _bloomSelectedLumaVectorTypeProperty =
                 serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomLumaCalculationType));
             _selectedLumaVectorType = (LumaVectorType)_bloomSelectedLumaVectorTypeProperty.enumValueIndex;
+
+          
         }
 
         public override void OnInspectorGUI()

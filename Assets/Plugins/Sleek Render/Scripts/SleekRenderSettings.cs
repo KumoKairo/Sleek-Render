@@ -38,6 +38,10 @@ namespace SleekRender
         public float vignetteExpandRadius = 1.34f;
 
         public Color vignetteColor = Color.black;
+
+        [Header("Kawase")]
+        public bool kawaseEnabled = true;
+        public int numberOfPasses = 1;
     }
 
     public enum LumaVectorType

@@ -1,9 +1,9 @@
-﻿Shader "Sleek Render/Post Process/Horizontal Blur"
+﻿	Shader "Sleek Render/Post Process/Horizontal Blur"
 {
 	Properties
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-		_TexelSize("Texel Size", vector) = (0, 0, 0, 0)
+		
 	}
 	SubShader
 	{

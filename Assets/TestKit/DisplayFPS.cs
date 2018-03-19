@@ -23,13 +23,13 @@ public class DisplayFPS : MonoBehaviour
 		textGo.transform.SetParent(canvasGo.transform, false);
 		_text = textGo.AddComponent<Text>();
 		_text.font = Resources.Load<Font>("Roboto-Black");
-		_text.alignment = TextAnchor.LowerRight;
+		_text.alignment = TextAnchor.LowerLeft;
 		_text.text = "--";
-		var textRect = _text.transform as RectTransform;
-		textRect.pivot = new Vector2(1f, 0f);
-		textRect.anchorMax = new Vector2(1f, 0f);
-		textRect.anchorMin = new Vector2(1f, 0f);
-		textRect.anchoredPosition = new Vector2(-8f, 8f);
+		var textRect = (RectTransform) _text.transform;
+		textRect.pivot = new Vector2(0f, 0f);
+		textRect.anchorMax = new Vector2(0f, 0f);
+		textRect.anchorMin = new Vector2(0f, 0f);
+		textRect.anchoredPosition = new Vector2(8f, 8f);
 
 		_digitsCache = new string[61];
 		for(int i = 0; i < _digitsCache.Length; i++)
@@ -46,7 +46,6 @@ public class DisplayFPS : MonoBehaviour
 		if(_secondsSinceLastDisplay > updateInterval)
 		{
 			int fps = Mathf.RoundToInt(_countedFrames / _secondsSinceLastDisplay);
-			Debug.Log(fps);
 			fps = Mathf.Min(60, fps);
 			fps = Mathf.Max(0, fps);
 			_text.text = _digitsCache[fps];

@@ -49,7 +49,7 @@ public class DisplayFPS : MonoBehaviour
 			Debug.Log(fps);
 			fps = Mathf.Min(60, fps);
 			fps = Mathf.Max(0, fps);
-			_text.text = _digitsCache[fps + 1];
+			_text.text = _digitsCache[fps];
 
 			_secondsSinceLastDisplay = 0f;
 			_countedFrames = 0;

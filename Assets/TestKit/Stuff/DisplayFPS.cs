@@ -54,4 +54,9 @@ public class DisplayFPS : MonoBehaviour
 	{
 		_pp.settings.vignetteEnabled = isOn;
 	}
+
+	public void AllToggle(bool isOn)
+	{
+		_pp.enabled = isOn;
+	}
 }

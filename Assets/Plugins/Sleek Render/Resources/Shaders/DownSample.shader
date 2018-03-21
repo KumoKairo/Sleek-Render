@@ -48,14 +48,11 @@ Shader "Sleek Render/Post Process/Downsample" {
 
 				if (_ProjectionParams.x < 0)
 				{
-					o.uv.y = 1 - o.uv.y;
 					o.uv_0.y = 1 - o.uv_0.y;
 					o.uv_1.y = 1 - o.uv_1.y;
 					o.uv_2.y = 1 - o.uv_2.y;
 					o.uv_3.y = 1 - o.uv_3.y;
 				}
-
-				return o;
 
 			}
 

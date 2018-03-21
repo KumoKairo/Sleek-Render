@@ -31,7 +31,29 @@ namespace SleekRender
                 totalCost += 0.5f;
             }
 
-            _sb.Append("\tTotal:\t\t"+ totalCost.ToString("F2") +" ms\n");
+            _sb.Append("\tTotal:\t\t"+ totalCost.ToString("F2") +" ms\n\n");
+
+            _sb.Append("General case (Arm Mali400 GPU with 480x864 screen resolution - Galaxy S2-ish):\n\n");
+
+            _sb.Append("\tBase overhead:\t2 ms\n");
+            totalCost = 2f;
+            if (settings.bloomEnabled)
+            {
+                _sb.Append("\tBloom:\t\t0.8 ms\n");
+                totalCost += 0.8f;
+            }
+            if (settings.colorizeEnabled)
+            {
+                _sb.Append("\tColorize:\t\t0.2 ms\n");
+                totalCost += 0.2f;
+            }
+            if (settings.vignetteEnabled)
+            {
+                _sb.Append("\tVignette:\t\t0.2 ms\n");
+                totalCost += 0.2f;
+            }
+            _sb.Append("\tTotal:\t\t" + totalCost.ToString("F2") + " ms\n");
+
             return _sb.ToString();
         }
     }

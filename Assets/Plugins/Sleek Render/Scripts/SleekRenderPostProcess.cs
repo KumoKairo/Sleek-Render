@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Diagnostics;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace SleekRender
@@ -82,7 +83,6 @@ namespace SleekRender
 #if UNITY_EDITOR
             CheckScreenSizeAndRecreateTexturesIfNeeded(_mainCamera);
 #endif
-
             // Applying post processing steps
             ApplyPostProcess(source);
             // Last step as separate pass

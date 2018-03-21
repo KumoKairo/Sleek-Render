@@ -27,8 +27,8 @@
 
 			struct v2f
 			{
-				half2 uv : TEXCOORD0;
 				half4 vertex : SV_POSITION;
+				half2 uv : TEXCOORD0;
 			};
 
 			half4 _Colorize, _LuminanceConst, _MainTex_TexelSize;
@@ -55,12 +55,11 @@
 			}
 			
 			sampler2D_half _MainTex, _PreComposeTex;
-			half _IsColorizeEnabled;
 
 			half4 frag (v2f i) : SV_Target
 			{
-				half4 col = tex2D(_MainTex, i.uv);
 				half4 precompose = tex2D(_PreComposeTex, i.uv);
+				half4 col = tex2D(_MainTex, i.uv);
 				half3 mainColor = col.rgb * precompose.a + precompose.rgb;
 
 				#ifdef COLORIZE_ON
@@ -69,7 +68,7 @@
 				half3 result = mainColor;
 				#endif
 
-				return half4(result, 1.0h);
+				return half4(result, 1.0);
 			}
 			ENDCG
 		}

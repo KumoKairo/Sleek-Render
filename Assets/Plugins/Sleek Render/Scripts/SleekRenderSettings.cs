@@ -33,14 +33,27 @@ namespace SleekRender
         public bool vignetteExpanded = true;
         public bool vignetteEnabled = true;
 
-        [Header("Total Cost")]
-        public bool totalCostExpanded = false;
 
         public float vignetteBeginRadius = 0.166f;
 
         public float vignetteExpandRadius = 1.34f;
 
         public Color vignetteColor = Color.black;
+
+        [Header("Contrast")]
+        public bool contrastExpanded = false;
+        public bool contrastEnabled = true;
+
+        public float contrast = 1f;
+
+        [Header("Brightness")]
+        public bool brightnessExpanded = false;
+        public bool brightnessEnabled = true;
+
+        public float brightness = .5f;
+
+        [Header("Total Cost")]
+        public bool totalCostExpanded = false;
     }
 
     public enum LumaVectorType

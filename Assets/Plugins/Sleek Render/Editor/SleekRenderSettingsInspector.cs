@@ -18,7 +18,6 @@ namespace SleekRender
         private SerializedProperty _bloomHeightProperty;
         private SerializedProperty _bloomLumaVectorProperty;
         private SerializedProperty _bloomSelectedLumaVectorTypeProperty;
-        private SerializedProperty _isTotalCostExpandedProperty;
 
         private string[] _bloomSizeVariants = new[] { "32", "64", "128" };
         private int[] _bloomSizeVariantInts = new[] { 32, 64, 128 };
@@ -36,6 +35,16 @@ namespace SleekRender
         private SerializedProperty _vignetteBeginRadiusProperty;
         private SerializedProperty _vignetteExpandRadiusProperty;
         private SerializedProperty _vignetteColorProperty;
+
+        private SerializedProperty _isContrastExpandedProperty;
+        private SerializedProperty _contrastEnabledProperty;
+        private SerializedProperty _contrasteIntensity;
+
+        private SerializedProperty _isBrightnessExpandedProperty;
+        private SerializedProperty _brightnessEnabledProperty;
+        private SerializedProperty _brightnesseIntensity;
+
+        private SerializedProperty _isTotalCostExpandedProperty;
 
         private static Texture2D greenLight;
         private static Texture2D orangeLight;
@@ -64,6 +73,14 @@ namespace SleekRender
             _vignetteBeginRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteBeginRadius));
             _vignetteExpandRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteExpandRadius));
             _vignetteColorProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteColor));
+
+            _isContrastExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrastExpanded));
+            _contrastEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrastEnabled));
+            _contrasteIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrast));
+
+            _isBrightnessExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightnessExpanded));
+            _brightnessEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightnessEnabled));
+            _brightnesseIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightness));
 
             _isTotalCostExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.totalCostExpanded));
         }
@@ -106,12 +123,48 @@ namespace SleekRender
             EditorGUILayout.Space();
 
             DrawVignetteEditor();
+            EditorGUILayout.Space();
+
+            DrawContrastEditor();
+            EditorGUILayout.Space();
+
+            DrawBrightnessEditor();
             
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             DrawTotalCost();
 
             EditorGUI.indentLevel = indent;
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawBrightnessEditor()
+        {
+            Header("Brightness", 0, _isBrightnessExpandedProperty, _brightnessEnabledProperty);
+
+            if(_isBrightnessExpandedProperty.boolValue)
+            {
+                EditorGUI.indentLevel += 1;
+
+                EditorGUILayout.LabelField("Brightness Intensity");
+                EditorGUILayout.Slider(_brightnesseIntensity, 0f, 1f, "");
+
+                EditorGUI.indentLevel -= 1;
+            }
+        }
+
+        private void DrawContrastEditor()
+        {
+            Header("Contrast", 0, _isContrastExpandedProperty, _contrastEnabledProperty);
+
+            if(_isContrastExpandedProperty.boolValue)
+            {
+                EditorGUI.indentLevel += 1;
+
+                EditorGUILayout.LabelField("Contrast Intensity");
+                EditorGUILayout.Slider(_contrasteIntensity, 0f, 3f, "");
+
+                EditorGUI.indentLevel -= 1;
+            }
         }
 
         private void DrawVignetteEditor()

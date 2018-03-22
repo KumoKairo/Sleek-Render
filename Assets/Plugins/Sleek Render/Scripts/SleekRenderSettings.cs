@@ -51,9 +51,6 @@ namespace SleekRender
         public bool brightnessEnabled = true;
 
         public float brightness = .5f;
-
-        [Header("Total Cost")]
-        public bool totalCostExpanded = false;
     }
 
     public enum LumaVectorType

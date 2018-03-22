@@ -44,8 +44,6 @@ namespace SleekRender
         private SerializedProperty _brightnessEnabledProperty;
         private SerializedProperty _brightnesseIntensity;
 
-        private SerializedProperty _isTotalCostExpandedProperty;
-
         private static Texture2D greenLight;
         private static Texture2D orangeLight;
         private static Texture2D redLight; 
@@ -58,10 +56,6 @@ namespace SleekRender
 
         private void OnEnable()
         {
-            greenLight = EditorGUIUtility.FindTexture("lightMeter/greenLight");
-            orangeLight = EditorGUIUtility.FindTexture("lightMeter/orangeLight");
-            redLight = EditorGUIUtility.FindTexture("lightMeter/redLight"); 
-            
             SetupBloomProperties();
 
             _isColorizeGroupExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.colorizeExpanded));
@@ -81,8 +75,6 @@ namespace SleekRender
             _isBrightnessExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightnessExpanded));
             _brightnessEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightnessEnabled));
             _brightnesseIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightness));
-
-            _isTotalCostExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.totalCostExpanded));
         }
 
         private void SetupBloomProperties()
@@ -130,7 +122,6 @@ namespace SleekRender
 
             DrawBrightnessEditor();
             
-            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             DrawTotalCost();
 
             EditorGUI.indentLevel = indent;
@@ -139,7 +130,7 @@ namespace SleekRender
 
         private void DrawBrightnessEditor()
         {
-            Header("Brightness", 0, _isBrightnessExpandedProperty, _brightnessEnabledProperty);
+            Header("Brightness", _isBrightnessExpandedProperty, _brightnessEnabledProperty);
 
             if(_isBrightnessExpandedProperty.boolValue)
             {
@@ -154,7 +145,7 @@ namespace SleekRender
 
         private void DrawContrastEditor()
         {
-            Header("Contrast", 0, _isContrastExpandedProperty, _contrastEnabledProperty);
+            Header("Contrast", _isContrastExpandedProperty, _contrastEnabledProperty);
 
             if(_isContrastExpandedProperty.boolValue)
             {
@@ -169,10 +160,7 @@ namespace SleekRender
 
         private void DrawVignetteEditor()
         {
-            int maxCost = SleekRenderCostCalculator.GetMaxVignetteCost();
-            int relativeCost = (int)(((double)vignetteCost / (double)maxCost) * 1000);
-            
-            Header("Vignette", relativeCost ,_isVignetteExpandedProperty, _vignetteEnabledProperty);
+            Header("Vignette" ,_isVignetteExpandedProperty, _vignetteEnabledProperty);
 
             if (_isVignetteExpandedProperty.boolValue)
             {
@@ -193,10 +181,7 @@ namespace SleekRender
 
         private void DrawColorizeEditor()
         {
-            int maxCost = SleekRenderCostCalculator.GetMaxColorizeCost();
-            int relativeCost = (int)(((double)colorizeCost / (double)maxCost) * 1000);
-
-            Header("Colorize", relativeCost, _isColorizeGroupExpandedProperty, _colorizeEnabledProperty);
+            Header("Colorize", _isColorizeGroupExpandedProperty, _colorizeEnabledProperty);
 
             if (_isColorizeGroupExpandedProperty.boolValue)
             {
@@ -209,10 +194,8 @@ namespace SleekRender
 
         private void DrawBloomEditor()
         {
-            int maxCost = SleekRenderCostCalculator.GetMaxBloomCost();
-            int relativeCost = (int)(((double)bloomCost / (double)maxCost) * 1000);
+            Header("Bloom", _isBloomGroupExpandedProperty, _bloomEnabledProperty);
 
-            Header("Bloom", relativeCost, _isBloomGroupExpandedProperty, _bloomEnabledProperty);
             if (_isBloomGroupExpandedProperty.boolValue)
             {
                 EditorGUI.indentLevel += 1;
@@ -233,46 +216,10 @@ namespace SleekRender
 
         private void DrawTotalCost()
         {
-            TextHeader("Total Cost", _isTotalCostExpandedProperty);
-            if (_isTotalCostExpandedProperty.boolValue)
-            {
-                EditorGUI.indentLevel += 1;
-                EditorGUILayout.LabelField("All cost in GPU clock");
-                
-                EditorGUILayout.LabelField("Bloom cost: ");
-                if(_bloomPreserveAspectRatioProperty.boolValue)
-                {
-                    bloomCost = SleekRenderCostCalculator
-                        .GetBloomCost(_bloomEnabledProperty.boolValue, _bloomHeightProperty.intValue);
-                }
-                else 
-                {
-                    bloomCost = SleekRenderCostCalculator
-                        .GetBloomCost(_bloomEnabledProperty.boolValue,
-                        _bloomWidthProperty.intValue, _bloomHeightProperty.intValue);
-                }
-                EditorGUILayout.LabelField(bloomCost.ToString());
-                EditorGUILayout.Space();
-
-                EditorGUILayout.LabelField("Colorize cost: ");
-                colorizeCost = SleekRenderCostCalculator
-                    .GetColorizeCost(_colorizeEnabledProperty.boolValue);
-                EditorGUILayout.LabelField(colorizeCost.ToString());
-                EditorGUILayout.Space();
-
-                EditorGUILayout.LabelField("Vingeta cost: ");
-                vignetteCost = SleekRenderCostCalculator
-                    .GetVignetteCost(_vignetteEnabledProperty.boolValue);
-                EditorGUILayout.LabelField(vignetteCost.ToString());
-                EditorGUILayout.Space();
-
-                EditorGUILayout.LabelField("Total cost: ");
-                totalCost = SleekRenderCostCalculator
-                    .GetTotalCost(bloomCost, colorizeCost, vignetteCost);
-                EditorGUILayout.LabelField(totalCost.ToString());
-
-                EditorGUI.indentLevel -= 1;
-            }
+            // Skipping control rect, ignore any statical analisys warnings
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            EditorGUILayout.HelpBox(SleekRenderCostCalculator.GetTotalCostStringFor(target as SleekRenderSettings),
+                MessageType.Info);
         }
 
         private void DisplayLumaVectorProperties()
@@ -332,64 +279,12 @@ namespace SleekRender
             _bloomHeightProperty.intValue = _bloomSizeVariantInts[_selectedBloomHeightIndex];
         }
 
-        public static bool TextHeader(string title, SerializedProperty isExpanded)
-        {
-            var display = isExpanded == null || isExpanded.boolValue;
-            var rect = GUILayoutUtility.GetRect(16f, 22f);
-            GUI.Label(rect, title);
-            Texture2D panel;
-            if((EditorPrefs.GetInt("UserSkin") == 1)) //dark skin
-            { 
-                panel = (Texture2D)EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
-            } 
-            else 
-            {
-                panel = (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
-            }
-            GUI.DrawTexture(new Rect(rect.xMax - rect.height, rect.y + 4, panel.width, panel.height), panel);
-            
-            var e = Event.current;
-
-            if (e.type == EventType.MouseDown)
-            {
-                if (rect.Contains(e.mousePosition) && isExpanded != null)
-                {
-                    display = !display;
-                    isExpanded.boolValue = !isExpanded.boolValue;
-                    e.Use();
-                }
-            }
-
-            return display;
-        }
-
-        public static bool Header(string title, int relativeCost,
-            SerializedProperty isExpanded, SerializedProperty enabledField)
+        public static bool Header(string title, SerializedProperty isExpanded, SerializedProperty enabledField)
         {
             var display = isExpanded == null || isExpanded.boolValue;
             var enabled = enabledField.boolValue;
             var rect = GUILayoutUtility.GetRect(16f, 22f, FxStyles.header);
             GUI.Box(rect, title, FxStyles.header);
-
-             if(enabled){
-                Texture2D light = greenLight;
-                if(relativeCost <= 300)
-                {
-                    light = greenLight;
-                } 
-                else if(relativeCost <= 700)
-                {
-                    light = orangeLight;
-                }
-                else
-                {
-                    light = redLight;
-                }
-                GUI.DrawTexture(new Rect(rect.xMax - rect.height, rect.y - 0.6f, rect.height, rect.height), light);
-                Vector2 effectCostSize = GUI.skin.label.CalcSize(new GUIContent(relativeCost.ToString()));
-                GUI.Label(new Rect(rect.xMax - rect.height - effectCostSize.x, 
-                            rect.y + 1.8f, effectCostSize.x, effectCostSize.y), relativeCost.ToString());
-            }
 
             var toggleRect = new Rect(rect.x + 4f, rect.y + 4f, 13f, 13f);
             var e = Event.current;

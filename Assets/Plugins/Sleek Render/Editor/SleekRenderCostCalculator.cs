@@ -12,7 +12,7 @@ namespace SleekRender
             _sb.Append("This info is VERY approximate and depends on target GPU architecture. Treat it as general performance overhead.\n\n");
 
             _sb.Append("Worst case (HiRez Low End GPU 2011-ish OpenGL ES 2.0 devices):\n\n");
-            _sb.Append("\tBase overhead:\t6 ms\n");
+            _sb.Append("\tBase overhead:\t2 ms\n");
 
             float totalCost = 6f;
             if (settings.bloomEnabled)
@@ -52,7 +52,19 @@ namespace SleekRender
                 _sb.Append("\tVignette:\t\t0.2 ms\n");
                 totalCost += 0.2f;
             }
-            _sb.Append("\tTotal:\t\t" + totalCost.ToString("F2") + " ms\n");
+            _sb.Append("\tTotal:\t\t" + totalCost.ToString("F2") + " ms\n\n");
+
+            _sb.Append("Render target switch count (less is better):\n\n");
+
+            _sb.Append("\tBase pipeline:\t4\n");
+            int totalRenderTargetSwitchCount = 4;
+            if (settings.bloomEnabled)
+            {
+                _sb.Append("\tBloom:\t\t2\n");
+                totalRenderTargetSwitchCount += 2;
+            }
+
+            _sb.Append("\tTotal:\t\t" + totalRenderTargetSwitchCount.ToString("D") + "\n\n");
 
             return _sb.ToString();
         }

@@ -22,8 +22,7 @@ namespace SleekRender
             public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
             public static readonly int _VignetteShape = Shader.PropertyToID("_VignetteShape");
             public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
-            public static readonly int _Contrast = Shader.PropertyToID("_Contrast");
-            public static readonly int _Brightness = Shader.PropertyToID("_Brightness");
+            public static readonly int _ContrastBrightness = Shader.PropertyToID("_ContrastBrightness");
         }
 
         // Keywords for shader variants
@@ -32,8 +31,7 @@ namespace SleekRender
             public const string COLORIZE_ON = "COLORIZE_ON";
             public const string BLOOM_ON = "BLOOM_ON";
             public const string VIGNETTE_ON = "VIGNETTE_ON";
-            public const string CONTRAST_ON = "CONTRAST_ON";
-            public const string BRIGHTNESS_ON = "BRIGHTNESS_ON";
+            public const string CONTRAST_AND_BRIGHTNESS_ON = "CONTRAST_AND_BRIGHTNESS_ON";
         }
 
         // Currently linked settings in the inspector
@@ -68,8 +66,7 @@ namespace SleekRender
         private bool _isBloomAlreadyEnabled = false;
         private bool _isVignetteAlreadyEnabled = false;
         private bool _isAlreadyPreservingAspectRatio = false;
-        private bool _isContrastAlreadyEnabled = false;
-        private bool _isBrightnessAlreadyEnabled = false;
+        private bool _isContrastAndBrightnessAlreadyEnabled = false;
 
         private void OnEnable()
         {
@@ -218,30 +215,17 @@ namespace SleekRender
                 _isColorizeAlreadyEnabled = false;
             }
 
-            _composeMaterial.SetFloat(Uniforms._Contrast, settings.contrast);
-            if(settings.contrastEnabled && !_isContrastAlreadyEnabled)
+            _composeMaterial.SetVector(Uniforms._ContrastBrightness, new Vector4(settings.contrast, settings.brightness));
+            if(settings.contrastBrightnessEnabled && !_isContrastAndBrightnessAlreadyEnabled)
             {
-                _composeMaterial.EnableKeyword(Keywords.CONTRAST_ON);
-                _isContrastAlreadyEnabled = true;
+                _composeMaterial.EnableKeyword(Keywords.CONTRAST_AND_BRIGHTNESS_ON);
+                _isContrastAndBrightnessAlreadyEnabled = true;
             }
-            else if(!settings.contrastEnabled && _isContrastAlreadyEnabled)
+            else if(!settings.contrastBrightnessEnabled && _isContrastAndBrightnessAlreadyEnabled)
             {
-                _composeMaterial.DisableKeyword(Keywords.CONTRAST_ON);
-                _isContrastAlreadyEnabled = false;
+                _composeMaterial.DisableKeyword(Keywords.CONTRAST_AND_BRIGHTNESS_ON);
+                _isContrastAndBrightnessAlreadyEnabled = false;
             }
-
-            _composeMaterial.SetFloat(Uniforms._Brightness, settings.brightness);
-            if(settings.brightnessEnabled && !_isBrightnessAlreadyEnabled)
-            {
-                _composeMaterial.EnableKeyword(Keywords.BRIGHTNESS_ON);
-                _isBrightnessAlreadyEnabled = true;
-            }
-            else if(!settings.brightnessEnabled && _isBrightnessAlreadyEnabled)
-            {
-                _composeMaterial.DisableKeyword(Keywords.BRIGHTNESS_ON);
-                _isBrightnessAlreadyEnabled = false;
-            }
-
 
             Blit(source, target, _composeMaterial);
         }
@@ -311,8 +295,7 @@ namespace SleekRender
             _isColorizeAlreadyEnabled = false;
             _isBloomAlreadyEnabled = false;
             _isVignetteAlreadyEnabled = false;
-            _isContrastAlreadyEnabled = false;
-            _isBrightnessAlreadyEnabled = false;
+            _isContrastAndBrightnessAlreadyEnabled = false;
         }
 
         private RenderTexture CreateTransientRenderTexture(string textureName, int width, int height)

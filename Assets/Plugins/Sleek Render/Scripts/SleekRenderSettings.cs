@@ -40,16 +40,12 @@ namespace SleekRender
 
         public Color vignetteColor = Color.black;
 
-        [Header("Contrast")]
-        public bool contrastExpanded = false;
-        public bool contrastEnabled = true;
+        [Header("Contrast/Brightness")]
+        public bool contrastBrightnessExpanded = false;
+        public bool contrastBrightnessEnabled = true;
 
         public float contrast = 1f;
-
-        [Header("Brightness")]
-        public bool brightnessExpanded = false;
-        public bool brightnessEnabled = true;
-
+        
         public float brightness = .5f;
     }
 

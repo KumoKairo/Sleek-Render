@@ -36,12 +36,9 @@ namespace SleekRender
         private SerializedProperty _vignetteExpandRadiusProperty;
         private SerializedProperty _vignetteColorProperty;
 
-        private SerializedProperty _isContrastExpandedProperty;
-        private SerializedProperty _contrastEnabledProperty;
+        private SerializedProperty _isContrastAndBrightnessEditorExpandedProperty;
+        private SerializedProperty _contrastAndBrightnessEnabledProperty;
         private SerializedProperty _contrasteIntensity;
-
-        private SerializedProperty _isBrightnessExpandedProperty;
-        private SerializedProperty _brightnessEnabledProperty;
         private SerializedProperty _brightnesseIntensity;
 
         private static Texture2D greenLight;
@@ -68,12 +65,9 @@ namespace SleekRender
             _vignetteExpandRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteExpandRadius));
             _vignetteColorProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteColor));
 
-            _isContrastExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrastExpanded));
-            _contrastEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrastEnabled));
+            _isContrastAndBrightnessEditorExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrastBrightnessExpanded));
+            _contrastAndBrightnessEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrastBrightnessEnabled));
             _contrasteIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrast));
-
-            _isBrightnessExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightnessExpanded));
-            _brightnessEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightnessEnabled));
             _brightnesseIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightness));
         }
 
@@ -117,10 +111,7 @@ namespace SleekRender
             DrawVignetteEditor();
             EditorGUILayout.Space();
 
-            DrawContrastEditor();
-            EditorGUILayout.Space();
-
-            DrawBrightnessEditor();
+            DrawContrastAndBrightnessEditor();
             
             DrawTotalCost();
 
@@ -128,31 +119,21 @@ namespace SleekRender
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawBrightnessEditor()
+    
+
+        private void DrawContrastAndBrightnessEditor()
         {
-            Header("Brightness", _isBrightnessExpandedProperty, _brightnessEnabledProperty);
+            Header("Contrast/Brightness", _isContrastAndBrightnessEditorExpandedProperty, _contrastAndBrightnessEnabledProperty);
 
-            if(_isBrightnessExpandedProperty.boolValue)
-            {
-                EditorGUI.indentLevel += 1;
-
-                EditorGUILayout.LabelField("Brightness Intensity");
-                EditorGUILayout.Slider(_brightnesseIntensity, 0f, 1f, "");
-
-                EditorGUI.indentLevel -= 1;
-            }
-        }
-
-        private void DrawContrastEditor()
-        {
-            Header("Contrast", _isContrastExpandedProperty, _contrastEnabledProperty);
-
-            if(_isContrastExpandedProperty.boolValue)
+            if(_isContrastAndBrightnessEditorExpandedProperty.boolValue)
             {
                 EditorGUI.indentLevel += 1;
 
                 EditorGUILayout.LabelField("Contrast Intensity");
                 EditorGUILayout.Slider(_contrasteIntensity, 0f, 3f, "");
+
+                EditorGUILayout.LabelField("Brightness Intensity");
+                EditorGUILayout.Slider(_brightnesseIntensity, 0f, 1f, "");
 
                 EditorGUI.indentLevel -= 1;
             }

@@ -215,7 +215,8 @@ namespace SleekRender
                 _isColorizeAlreadyEnabled = false;
             }
 
-            _composeMaterial.SetVector(Uniforms._ContrastBrightness, new Vector4(settings.contrast, settings.brightness));
+            float formula = (-0.5f)*(settings.contrast + 1)  + (settings.brightness * 2); // optimization
+            _composeMaterial.SetVector(Uniforms._ContrastBrightness, new Vector4(settings.contrast, settings.brightness, formula));
             if(settings.contrastBrightnessEnabled && !_isContrastAndBrightnessAlreadyEnabled)
             {
                 _composeMaterial.EnableKeyword(Keywords.CONTRAST_AND_BRIGHTNESS_ON);

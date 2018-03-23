@@ -57,7 +57,7 @@
 			}
 			
 			sampler2D_half _MainTex, _PreComposeTex;
-			half2 _ContrastBrightness;
+			half3 _ContrastBrightness;
 
 			half4 frag (v2f i) : SV_Target
 			{
@@ -72,8 +72,7 @@
 				#endif
 
 				#ifdef CONTRAST_AND_BRIGHTNESS_ON
-				result = (result - .5f) * (_ContrastBrightness.x) + .5f;
-				result = result + (_ContrastBrightness.y * 2 - 1);
+				result = (result * _ContrastBrightness.x) + _ContrastBrightness.z;
 				#endif
 
 				return half4(result, 1.0h);

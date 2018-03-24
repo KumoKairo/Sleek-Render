@@ -36,6 +36,11 @@ namespace SleekRender
         private SerializedProperty _vignetteExpandRadiusProperty;
         private SerializedProperty _vignetteColorProperty;
 
+        private SerializedProperty _isContrastAndBrightnessEditorExpandedProperty;
+        private SerializedProperty _contrastAndBrightnessEnabledProperty;
+        private SerializedProperty _contrasteIntensity;
+        private SerializedProperty _brightnesseIntensity;
+
         private void OnEnable()
         {
             SetupBloomProperties();
@@ -49,6 +54,11 @@ namespace SleekRender
             _vignetteBeginRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteBeginRadius));
             _vignetteExpandRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteExpandRadius));
             _vignetteColorProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteColor));
+
+            _isContrastAndBrightnessEditorExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrastBrightnessExpanded));
+            _contrastAndBrightnessEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrastBrightnessEnabled));
+            _contrasteIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrast));
+            _brightnesseIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightness));
         }
 
         private void SetupBloomProperties()
@@ -89,16 +99,37 @@ namespace SleekRender
             EditorGUILayout.Space();
 
             DrawVignetteEditor();
-            
+            EditorGUILayout.Space();
+
+            DrawContrastAndBrightnessEditor();
+
             DrawTotalCost();
 
             EditorGUI.indentLevel = indent;
             serializedObject.ApplyModifiedProperties();
         }
 
+        private void DrawContrastAndBrightnessEditor()
+        {
+            Header("Brightness / Contrast", _isContrastAndBrightnessEditorExpandedProperty, _contrastAndBrightnessEnabledProperty);
+
+            if (_isContrastAndBrightnessEditorExpandedProperty.boolValue)
+            {
+                EditorGUI.indentLevel += 1;
+
+                EditorGUILayout.LabelField("Contrast Intensity");
+                EditorGUILayout.Slider(_contrasteIntensity, 0f, 3f, "");
+
+                EditorGUILayout.LabelField("Brightness Intensity");
+                EditorGUILayout.Slider(_brightnesseIntensity, 0f, 1f, "");
+
+                EditorGUI.indentLevel -= 1;
+            }
+        }
+
         private void DrawVignetteEditor()
         {
-            Header("Vignette" ,_isVignetteExpandedProperty, _vignetteEnabledProperty);
+            Header("Vignette", _isVignetteExpandedProperty, _vignetteEnabledProperty);
 
             if (_isVignetteExpandedProperty.boolValue)
             {
@@ -155,7 +186,7 @@ namespace SleekRender
         private void DrawTotalCost()
         {
             // Skipping control rect, ignore any statical analisys warnings
-            EditorGUILayout.GetControlRect();
+            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             EditorGUILayout.HelpBox(SleekRenderCostCalculator.GetTotalCostStringFor(target as SleekRenderSettings),
                 MessageType.Info);
         }
@@ -215,37 +246,6 @@ namespace SleekRender
             _selectedBloomHeightIndex = _selectedBloomHeightIndex != -1 ? _selectedBloomHeightIndex : 2;
             _selectedBloomHeightIndex = EditorGUI.Popup(heightRect, _selectedBloomHeightIndex, _bloomSizeVariants);
             _bloomHeightProperty.intValue = _bloomSizeVariantInts[_selectedBloomHeightIndex];
-        }
-
-        public static bool TextHeader(string title, SerializedProperty isExpanded)
-        {
-            var display = isExpanded == null || isExpanded.boolValue;
-            var rect = GUILayoutUtility.GetRect(16f, 22f);
-            GUI.Label(rect, title);
-            Texture2D panel;
-            if((EditorPrefs.GetInt("UserSkin") == 1)) //dark skin
-            { 
-                panel = (Texture2D)EditorGUIUtility.Load("Builtin Skins/DarkSkin/Images/pane options.png");
-            } 
-            else 
-            {
-                panel = (Texture2D)EditorGUIUtility.Load("Builtin Skins/LightSkin/Images/pane options.png");
-            }
-            GUI.DrawTexture(new Rect(rect.xMax - rect.height, rect.y + 4, panel.width, panel.height), panel);
-            
-            var e = Event.current;
-
-            if (e.type == EventType.MouseDown)
-            {
-                if (rect.Contains(e.mousePosition) && isExpanded != null)
-                {
-                    display = !display;
-                    isExpanded.boolValue = !isExpanded.boolValue;
-                    e.Use();
-                }
-            }
-
-            return display;
         }
 
         public static bool Header(string title, SerializedProperty isExpanded, SerializedProperty enabledField)

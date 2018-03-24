@@ -22,6 +22,7 @@ namespace SleekRender
             public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
             public static readonly int _VignetteShape = Shader.PropertyToID("_VignetteShape");
             public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
+            public static readonly int _BrightnessContrast = Shader.PropertyToID("_BrightnessContrast");
         }
 
         // Keywords for shader variants
@@ -30,6 +31,7 @@ namespace SleekRender
             public const string COLORIZE_ON = "COLORIZE_ON";
             public const string BLOOM_ON = "BLOOM_ON";
             public const string VIGNETTE_ON = "VIGNETTE_ON";
+            public const string CONTRAST_AND_BRIGHTNESS_ON = "CONTRAST_AND_BRIGHTNESS_ON";
         }
 
         // Currently linked settings in the inspector
@@ -64,10 +66,12 @@ namespace SleekRender
         private bool _isBloomAlreadyEnabled = false;
         private bool _isVignetteAlreadyEnabled = false;
         private bool _isAlreadyPreservingAspectRatio = false;
+        private bool _isContrastAndBrightnessAlreadyEnabled = false;
 
         private void OnEnable()
         {
-            // If we are adding a component from scratch, we should supply fake settings with default values (until normal ones are linked)
+            // If we are adding a component from scratch, we should supply fake settings with default values 
+            // (until normal ones are linked)
             CreateDefaultSettingsIfNoneLinked();
             CreateResources();
         }
@@ -111,8 +115,7 @@ namespace SleekRender
             Vector4 luminanceConst = new Vector4(
                 luma.x * oneOverOneMinusBloomThreshold,
                 luma.y * oneOverOneMinusBloomThreshold,
-                luma.z * oneOverOneMinusBloomThreshold,
-                -settings.bloomThreshold * oneOverOneMinusBloomThreshold);
+                luma.z * oneOverOneMinusBloomThreshold, -settings.bloomThreshold * oneOverOneMinusBloomThreshold);
 
             // Changing current Luminance Const value just to make sure that we have the latest settings in our Uniforms
             _downsampleMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
@@ -157,15 +160,15 @@ namespace SleekRender
                 var vignetteColor = settings.vignetteColor;
 
                 _preComposeMaterial.SetVector(Uniforms._VignetteShape, new Vector4(
-                    4f * oneOverVignetteRadiusDistance * oneOverVignetteRadiusDistance,
+                    4f * oneOverVignetteRadiusDistance * oneOverVignetteRadiusDistance, 
                     -oneOverVignetteRadiusDistance * squareVignetteBeginRaduis));
 
                 // Premultiplying Alpha of vignette color
                 _preComposeMaterial.SetColor(Uniforms._VignetteColor, new Color(
-                        vignetteColor.r * vignetteColor.a,
-                        vignetteColor.g * vignetteColor.a,
-                        vignetteColor.b * vignetteColor.a,
-                        vignetteColor.a));
+                    vignetteColor.r * vignetteColor.a,
+                    vignetteColor.g * vignetteColor.a,
+                    vignetteColor.b * vignetteColor.a,
+                    vignetteColor.a));
             }
 
             // Bloom is handled in two different passes (two blurring bloom passes and one precompose pass)
@@ -210,6 +213,19 @@ namespace SleekRender
             {
                 _composeMaterial.DisableKeyword(Keywords.COLORIZE_ON);
                 _isColorizeAlreadyEnabled = false;
+            }
+
+            var brightnessContrastPrecomputed = (-0.5f) * (settings.contrast + 1f) + (settings.brightness * 2f); // optimization
+            _composeMaterial.SetVector(Uniforms._BrightnessContrast, new Vector4(settings.contrast, settings.brightness, brightnessContrastPrecomputed));
+            if (settings.contrastBrightnessEnabled && !_isContrastAndBrightnessAlreadyEnabled)
+            {
+                _composeMaterial.EnableKeyword(Keywords.CONTRAST_AND_BRIGHTNESS_ON);
+                _isContrastAndBrightnessAlreadyEnabled = true;
+            }
+            else if (!settings.contrastBrightnessEnabled && _isContrastAndBrightnessAlreadyEnabled)
+            {
+                _composeMaterial.DisableKeyword(Keywords.CONTRAST_AND_BRIGHTNESS_ON);
+                _isContrastAndBrightnessAlreadyEnabled = false;
             }
 
             Blit(source, target, _composeMaterial);
@@ -280,6 +296,7 @@ namespace SleekRender
             _isColorizeAlreadyEnabled = false;
             _isBloomAlreadyEnabled = false;
             _isVignetteAlreadyEnabled = false;
+            _isContrastAndBrightnessAlreadyEnabled = false;
         }
 
         private RenderTexture CreateTransientRenderTexture(string textureName, int width, int height)
@@ -360,10 +377,10 @@ namespace SleekRender
         private void CheckScreenSizeAndRecreateTexturesIfNeeded(Camera mainCamera)
         {
             var cameraSizeHasChanged = mainCamera.pixelWidth != _currentCameraPixelWidth ||
-                                       mainCamera.pixelHeight != _currentCameraPixelHeight;
+                mainCamera.pixelHeight != _currentCameraPixelHeight;
 
             var bloomSizeHasChanged = _horizontalBlurTexture.width != settings.bloomTextureWidth ||
-                                      _horizontalBlurTexture.height != settings.bloomTextureHeight;
+                _horizontalBlurTexture.height != settings.bloomTextureHeight;
 
             // XORing already changed vs preserve aspect
             // True only when values are different
@@ -391,32 +408,36 @@ namespace SleekRender
 
             var vertices = new[]
             {
-                new Vector3(-1f, -1f, 0f), // BL
-                new Vector3(-1f, 1f, 0f),  // TL
-                new Vector3(1f, 1f, 0f),   // TR
-                new Vector3(1f, -1f, 0f)   // BR
+                new Vector3 (-1f, -1f, 0f), // BL
+                new Vector3 (-1f, 1f, 0f), // TL
+                new Vector3 (1f, 1f, 0f), // TR
+                new Vector3 (1f, -1f, 0f) // BR
             };
 
             var uvs = new[]
             {
-                new Vector2(0f, 0f),
-                new Vector2(0f, 1f),
-                new Vector2(1f, 1f),
-                new Vector2(1f, 0f)
+                new Vector2 (0f, 0f),
+                new Vector2 (0f, 1f),
+                new Vector2 (1f, 1f),
+                new Vector2 (1f, 0f)
             };
 
             var colors = new[]
             {
-                new Color(0f, 0f, 1f),
-                new Color(0f, 1f, 1f),
-                new Color(1f, 1f, 1f),
-                new Color(1f, 0f, 1f),
+                new Color (0f, 0f, 1f),
+                new Color (0f, 1f, 1f),
+                new Color (1f, 1f, 1f),
+                new Color (1f, 0f, 1f),
             };
 
             var triangles = new[]
             {
-                0, 2, 1,
-                0, 3, 2
+                0,
+                2,
+                1,
+                0,
+                3,
+                2
             };
 
             mesh.vertices = vertices;

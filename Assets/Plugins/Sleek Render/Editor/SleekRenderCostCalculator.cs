@@ -31,7 +31,7 @@ namespace SleekRender
                 totalCost += 0.5f;
             }
 
-            _sb.Append("\tTotal:\t\t"+ totalCost.ToString("F2") +" ms\n\n");
+            _sb.Append("\tTotal:\t\t" + totalCost.ToString("F2") + " ms\n\n");
 
             _sb.Append("General case (Arm Mali400 GPU with 480x864 screen resolution - Galaxy S2-ish):\n\n");
 

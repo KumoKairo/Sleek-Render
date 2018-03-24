@@ -5,6 +5,7 @@
 		_MainTex ("Texture", 2D) = "white" {}
 		_PreComposeTex("PreCompose Texture", 2D) = "black" {}
 		_Colorize("Colorize", color) = (1.0, 1.0, 1.0, 0.0)
+		_ContrastBrightness("Contrast And Brightness", vector) = (1.0, 0.5, 0, 0)
 		_LuminanceConst("Luminance Const", vector) = (0.2126, 0.7152, 0.0722, 0.0)
 	}
 	SubShader
@@ -18,6 +19,7 @@
 			#pragma fragment frag
 
 			#pragma multi_compile _ COLORIZE_ON
+			#pragma multi_compile _ CONTRAST_AND_BRIGHTNESS_ON
 			
 			struct appdata
 			{
@@ -55,6 +57,7 @@
 			}
 			
 			sampler2D_half _MainTex, _PreComposeTex;
+			half3 _BrightnessContrast;
 
 			half4 frag (v2f i) : SV_Target
 			{
@@ -68,7 +71,11 @@
 				half3 result = mainColor;
 				#endif
 
-				return half4(result, 1.0);
+				#ifdef CONTRAST_AND_BRIGHTNESS_ON
+				result = saturate((result * _BrightnessContrast.x) + _BrightnessContrast.z);
+				#endif
+
+				return half4(result, 1.0h);
 			}
 			ENDCG
 		}

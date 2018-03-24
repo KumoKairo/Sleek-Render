@@ -55,6 +55,11 @@ public class DisplayFPS : MonoBehaviour
 		_pp.settings.vignetteEnabled = isOn;
 	}
 
+	public void OnContrastAndBrightness(bool isOn)
+	{
+		_pp.settings.contrastBrightnessEnabled = isOn;
+	}
+
 	public void AllToggle(bool isOn)
 	{
 		_pp.enabled = isOn;

@@ -118,10 +118,10 @@ namespace SleekRender
                 EditorGUI.indentLevel += 1;
 
                 EditorGUILayout.LabelField("Contrast Intensity");
-                EditorGUILayout.Slider(_contrasteIntensity, 0f, 3f, "");
+                EditorGUILayout.Slider(_contrasteIntensity, -1f, 1f, "");
 
                 EditorGUILayout.LabelField("Brightness Intensity");
-                EditorGUILayout.Slider(_brightnesseIntensity, 0f, 1f, "");
+                EditorGUILayout.Slider(_brightnesseIntensity, -1f, 1f, "");
 
                 EditorGUI.indentLevel -= 1;
             }

@@ -215,8 +215,10 @@ namespace SleekRender
                 _isColorizeAlreadyEnabled = false;
             }
 
-            var brightnessContrastPrecomputed = (-0.5f) * (settings.contrast + 1f) + (settings.brightness * 2f); // optimization
-            _composeMaterial.SetVector(Uniforms._BrightnessContrast, new Vector4(settings.contrast, settings.brightness, brightnessContrastPrecomputed));
+            float normalizedContrast = settings.contrast + 1f;
+            float normalizedBrightness = (settings.brightness + 1f) / 2f;
+            var brightnessContrastPrecomputed = (-0.5f) * (normalizedContrast + 1f) + (normalizedBrightness * 2f); // optimization
+            _composeMaterial.SetVector(Uniforms._BrightnessContrast, new Vector4(normalizedContrast, normalizedBrightness, brightnessContrastPrecomputed));
             if (settings.contrastBrightnessEnabled && !_isContrastAndBrightnessAlreadyEnabled)
             {
                 _composeMaterial.EnableKeyword(Keywords.CONTRAST_AND_BRIGHTNESS_ON);

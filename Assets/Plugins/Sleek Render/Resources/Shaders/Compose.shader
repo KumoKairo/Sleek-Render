@@ -73,6 +73,7 @@
 
 				#ifdef CONTRAST_AND_BRIGHTNESS_ON
 				result = (result * _ContrastBrightness.x) + _ContrastBrightness.z;
+				saturate(result);
 				#endif
 
 				return half4(result, 1.0h);

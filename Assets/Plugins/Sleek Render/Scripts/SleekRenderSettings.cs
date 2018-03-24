@@ -45,7 +45,7 @@ namespace SleekRender
         public bool contrastBrightnessEnabled = true;
 
         public float contrast = 1f;
-        
+
         public float brightness = .5f;
     }
 

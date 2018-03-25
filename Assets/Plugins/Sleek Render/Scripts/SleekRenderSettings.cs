@@ -44,9 +44,9 @@ namespace SleekRender
         public bool contrastBrightnessExpanded = false;
         public bool contrastBrightnessEnabled = true;
 
-        public float contrast = 1f;
+        public float contrast = 0f;
 
-        public float brightness = .5f;
+        public float brightness = 0f;
     }
 
     public enum LumaVectorType

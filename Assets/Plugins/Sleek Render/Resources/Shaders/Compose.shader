@@ -19,7 +19,7 @@
 			#pragma fragment frag
 
 			#pragma multi_compile _ COLORIZE_ON
-			#pragma multi_compile _ CONTRAST_AND_BRIGHTNESS_ON
+			#pragma multi_compile _ BRIGHTNESS_CONTRAST_ON
 			
 			struct appdata
 			{
@@ -71,7 +71,7 @@
 				half3 result = mainColor;
 				#endif
 
-				#ifdef CONTRAST_AND_BRIGHTNESS_ON
+				#ifdef BRIGHTNESS_CONTRAST_ON
 				result = saturate((result * _BrightnessContrast.x) + _BrightnessContrast.z);
 				#endif
 

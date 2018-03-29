@@ -31,7 +31,7 @@ namespace SleekRender
             public const string COLORIZE_ON = "COLORIZE_ON";
             public const string BLOOM_ON = "BLOOM_ON";
             public const string VIGNETTE_ON = "VIGNETTE_ON";
-            public const string CONTRAST_AND_BRIGHTNESS_ON = "CONTRAST_AND_BRIGHTNESS_ON";
+            public const string BRIGHTNESS_CONTRAST_ON = "BRIGHTNESS_CONTRAST_ON";
         }
 
         // Currently linked settings in the inspector
@@ -81,10 +81,28 @@ namespace SleekRender
             ReleaseResources();
         }
 
+        private RenderTexture _rt;
+        private RenderTexture _rtTarget;
+
+        //private void OnPreRender()
+        //{
+        //    _rt = RenderTexture.GetTemporary(Screen.width, Screen.height);
+        //    _rtTarget = RenderTexture.GetTemporary(Screen.width, Screen.height);
+        //    _mainCamera.targetTexture = _rt;
+        //}
+
+        //private void OnPostRender()
+        //{
+        //    _mainCamera.targetTexture = null;
+        //    OnDoRenderImage(_rt, _rtTarget);
+        //    RenderTexture.ReleaseTemporary(_rt);
+        //}
+
         private void OnRenderImage(RenderTexture source, RenderTexture target)
         {
             // Editor only behaviour needed to recreate resources if viewport size changes (resizing editor window)
 #if UNITY_EDITOR
+            CreateDefaultSettingsIfNoneLinked();
             CheckScreenSizeAndRecreateTexturesIfNeeded(_mainCamera);
 #endif
             // Applying post processing steps
@@ -95,10 +113,6 @@ namespace SleekRender
 
         private void ApplyPostProcess(RenderTexture source)
         {
-#if UNITY_EDITOR
-            CreateDefaultSettingsIfNoneLinked();
-#endif
-
             var isBloomEnabled = settings.bloomEnabled;
 
             Downsample(source);
@@ -219,14 +233,15 @@ namespace SleekRender
             float normalizedBrightness = (settings.brightness + 1f) / 2f;
             var brightnessContrastPrecomputed = (-0.5f) * (normalizedContrast + 1f) + (normalizedBrightness * 2f); // optimization
             _composeMaterial.SetVector(Uniforms._BrightnessContrast, new Vector4(normalizedContrast, normalizedBrightness, brightnessContrastPrecomputed));
+
             if (settings.brightnessContrastEnabled && !_isContrastAndBrightnessAlreadyEnabled)
             {
-                _composeMaterial.EnableKeyword(Keywords.CONTRAST_AND_BRIGHTNESS_ON);
+                _composeMaterial.EnableKeyword(Keywords.BRIGHTNESS_CONTRAST_ON);
                 _isContrastAndBrightnessAlreadyEnabled = true;
             }
             else if (!settings.brightnessContrastEnabled && _isContrastAndBrightnessAlreadyEnabled)
             {
-                _composeMaterial.DisableKeyword(Keywords.CONTRAST_AND_BRIGHTNESS_ON);
+                _composeMaterial.DisableKeyword(Keywords.BRIGHTNESS_CONTRAST_ON);
                 _isContrastAndBrightnessAlreadyEnabled = false;
             }
 
@@ -262,9 +277,8 @@ namespace SleekRender
             var ratio = (float)maxHeight / height;
 
             // Constant used to make the bloom look completely uniform on square or circle objects
-            const float squareAspectWidthCorrection = 0.7f;
             int blurHeight = settings.bloomTextureHeight;
-            int blurWidth = settings.preserveAspectRatio ? Mathf.RoundToInt(blurHeight * _mainCamera.aspect * squareAspectWidthCorrection) : settings.bloomTextureWidth;
+            int blurWidth = settings.preserveAspectRatio ? Mathf.RoundToInt(blurHeight * GetCurrentAspect(_mainCamera)) : settings.bloomTextureWidth;
 
             // Downsampling texture size (downscale + brightpass and precompose)
             int downsampleWidth = Mathf.RoundToInt((width * ratio) / 5f);
@@ -381,18 +395,38 @@ namespace SleekRender
             var cameraSizeHasChanged = mainCamera.pixelWidth != _currentCameraPixelWidth ||
                 mainCamera.pixelHeight != _currentCameraPixelHeight;
 
-            var bloomSizeHasChanged = _horizontalBlurTexture.width != settings.bloomTextureWidth ||
-                _horizontalBlurTexture.height != settings.bloomTextureHeight;
+            var bloomSizeHasChanged = _horizontalBlurTexture.height != settings.bloomTextureHeight;
+            if (!settings.preserveAspectRatio)
+            {
+                bloomSizeHasChanged |= _horizontalBlurTexture.width != settings.bloomTextureWidth;
+            }
 
-            // XORing already changed vs preserve aspect
-            // True only when values are different
-            bloomSizeHasChanged |= _isAlreadyPreservingAspectRatio ^ settings.preserveAspectRatio;
+            if (!bloomSizeHasChanged && settings.preserveAspectRatio)
+            {
+                if (_horizontalBlurTexture.width != Mathf.RoundToInt(_horizontalBlurTexture.height * GetCurrentAspect(mainCamera)))
+                {
+                    bloomSizeHasChanged = true;
+                }
+            }
+
+            if (settings.preserveAspectRatio && !_isAlreadyPreservingAspectRatio
+                || !settings.preserveAspectRatio && _isAlreadyPreservingAspectRatio)
+            {
+                _isAlreadyPreservingAspectRatio = settings.preserveAspectRatio;
+                bloomSizeHasChanged = true;
+            }
 
             if (cameraSizeHasChanged || bloomSizeHasChanged)
             {
                 ReleaseResources();
                 CreateResources();
             }
+        }
+
+        private float GetCurrentAspect(Camera mainCamera)
+        {
+            const float SQUARE_ASPECT_CORRECTION = 0.7f;
+            return mainCamera.aspect * SQUARE_ASPECT_CORRECTION;
         }
 
         private void CreateDefaultSettingsIfNoneLinked()

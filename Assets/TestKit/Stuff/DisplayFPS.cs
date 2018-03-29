@@ -57,7 +57,7 @@ public class DisplayFPS : MonoBehaviour
 
 	public void OnContrastAndBrightness(bool isOn)
 	{
-		_pp.settings.contrastBrightnessEnabled = isOn;
+		_pp.settings.brightnessContrastEnabled = isOn;
 	}
 
 	public void AllToggle(bool isOn)

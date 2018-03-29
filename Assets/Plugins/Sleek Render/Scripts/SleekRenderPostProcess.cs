@@ -219,12 +219,12 @@ namespace SleekRender
             float normalizedBrightness = (settings.brightness + 1f) / 2f;
             var brightnessContrastPrecomputed = (-0.5f) * (normalizedContrast + 1f) + (normalizedBrightness * 2f); // optimization
             _composeMaterial.SetVector(Uniforms._BrightnessContrast, new Vector4(normalizedContrast, normalizedBrightness, brightnessContrastPrecomputed));
-            if (settings.contrastBrightnessEnabled && !_isContrastAndBrightnessAlreadyEnabled)
+            if (settings.brightnessContrastEnabled && !_isContrastAndBrightnessAlreadyEnabled)
             {
                 _composeMaterial.EnableKeyword(Keywords.CONTRAST_AND_BRIGHTNESS_ON);
                 _isContrastAndBrightnessAlreadyEnabled = true;
             }
-            else if (!settings.contrastBrightnessEnabled && _isContrastAndBrightnessAlreadyEnabled)
+            else if (!settings.brightnessContrastEnabled && _isContrastAndBrightnessAlreadyEnabled)
             {
                 _composeMaterial.DisableKeyword(Keywords.CONTRAST_AND_BRIGHTNESS_ON);
                 _isContrastAndBrightnessAlreadyEnabled = false;

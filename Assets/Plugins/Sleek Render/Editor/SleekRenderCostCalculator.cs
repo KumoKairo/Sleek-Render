@@ -17,8 +17,8 @@ namespace SleekRender
             float totalCost = 6f;
             if (settings.bloomEnabled)
             {
-                _sb.Append("\tBloom:\t\t3 ms\n");
-                totalCost += 3f;
+                _sb.Append("\tBloom:\t\t2 ms\n");
+                totalCost += 2f;
             }
             if (settings.colorizeEnabled)
             {
@@ -28,6 +28,11 @@ namespace SleekRender
             if (settings.vignetteEnabled)
             {
                 _sb.Append("\tVignette:\t\t0.5 ms\n");
+                totalCost += 0.5f;
+            }
+            if (settings.brightnessContrastEnabled)
+            {
+                _sb.Append("\tBr./Contr:\t0.5ms\n");
                 totalCost += 0.5f;
             }
 
@@ -52,6 +57,12 @@ namespace SleekRender
                 _sb.Append("\tVignette:\t\t0.2 ms\n");
                 totalCost += 0.2f;
             }
+            if (settings.brightnessContrastEnabled)
+            {
+                _sb.Append("\tBr./Contr:\t0.2ms\n");
+                totalCost += 0.2f;
+            }
+
             _sb.Append("\tTotal:\t\t" + totalCost.ToString("F2") + " ms\n\n");
 
             _sb.Append("Render target switch count (less is better):\n\n");

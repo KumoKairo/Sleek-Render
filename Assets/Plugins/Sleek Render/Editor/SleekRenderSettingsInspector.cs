@@ -55,8 +55,8 @@ namespace SleekRender
             _vignetteExpandRadiusProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteExpandRadius));
             _vignetteColorProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.vignetteColor));
 
-            _isContrastAndBrightnessEditorExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrastBrightnessExpanded));
-            _contrastAndBrightnessEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrastBrightnessEnabled));
+            _isContrastAndBrightnessEditorExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightnessContrastExpanded));
+            _contrastAndBrightnessEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightnessContrastEnabled));
             _contrasteIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrast));
             _brightnesseIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightness));
         }

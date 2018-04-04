@@ -14,7 +14,7 @@ namespace SleekRender
             _sb.Append("Worst case (HiRez Low End GPU 2011-ish OpenGL ES 2.0 devices):\n\n");
             _sb.Append("\tBase overhead:\t2 ms\n");
 
-            float totalCost = 6f;
+            float totalCost = 2f;
             if (settings.bloomEnabled)
             {
                 _sb.Append("\tBloom:\t\t2 ms\n");
@@ -22,8 +22,8 @@ namespace SleekRender
             }
             if (settings.colorizeEnabled)
             {
-                _sb.Append("\tColorize:\t\t2 ms\n");
-                totalCost += 2f;
+                _sb.Append("\tColorize:\t\t3 ms\n");
+                totalCost += 3f;
             }
             if (settings.vignetteEnabled)
             {

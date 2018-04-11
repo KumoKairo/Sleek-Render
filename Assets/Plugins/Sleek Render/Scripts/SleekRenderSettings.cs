@@ -11,7 +11,6 @@ namespace SleekRender
         public bool bloomExpanded = false;
         public bool bloomEnabled = true;
 
-
         public float bloomThreshold = 0.6f;
 
         public float bloomIntensity = 2.5f;
@@ -20,7 +19,6 @@ namespace SleekRender
         public bool preserveAspectRatio = false;
         public int bloomTextureWidth = 128;
         public int bloomTextureHeight = 128;
-        public int numberOfPasses = 1;
 
         public LumaVectorType bloomLumaCalculationType = LumaVectorType.Uniform;
         public Vector3 bloomLumaVector = new Vector3(1f / 3f, 1f / 3f, 1f / 3f);
@@ -40,9 +38,6 @@ namespace SleekRender
         public float vignetteExpandRadius = 1.34f;
 
         public Color vignetteColor = Color.black;
-
-
-
     }
 
     public enum LumaVectorType

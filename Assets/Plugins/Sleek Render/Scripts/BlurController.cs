@@ -4,13 +4,12 @@ using UnityEngine.UI;
 
 public class BlurController : MonoBehaviour
 {
-
     // Use this for initialization
     void Start()
     {
         timer = 0;
         upBloor = true;
-        settings.numberOfPasses = 1;
+        //settings.numberOfPasses = 1;
     }
 
 
@@ -32,13 +31,13 @@ public class BlurController : MonoBehaviour
         timer += Time.deltaTime;
         if (timer > timeInterval)
         {
-            if (settings.numberOfPasses == 10 || settings.numberOfPasses == 1)
-                upBloor = !upBloor;
+            // if (settings.numberOfPasses == 10 || settings.numberOfPasses == 1)
+            //     upBloor = !upBloor;
 
-            if (upBloor && settings.numberOfPasses < 10)
-                settings.numberOfPasses += 1;
-            if (!upBloor && settings.numberOfPasses > 1)
-                settings.numberOfPasses -= 1;
+            // if (upBloor && settings.numberOfPasses < 10)
+            //     settings.numberOfPasses += 1;
+            // if (!upBloor && settings.numberOfPasses > 1)
+            //     settings.numberOfPasses -= 1;
 
             timer = 0;
         }

@@ -10,9 +10,7 @@ namespace SleekRender
         [Header("Bloom")]
         public bool bloomExpanded = false;
         public bool bloomEnabled = true;
-
         public float bloomThreshold = 0.6f;
-
         public float bloomIntensity = 2.5f;
         public Color bloomTint = Color.white;
 
@@ -34,10 +32,15 @@ namespace SleekRender
         public bool vignetteEnabled = true;
 
         public float vignetteBeginRadius = 0.166f;
-
         public float vignetteExpandRadius = 1.34f;
-
         public Color vignetteColor = Color.black;
+
+        [Header("Contrast/Brightness")]
+        public bool brightnessContrastExpanded = false;
+        public bool brightnessContrastEnabled = true;
+
+        public float contrast = 0f;
+        public float brightness = 0f;
     }
 
     public enum LumaVectorType

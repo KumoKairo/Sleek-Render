@@ -10,6 +10,7 @@ namespace SleekRender
         [Header("Bloom")]
         public bool bloomExpanded = false;
         public bool bloomEnabled = true;
+        public BlurType blurType = BlurType.Standart;
         public float bloomThreshold = 0.6f;
         public float bloomIntensity = 2.5f;
         public Color bloomTint = Color.white;
@@ -17,6 +18,8 @@ namespace SleekRender
         public bool preserveAspectRatio = false;
         public int bloomTextureWidth = 128;
         public int bloomTextureHeight = 128;
+
+        public int[] dualFilterTextureSizes = {64, 128, 256, 512}; 
 
         public LumaVectorType bloomLumaCalculationType = LumaVectorType.Uniform;
         public Vector3 bloomLumaVector = new Vector3(1f / 3f, 1f / 3f, 1f / 3f);
@@ -48,5 +51,11 @@ namespace SleekRender
         Uniform,
         sRGB,
         Custom
+    }
+
+    public enum BlurType
+    {
+        Standart,
+        DualFilter
     }
 }

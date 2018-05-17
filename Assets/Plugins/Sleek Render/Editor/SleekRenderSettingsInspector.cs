@@ -18,6 +18,7 @@ namespace SleekRender
         private SerializedProperty _bloomHeightProperty;
         private SerializedProperty _bloomLumaVectorProperty;
         private SerializedProperty _bloomSelectedLumaVectorTypeProperty;
+        private SerializedProperty _bloomSelectedBlurTypeProperty;
 
         private string[] _bloomSizeVariants = new[] { "32", "64", "128" };
         private int[] _bloomSizeVariantInts = new[] { 32, 64, 128 };
@@ -25,6 +26,7 @@ namespace SleekRender
         private int _selectedBloomHeightIndex = -1;
 
         private LumaVectorType _selectedLumaVectorType;
+        private BlurType _selectedBlurType;
 
         private SerializedProperty _isColorizeGroupExpandedProperty;
         private SerializedProperty _colorizeEnabledProperty;
@@ -84,6 +86,10 @@ namespace SleekRender
             _bloomSelectedLumaVectorTypeProperty =
                 serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.bloomLumaCalculationType));
             _selectedLumaVectorType = (LumaVectorType)_bloomSelectedLumaVectorTypeProperty.enumValueIndex;
+
+            _bloomSelectedBlurTypeProperty = 
+                serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.blurType));
+            _selectedBlurType = (BlurType)_bloomSelectedBlurTypeProperty.enumValueIndex;
         }
 
         public override void OnInspectorGUI()
@@ -168,19 +174,30 @@ namespace SleekRender
             if (_isBloomGroupExpandedProperty.boolValue)
             {
                 EditorGUI.indentLevel += 1;
-
-                EditorGUILayout.LabelField("Bloom threshold");
-                EditorGUILayout.Slider(_bloomThresholdProperty, 0f, 1f, "");
+                DisplayBlurSelect();
+                if(_selectedBlurType == BlurType.Standart){
+                    EditorGUILayout.LabelField("Bloom threshold");
+                    EditorGUILayout.Slider(_bloomThresholdProperty, 0f, 1f, "");
+                }
                 EditorGUILayout.LabelField("Bloom intensity");
                 EditorGUILayout.Slider(_bloomIntensityProperty, 0f, 15f, "");
                 EditorGUILayout.LabelField("Bloom tint");
                 _bloomTintProperty.colorValue = EditorGUILayout.ColorField("", _bloomTintProperty.colorValue);
 
-                DrawBloomWidthProperties();
-                DisplayLumaVectorProperties();
-
+                if(_selectedBlurType == BlurType.Standart){
+                    DrawBloomWidthProperties();
+                    DisplayLumaVectorProperties();
+                }
                 EditorGUI.indentLevel -= 1;
             }
+        }
+
+        private void DisplayBlurSelect()
+        {
+            EditorGUILayout.LabelField("Blur Type");
+            _selectedBlurType = (BlurType)EditorGUILayout.EnumPopup(_selectedBlurType);
+            _bloomSelectedBlurTypeProperty.enumValueIndex = (int)_selectedBlurType;
+            EditorGUILayout.Space();
         }
 
         private void DrawTotalCost()

@@ -45,8 +45,8 @@ namespace SleekRender
         private Material _preComposeMaterial;
         private Material _composeMaterial;
 
-        private Material _down;
-        private Material _up;
+        private Material[] _downDualFilterMats;
+        private Material[] _upDualFilterMats;
 
         // Various RenderTextures used in post processing render passes
         private RenderTexture _downsampledBrightpassTexture;
@@ -71,6 +71,8 @@ namespace SleekRender
         private bool _isVignetteAlreadyEnabled = false;
         private bool _isAlreadyPreservingAspectRatio = false;
         private bool _isContrastAndBrightnessAlreadyEnabled = false;
+
+        private int[] _dualFilterTextureSizes = {64, 128, 256, 512};
 
         private void OnEnable()
         {
@@ -139,7 +141,7 @@ namespace SleekRender
             _downsampleMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
 
             // Applying downsample + brightpass (stored in Alpha)
-            //Blit(source, _downsampledBrightpassTexture, _downsampleMaterial);
+            Blit(source, _downsampledBrightpassTexture, _downsampleMaterial);
         }
 
         private void Bloom(bool isBloomEnabled, RenderTexture source)
@@ -149,14 +151,14 @@ namespace SleekRender
                 // Applying horizontal and vertical Separable Gaussian Blur passes
                 //Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _horizontalBlurMaterial);
                 //Blit(_brightPassBlurTexture, _verticalBlurTexture, _verticalBlurMaterial)
-                Blit(source, _dualFilterTextures[0], _down);
-                Blit(_dualFilterTextures[0], _dualFilterTextures[1], _down);
-                Blit(_dualFilterTextures[1], _dualFilterTextures[2], _down);
-                Blit(_dualFilterTextures[2], _dualFilterTextures[3], _down);
-                Blit(_dualFilterTextures[3], _dualFilterTextures[2], _up);
-                Blit(_dualFilterTextures[2], _dualFilterTextures[1], _up);
-                Blit(_dualFilterTextures[1], _dualFilterTextures[0], _up);
-                Blit(_dualFilterTextures[0], source, _up);
+                Blit(source, _dualFilterTextures[0], _downDualFilterMats[3]);
+                Blit(_dualFilterTextures[0], _dualFilterTextures[1], _downDualFilterMats[2]);
+                Blit(_dualFilterTextures[1], _dualFilterTextures[2], _downDualFilterMats[1]);
+                Blit(_dualFilterTextures[2], _dualFilterTextures[3], _downDualFilterMats[0]);
+                Blit(_dualFilterTextures[3], _dualFilterTextures[2], _upDualFilterMats[0]);
+                Blit(_dualFilterTextures[2], _dualFilterTextures[1], _upDualFilterMats[1]);
+                Blit(_dualFilterTextures[1], _dualFilterTextures[0], _upDualFilterMats[2]);
+                Blit(_dualFilterTextures[0], _downsampledBrightpassTexture, _upDualFilterMats[3]);
             }
         }
 
@@ -217,7 +219,7 @@ namespace SleekRender
             }
 
             // Finally applying precompose step. It slaps bloom and vignette together
-            Blit(source, _preComposeTexture, _preComposeMaterial);
+            Blit(_downsampledBrightpassTexture, _preComposeTexture, _preComposeMaterial);
         }
 
         private void Compose(RenderTexture source, RenderTexture target)
@@ -263,32 +265,34 @@ namespace SleekRender
         private void CreateResources()
         {
             _mainCamera = GetComponent<Camera>();
+            int dualFilterResCount = _dualFilterTextureSizes.Length;
 
             var downsampleShader = Shader.Find("Sleek Render/Post Process/Downsample Brightpass");
             var horizontalBlurShader = Shader.Find("Sleek Render/Post Process/Horizontal Blur");
             var verticalBlurShader = Shader.Find("Sleek Render/Post Process/Vertical Blur");
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
             var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
-
-
-            float aspect = _mainCamera.aspect;
             var dualFilterUpsample = Shader.Find("Sleek Render/Post Process/Upsample Dual filter");
             var dualFilterDownsample = Shader.Find("Sleek Render/Post Process/Downsample Dual filter");
-            _up = new Material(dualFilterUpsample);
-            _down = new Material(dualFilterDownsample);
-            _dualFilterTextures = new RenderTexture[4];
-            _dualFilterTextures[0] = CreateTransientRenderTexture("0", 512, (int)aspect * 512);
-            _dualFilterTextures[1] = CreateTransientRenderTexture("1", 256, (int)aspect * 256);
-            _dualFilterTextures[2] = CreateTransientRenderTexture("2", 128, (int)aspect * 128);
-            _dualFilterTextures[3] = CreateTransientRenderTexture("3", 64, (int)aspect * 64);
-
 
             _downsampleMaterial = new Material(downsampleShader);
             _horizontalBlurMaterial = new Material(horizontalBlurShader);
             _verticalBlurMaterial = new Material(verticalBlurShader);
             _preComposeMaterial = new Material(preComposeShader);
             _composeMaterial = new Material(composeShader);
+            _upDualFilterMats = new Material[dualFilterResCount];
+            _downDualFilterMats = new Material[dualFilterResCount];
+            for(int i = 0; i < dualFilterResCount; i++)
+            {
+                var spread = 1f / (float)_dualFilterTextureSizes[i];
+                var texelSize = new Vector4(spread, spread/_mainCamera.aspect);
 
+                _upDualFilterMats[i] = new Material(dualFilterUpsample);
+                _upDualFilterMats[i].SetVector(Uniforms._TexelSize, texelSize);
+
+                _downDualFilterMats[i] = new Material(dualFilterDownsample);
+                _downDualFilterMats[i].SetVector(Uniforms._TexelSize, texelSize);
+            }
             _currentCameraPixelWidth = Mathf.RoundToInt(_mainCamera.pixelWidth);
             _currentCameraPixelHeight = Mathf.RoundToInt(_mainCamera.pixelHeight);
 
@@ -315,6 +319,13 @@ namespace SleekRender
             _verticalBlurTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
             _preComposeTexture = CreateTransientRenderTexture("Pre Compose", downsampleWidth, downsampleHeight);
 
+            float aspect = _mainCamera.aspect;
+            _dualFilterTextures = new RenderTexture[4];
+            _dualFilterTextures[0] = CreateTransientRenderTexture("0", 512, (int)aspect * 512);
+            _dualFilterTextures[1] = CreateTransientRenderTexture("1", 256, (int)aspect * 256);
+            _dualFilterTextures[2] = CreateTransientRenderTexture("2", 128, (int)aspect * 128);
+            _dualFilterTextures[3] = CreateTransientRenderTexture("3", 64, (int)aspect * 64);
+
             _verticalBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
             _verticalBlurMaterial.SetTexture(Uniforms._BloomTex, _horizontalBlurTexture);
 
@@ -323,10 +334,6 @@ namespace SleekRender
             var blurTexelSize = new Vector4(xSpread, ySpread);
             _verticalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
             _horizontalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
-
-
-            _down.SetVector(Uniforms._TexelSize, blurTexelSize);
-            _up.SetVector(Uniforms._TexelSize, blurTexelSize);
 
             _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurTexture);
 

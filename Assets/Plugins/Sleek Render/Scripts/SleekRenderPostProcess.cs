@@ -244,7 +244,7 @@ namespace SleekRender
             _up = new Material(dualFilterUpsample);
             _down = new Material(dualFilterDownsample);
             _dualFilterTextures = new RenderTexture[4];
-            _dualFilterTextures[0] = CreateTransientRenderTexture("0", _currentCameraPixelWidth, _currentCameraPixelHeight);
+            _dualFilterTextures[0] = CreateTransientRenderTexture("0", 512, (int)aspect * 512);
             _dualFilterTextures[1] = CreateTransientRenderTexture("1", 256, (int)aspect * 256);
             _dualFilterTextures[2] = CreateTransientRenderTexture("2", 128, (int)aspect * 128);
             _dualFilterTextures[3] = CreateTransientRenderTexture("3", 64, (int)aspect * 64);

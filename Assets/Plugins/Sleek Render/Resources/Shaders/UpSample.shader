@@ -1,5 +1,5 @@
 ﻿
-Shader "Sleek Render/Post Process/Downsample" {
+Shader "Sleek Render/Post Process/Upsample Dual filter" {
 	Properties {
 		_Intensity("Iteration", float) = 1
 		_TexelSize("Texel Size", vector) = (0, 0, 0, 0)

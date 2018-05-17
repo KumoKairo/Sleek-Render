@@ -1,5 +1,5 @@
 ﻿
-Shader "Sleek Render/Post Process/Downsample" {
+Shader "Sleek Render/Post Process/Downsample Dual filter" {
 	Properties {
 		_Intensity("Iteration", float) = 1
 		_TexelSize("Texel Size", vector) = (0, 0, 0, 0)
@@ -53,7 +53,7 @@ Shader "Sleek Render/Post Process/Downsample" {
 					o.uv_2.y = 1 - o.uv_2.y;
 					o.uv_3.y = 1 - o.uv_3.y;
 				}
-
+				return o;
 			}
 
 			half4 frag(v2f i) : SV_TARGET{

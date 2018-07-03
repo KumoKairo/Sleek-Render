@@ -1,4 +1,4 @@
-﻿Shader "Sleek Render/Post Process/Vertical Blur"
+﻿Shader "Sleek Render/Post Process/Downsample Blur"
 {
 	Properties
 	{

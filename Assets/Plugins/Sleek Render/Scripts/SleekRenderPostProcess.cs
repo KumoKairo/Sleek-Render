@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace SleekRender
@@ -39,8 +38,8 @@ namespace SleekRender
 
         // Various Material cached objects
         // Created dynamically from found and loaded shaders
-        private Material _brightpassHorizontalBlurMaterial;
-        private Material _verticalBlurMaterial;
+        private Material _downsampleBrightpassBlurMaterial;
+        private Material _downsampleBlurMaterial;
         private Material _preComposeMaterial;
         private Material _composeMaterial;
 
@@ -95,39 +94,35 @@ namespace SleekRender
         private void ApplyPostProcess(RenderTexture source)
         {
             var isBloomEnabled = settings.bloomEnabled;
-            Downsample(source);
-            Bloom(isBloomEnabled);
-            Precompose(isBloomEnabled);
+            Bloom(source, isBloomEnabled);
+            Precompose(source, isBloomEnabled);
         }
 
-        private void Downsample(RenderTexture source)
-        {
-            // Precomputing brightpass parameters
-            // It's better to do it once per frame rather than once per pixel
-            float oneOverOneMinusBloomThreshold = 1f / (1f - settings.bloomThreshold);
-            var luma = settings.bloomLumaVector;
-            Vector4 luminanceConst = new Vector4(
-                luma.x * oneOverOneMinusBloomThreshold,
-                luma.y * oneOverOneMinusBloomThreshold,
-                luma.z * oneOverOneMinusBloomThreshold, -settings.bloomThreshold * oneOverOneMinusBloomThreshold);
-
-            // Changing current Luminance Const value just to make sure that we have the latest settings in our Uniforms
-            _brightpassHorizontalBlurMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
-
-            // Applying downsample + brightpass (stored in Alpha)
-            Blit(source, _downsampledBrightpassTexture, _brightpassHorizontalBlurMaterial);
-        }
-
-        private void Bloom(bool isBloomEnabled)
+        private void Bloom(RenderTexture source, bool isBloomEnabled)
         {
             if (isBloomEnabled)
             {
+                // Precomputing brightpass parameters
+                // It's better to do it once per frame rather than once per pixel
+                float oneOverOneMinusBloomThreshold = 1f / (1f - settings.bloomThreshold);
+                var luma = settings.bloomLumaVector;
+                Vector4 luminanceConst = new Vector4(
+                    luma.x * oneOverOneMinusBloomThreshold,
+                    luma.y * oneOverOneMinusBloomThreshold,
+                    luma.z * oneOverOneMinusBloomThreshold, -settings.bloomThreshold * oneOverOneMinusBloomThreshold);
+
+                // Changing current Luminance Const value just to make sure that we have the latest settings in our Uniforms
+                _downsampleBrightpassBlurMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
+
+                // Applying downsample + brightpass (stored in Alpha)
+                Blit(source, _downsampledBrightpassTexture, _downsampleBrightpassBlurMaterial);
+
                 // Applying horizontal and vertical Separable Gaussian Blur passes
-                Blit(_downsampledBrightpassTexture, _verticalBlurTexture, _verticalBlurMaterial);
+                Blit(_downsampledBrightpassTexture, _verticalBlurTexture, _downsampleBlurMaterial);
             }
         }
 
-        private void Precompose(bool isBloomEnabled)
+        private void Precompose(RenderTexture source, bool isBloomEnabled)
         {
             // Setting up vignette effect
             var isVignetteEnabledInSettings = settings.vignetteEnabled;
@@ -183,8 +178,9 @@ namespace SleekRender
                 _isBloomAlreadyEnabled = false;
             }
 
+            var sourceRenderTexture = isBloomEnabled ? _verticalBlurTexture : source;
             // Finally applying precompose step. It slaps bloom and vignette together
-            Blit(_downsampledBrightpassTexture, _preComposeTexture, _preComposeMaterial);
+            Blit(sourceRenderTexture, _preComposeTexture, _preComposeMaterial);
         }
 
         private void Compose(RenderTexture source, RenderTexture target)
@@ -231,13 +227,13 @@ namespace SleekRender
         {
             _mainCamera = GetComponent<Camera>();
 
-            var brightpassHorizontalBlurShader = Shader.Find("Sleek Render/Post Process/Brightpass Horizontal Blur");
-            var verticalBlurShader = Shader.Find("Sleek Render/Post Process/Vertical Blur");
+            var downsampleBrightpassBlurShader = Shader.Find("Sleek Render/Post Process/Brightpass Downsample Blur");
+            var downsampleBlurShader = Shader.Find("Sleek Render/Post Process/Downsample Blur");
             var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
 
-            _brightpassHorizontalBlurMaterial = new Material(brightpassHorizontalBlurShader);
-            _verticalBlurMaterial = new Material(verticalBlurShader);
+            _downsampleBrightpassBlurMaterial = new Material(downsampleBrightpassBlurShader);
+            _downsampleBlurMaterial = new Material(downsampleBlurShader);
             _preComposeMaterial = new Material(preComposeShader);
             _composeMaterial = new Material(composeShader);
 
@@ -247,6 +243,7 @@ namespace SleekRender
             // Point for future main render target size changing
             int width = _currentCameraPixelWidth;
             int height = _currentCameraPixelHeight;
+            var mainTextureTexelSize = new Vector4(1f / width, 1f / height);
 
             // Capping max base texture height in pixels
             // We usually don't need extra pixels for precompose and blur passes
@@ -265,19 +262,20 @@ namespace SleekRender
             _verticalBlurTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
             _preComposeTexture = CreateTransientRenderTexture("Pre Compose", precomposeWidth, precomposeHeight);
 
-            _verticalBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
-            _verticalBlurMaterial.SetTexture(Uniforms._BloomTex, _brightpassHorizontalBlurTexture);
+            _downsampleBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
+            _downsampleBlurMaterial.SetTexture(Uniforms._BloomTex, _brightpassHorizontalBlurTexture);
 
             var xSpread = 1 / (float)blurWidth;
             var ySpread = 1 / (float)blurHeight;
             var blurTexelSize = new Vector4(xSpread, ySpread);
-            _verticalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
-            _brightpassHorizontalBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
+            
+            _downsampleBrightpassBlurMaterial.SetVector(Uniforms._TexelSize, mainTextureTexelSize);
+            _downsampleBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
 
             _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurTexture);
 
             var downsampleTexelSize = new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height);
-            _brightpassHorizontalBlurMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);
+            _downsampleBrightpassBlurMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);
 
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
             _composeMaterial.SetVector(Uniforms._LuminanceConst, new Vector4(0.2126f, 0.7152f, 0.0722f, 0f));
@@ -323,8 +321,8 @@ namespace SleekRender
 
         private void ReleaseResources()
         {
-            DestroyImmediateIfNotNull(_brightpassHorizontalBlurMaterial);
-            DestroyImmediateIfNotNull(_verticalBlurMaterial);
+            DestroyImmediateIfNotNull(_downsampleBrightpassBlurMaterial);
+            DestroyImmediateIfNotNull(_downsampleBlurMaterial);
             DestroyImmediateIfNotNull(_preComposeMaterial);
             DestroyImmediateIfNotNull(_composeMaterial);
 

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee001c9e6d47a614db4b82e1b2199ebe, type: 3}
   m_Name: Example Settings
   m_EditorClassIdentifier: 
-  bloomExpanded: 0
+  bloomExpanded: 1
   bloomEnabled: 1
   bloomThreshold: 0.201
   bloomIntensity: 3.71
@@ -21,12 +21,12 @@ MonoBehaviour:
   bloomTextureHeight: 128
   bloomLumaCalculationType: 0
   bloomLumaVector: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-  colorizeExpanded: 0
+  colorizeExpanded: 1
   colorizeEnabled: 1
   colorize:
     serializedVersion: 2
-    rgba: 2600465364
-  vignetteExpanded: 0
+    rgba: 1023406800
+  vignetteExpanded: 1
   vignetteEnabled: 1
   vignetteBeginRadius: 0.714
   vignetteExpandRadius: 0.97

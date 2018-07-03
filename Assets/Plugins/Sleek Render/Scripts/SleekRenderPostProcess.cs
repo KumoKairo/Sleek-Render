@@ -81,23 +81,6 @@ namespace SleekRender
             ReleaseResources();
         }
 
-        private RenderTexture _rt;
-        private RenderTexture _rtTarget;
-
-        //private void OnPreRender()
-        //{
-        //    _rt = RenderTexture.GetTemporary(Screen.width, Screen.height);
-        //    _rtTarget = RenderTexture.GetTemporary(Screen.width, Screen.height);
-        //    _mainCamera.targetTexture = _rt;
-        //}
-
-        //private void OnPostRender()
-        //{
-        //    _mainCamera.targetTexture = null;
-        //    OnDoRenderImage(_rt, _rtTarget);
-        //    RenderTexture.ReleaseTemporary(_rt);
-        //}
-
         private void OnRenderImage(RenderTexture source, RenderTexture target)
         {
             // Editor only behaviour needed to recreate resources if viewport size changes (resizing editor window)
@@ -114,7 +97,6 @@ namespace SleekRender
         private void ApplyPostProcess(RenderTexture source)
         {
             var isBloomEnabled = settings.bloomEnabled;
-
             Downsample(source);
             Bloom(isBloomEnabled);
             Precompose(isBloomEnabled);
@@ -143,8 +125,8 @@ namespace SleekRender
             if (isBloomEnabled)
             {
                 // Applying horizontal and vertical Separable Gaussian Blur passes
-                Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _horizontalBlurMaterial);
-                Blit(_brightPassBlurTexture, _verticalBlurTexture, _verticalBlurMaterial);
+                //Blit(_downsampledBrightpassTexture, _brightPassBlurTexture, _horizontalBlurMaterial);
+                Blit(_downsampledBrightpassTexture, _verticalBlurTexture, _verticalBlurMaterial);
             }
         }
 
@@ -255,8 +237,8 @@ namespace SleekRender
             var downsampleShader = Shader.Find("Sleek Render/Post Process/Downsample Brightpass");
             var horizontalBlurShader = Shader.Find("Sleek Render/Post Process/Horizontal Blur");
             var verticalBlurShader = Shader.Find("Sleek Render/Post Process/Vertical Blur");
-            var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
             var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
+            var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
 
             _downsampleMaterial = new Material(downsampleShader);
             _horizontalBlurMaterial = new Material(horizontalBlurShader);
@@ -284,7 +266,7 @@ namespace SleekRender
             int downsampleWidth = Mathf.RoundToInt((width * ratio) / 5f);
             int downsampleHeight = Mathf.RoundToInt((height * ratio) / 5f);
 
-            _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", downsampleWidth, downsampleHeight);
+            _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", blurWidth, blurHeight);
             _brightPassBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
             _horizontalBlurTexture = CreateTransientRenderTexture("Horizontal Blur", blurWidth, blurHeight);
             _verticalBlurTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);

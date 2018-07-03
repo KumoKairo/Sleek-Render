@@ -155,8 +155,12 @@ namespace SleekRender
             if (_isColorizeGroupExpandedProperty.boolValue)
             {
                 EditorGUI.indentLevel += 1;
+
                 EditorGUILayout.LabelField("Color");
                 _colorizeProperty.colorValue = EditorGUILayout.ColorField("", _colorizeProperty.colorValue);
+
+                EditorGUILayout.HelpBox("Note: Color Alpha value should not be ZERO for the effect to be visible", MessageType.Info);
+
                 EditorGUI.indentLevel -= 1;
             }
         }
@@ -185,7 +189,6 @@ namespace SleekRender
 
         private void DrawTotalCost()
         {
-            // Skipping control rect, ignore any statical analisys warnings
             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
             EditorGUILayout.HelpBox(SleekRenderCostCalculator.GetTotalCostStringFor(target as SleekRenderSettings),
                 MessageType.Info);

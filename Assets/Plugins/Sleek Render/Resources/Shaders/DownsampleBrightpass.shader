@@ -1,4 +1,4 @@
-﻿Shader "Sleek Render/Post Process/Downsample Brightpass"
+﻿Shader "Sleek Render/Post Process/Brightpass Horizontal Blur"
 {
 	Properties
 	{

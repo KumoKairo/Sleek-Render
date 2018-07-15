@@ -3,7 +3,7 @@
 	Properties 
 	{
 		_MainTex ("Texture", 2D) = "white" {}
-		_Intensity("Iteration", float) = 1
+		_BloomIntencity("Iteration", float) = 1
 		_LuminanceConst("Luminance", Vector) = (1.0, 1.0, 1.0, 1.0)
 		_TexelSize("Texel Size", vector) = (0, 0, 0, 0)
 
@@ -19,7 +19,7 @@
 			#pragma vertex vert
 			#pragma fragment frag
 
-			half _Intensity;
+			half _BloomIntencity;
 			half2 _TexelSize;
 			sampler2D_half _MainTex;
 
@@ -44,7 +44,7 @@
 				v2f o;
 				o.vertex = v.vertex;
 				o.uv = v.uv;
-				float2 duv = _Intensity * _TexelSize;
+				float2 duv = _BloomIntencity * _TexelSize / 2.0;
 				o.uv_0 = v.uv - duv;
 				o.uv_1 = v.uv + duv;
 				o.uv_2 = v.uv + half2(duv.x, -duv.y);

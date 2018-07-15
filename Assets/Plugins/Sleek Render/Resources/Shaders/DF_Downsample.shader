@@ -4,7 +4,7 @@
 	{
 		_MainTex("Texture", 2D) = "white" {}
 		_BloomTex("Bloom", 2D) = "black" {}
-		_Intensity("Iteration", float) = 1
+		_BloomIntencity("Iteration", float) = 1
 		_TexelSize("Texel Size", vector) = (0, 0, 0, 0)
 	}
 	
@@ -19,7 +19,7 @@
 			#pragma vertex vert
 			#pragma fragment frag
 
-			half _Intensity;
+			half _BloomIntencity;
 			half4 _TexelSize;
 			sampler2D_half _MainTex;
 
@@ -44,13 +44,20 @@
 				v2f o;
 				o.vertex = v.vertex;
 				o.uv = v.uv;
-				float2 duv = _Intensity * _TexelSize;
+				float2 duv = _BloomIntencity * _TexelSize / 2.0;
 				o.uv_0 = v.uv - duv;
 				o.uv_1 = v.uv + duv;
 				o.uv_2 = v.uv + half2(duv.x, -duv.y);
 				o.uv_3 = v.uv + half2(-duv.x, duv.y);
 
-				
+				if (_ProjectionParams.x < 0)
+ 				{
+ 					o.uv_0.y = 1 - o.uv_0.y;
+ 					o.uv_1.y = 1 - o.uv_1.y;
+ 					o.uv_2.y = 1 - o.uv_2.y;
+ 					o.uv_3.y = 1 - o.uv_3.y;
+ 				}
+
 				
 				return o;
 			}

@@ -290,6 +290,9 @@ namespace SleekRender
             _dualFilterTextures_Smat.SetTexture(Uniforms._MainTex, _dualFilterTextures_Mrt);
             _dualFilterTextures_Smat.SetTexture(Uniforms._BloomTex, _dualFilterTextures_Srt);
 
+            _dualFilterTextures_Mmat.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
+            _dualFilterTextures_Smat.SetFloat(Uniforms._BloomIntencity, settings.bloomIntensity);
+
             var xSpread = 1 / (float)blurWidth;
             var ySpread = 1 / (float)blurHeight;
             var blurTexelSize = new Vector4(xSpread, ySpread);

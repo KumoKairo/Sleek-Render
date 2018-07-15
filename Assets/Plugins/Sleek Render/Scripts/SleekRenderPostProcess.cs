@@ -43,11 +43,17 @@ namespace SleekRender
         private Material _preComposeMaterial;
         private Material _composeMaterial;
 
+        private Material _dualFilterTextures_Mmat;
+        private Material _dualFilterTextures_Smat;
+
         // Various RenderTextures used in post processing render passes
         private RenderTexture _downsampledBrightpassTexture;
         private RenderTexture _brightpassHorizontalBlurTexture;
         private RenderTexture _verticalBlurTexture;
         private RenderTexture _preComposeTexture;
+
+        private RenderTexture _dualFilterTextures_Mrt;
+        private RenderTexture _dualFilterTextures_Srt;
 
         // Currenly cached camera on which Post Processing stack is applied
         private Camera _mainCamera;
@@ -112,13 +118,14 @@ namespace SleekRender
                     luma.z * oneOverOneMinusBloomThreshold, -settings.bloomThreshold * oneOverOneMinusBloomThreshold);
 
                 // Changing current Luminance Const value just to make sure that we have the latest settings in our Uniforms
-                _downsampleBrightpassBlurMaterial.SetVector(Uniforms._LuminanceConst, luminanceConst);
+                _dualFilterTextures_Mmat.SetVector(Uniforms._LuminanceConst, luminanceConst);
 
                 // Applying downsample + brightpass (stored in Alpha)
-                Blit(source, _downsampledBrightpassTexture, _downsampleBrightpassBlurMaterial);
-
+                //Blit(source, _downsampledBrightpassTexture, _downsampleBrightpassBlurMaterial);
+                Blit(source, _dualFilterTextures_Mrt, _dualFilterTextures_Mmat);
                 // Applying horizontal and vertical Separable Gaussian Blur passes
-                Blit(_downsampledBrightpassTexture, _verticalBlurTexture, _downsampleBlurMaterial);
+                //Blit(_downsampledBrightpassTexture, _verticalBlurTexture, _downsampleBlurMaterial);
+                Blit(_dualFilterTextures_Mrt, _dualFilterTextures_Srt, _dualFilterTextures_Smat);
             }
         }
 
@@ -232,10 +239,16 @@ namespace SleekRender
             var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
 
+            var DF_downsampleBrightpassBlurShader = Shader.Find("Sleek Render/Post Process/Dual Filter Downsample Brightpass");
+            var DF_downsampleBlurShader = Shader.Find("Sleek Render/Post Process/Dual Filter Downsample");
+
             _downsampleBrightpassBlurMaterial = new Material(downsampleBrightpassBlurShader);
             _downsampleBlurMaterial = new Material(downsampleBlurShader);
             _preComposeMaterial = new Material(preComposeShader);
             _composeMaterial = new Material(composeShader);
+
+            _dualFilterTextures_Mmat = new Material(DF_downsampleBrightpassBlurShader);
+            _dualFilterTextures_Smat = new Material(DF_downsampleBlurShader);
 
             _currentCameraPixelWidth = Mathf.RoundToInt(_mainCamera.pixelWidth);
             _currentCameraPixelHeight = Mathf.RoundToInt(_mainCamera.pixelHeight);
@@ -254,6 +267,12 @@ namespace SleekRender
             int blurHeight = settings.bloomTextureHeight;
             int blurWidth = settings.preserveAspectRatio ? Mathf.RoundToInt(blurHeight * GetCurrentAspect(_mainCamera)) : settings.bloomTextureWidth;
 
+            float df_MFloat = settings.dfTextureSize.x;
+            float df_SFlaot = settings.dfTextureSize.y;
+
+            int df_M = Mathf.RoundToInt(df_MFloat);
+            int df_S = Mathf.RoundToInt(df_SFlaot);
+
             int precomposeWidth = Mathf.RoundToInt((width * ratio) / 5f);
             int precomposeHeight = Mathf.RoundToInt((height * ratio) / 5f);
 
@@ -262,8 +281,14 @@ namespace SleekRender
             _verticalBlurTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth, blurHeight);
             _preComposeTexture = CreateTransientRenderTexture("Pre Compose", precomposeWidth, precomposeHeight);
 
+            _dualFilterTextures_Mrt = CreateTransientRenderTexture("M", df_M, df_M);
+            _dualFilterTextures_Srt = CreateTransientRenderTexture("S", df_S, df_S);
+
             _downsampleBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
             _downsampleBlurMaterial.SetTexture(Uniforms._BloomTex, _brightpassHorizontalBlurTexture);
+
+            _dualFilterTextures_Smat.SetTexture(Uniforms._MainTex, _dualFilterTextures_Mrt);
+            _dualFilterTextures_Smat.SetTexture(Uniforms._BloomTex, _dualFilterTextures_Srt);
 
             var xSpread = 1 / (float)blurWidth;
             var ySpread = 1 / (float)blurHeight;
@@ -271,8 +296,14 @@ namespace SleekRender
             
             _downsampleBrightpassBlurMaterial.SetVector(Uniforms._TexelSize, mainTextureTexelSize);
             _downsampleBlurMaterial.SetVector(Uniforms._TexelSize, blurTexelSize);
+        
+            var m_texel = new Vector4(1 / (float)df_M, 1 / (float)df_M);
+            _dualFilterTextures_Mmat.SetVector(Uniforms._TexelSize, m_texel);
 
-            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _verticalBlurTexture);
+            var s_texel = new Vector4(1 / (float)df_S, 1 / (float)df_S);
+            _dualFilterTextures_Smat.SetVector(Uniforms._TexelSize, s_texel);
+
+            _preComposeMaterial.SetTexture(Uniforms._BloomTex, _dualFilterTextures_Mrt);
 
             var downsampleTexelSize = new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height);
             _downsampleBrightpassBlurMaterial.SetVector(Uniforms._TexelSize, downsampleTexelSize);
@@ -325,6 +356,12 @@ namespace SleekRender
             DestroyImmediateIfNotNull(_downsampleBlurMaterial);
             DestroyImmediateIfNotNull(_preComposeMaterial);
             DestroyImmediateIfNotNull(_composeMaterial);
+
+            DestroyImmediateIfNotNull(_dualFilterTextures_Mmat);
+            DestroyImmediateIfNotNull(_dualFilterTextures_Mrt);
+            DestroyImmediateIfNotNull(_dualFilterTextures_Smat);
+            DestroyImmediateIfNotNull(_dualFilterTextures_Smat);
+            DestroyImmediateIfNotNull(_dualFilterTextures_Srt);
 
             DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
             DestroyImmediateIfNotNull(_brightpassHorizontalBlurTexture);

@@ -42,21 +42,16 @@
 			{
 				v2f o;
 				o.vertex = v.vertex;
-				half2 halfTexelSize = _TexelSize.xy * 0.5h;
+				half2 halfpixel = _TexelSize.xy;
 
-				half4 stepVector = half4(_TexelSize.x, 0.0h, 0.0h, 0.0h);
-				half stepOne = 1.041h;
-				half stepTwo = 2.31h;
-				half stepThree = 3.04h;
-
-				o.uv_0 = v.uv;
-				o.uv_1 = v.uv + stepVector * stepOne;
-				o.uv_2 = v.uv - stepVector * stepOne;
-				o.uv_3 = v.uv + stepVector * stepTwo;
-				o.uv_4 = v.uv - stepVector * stepTwo;
-				o.uv_5 = v.uv + stepVector * stepThree;
-				o.uv_6 = v.uv - stepVector * stepThree;
-				o.uv_7 = v.uv - stepVector * stepThree;
+				o.uv_0 = v.uv + half2(-halfpixel.x * 2.0, 0.0);
+				o.uv_1 = v.uv + half2(-halfpixel.x, halfpixel.y);
+				o.uv_2 = v.uv + half2(0.0, halfpixel.y * 2.0);
+				o.uv_3 = v.uv + half2(halfpixel.x, halfpixel.y);
+				o.uv_4 = v.uv + half2(halfpixel.x * 2.0, 0.0);
+				o.uv_5 = v.uv + half2(halfpixel.x, -halfpixel.y);
+				o.uv_6 = v.uv + half2(0.0, -halfpixel.y * 2.0);
+				o.uv_7 = v.uv + half2(-halfpixel.x, -halfpixel.y);
 
 				if (_ProjectionParams.x < 0)
 				{
@@ -97,12 +92,16 @@
 				getTapAndLumaFrom(i.uv_7, tap_7, luma_7);
 
 				half4 result 
-					= tap_0 * 0.263h
-					+ (tap_1 + tap_2) * 0.159h
-					+ (tap_3 + tap_4) * 0.122h
-					+ (tap_5 + tap_6 + tap_7) * 0.023h;
+					= tap_0
+					+ tap_1 * 2.0h
+                    + tap_2
+					+ tap_3 * 2.0h
+                    + tap_4
+					+ tap_5 * 2.0h
+                    + tap_6 
+                    + tap_7 * 2.0h;
 
-				return result;
+				return result / 12.0h;
 			}
 			ENDCG
 		}

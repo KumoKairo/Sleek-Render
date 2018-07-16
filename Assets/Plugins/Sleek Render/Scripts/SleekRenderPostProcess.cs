@@ -227,14 +227,14 @@ namespace SleekRender
         {
             _mainCamera = GetComponent<Camera>();
 
-            var downsampleBrightpassBlurShader = Shader.Find("Sleek Render/Post Process/Brightpass Downsample Blur");
-            var downsampleBlurShader = Shader.Find("Sleek Render/Post Process/Downsample Blur");
-            var preComposeShader = Shader.Find("Sleek Render/Post Process/PreCompose");
+            var brightpassHorizontalBlur = Shader.Find("Sleek Render/Post Process/Brightpass Horizontal Blur");
+            var verticalBlur = Shader.Find("Sleek Render/Post Process/Vertical Blur");
+            var precompose = Shader.Find("Sleek Render/Post Process/PreCompose");
             var composeShader = Shader.Find("Sleek Render/Post Process/Compose");
 
-            _downsampleBrightpassBlurMaterial = new Material(downsampleBrightpassBlurShader);
-            _downsampleBlurMaterial = new Material(downsampleBlurShader);
-            _preComposeMaterial = new Material(preComposeShader);
+            _downsampleBrightpassBlurMaterial = new Material(brightpassHorizontalBlur);
+            _downsampleBlurMaterial = new Material(verticalBlur);
+            _preComposeMaterial = new Material(precompose);
             _composeMaterial = new Material(composeShader);
 
             _currentCameraPixelWidth = Mathf.RoundToInt(_mainCamera.pixelWidth);

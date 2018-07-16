@@ -18,7 +18,7 @@ namespace SleekRender
         public int bloomTextureWidth = 128;
         public int bloomTextureHeight = 128;
 
-        public Vector2 dfTextureSize = new Vector2(64f, 32f);
+        public Vector2 dualFilterTextureSize = new Vector2(128f, 32f); // x >= y
 
         public LumaVectorType bloomLumaCalculationType = LumaVectorType.Uniform;
         public Vector3 bloomLumaVector = new Vector3(1f / 3f, 1f / 3f, 1f / 3f);

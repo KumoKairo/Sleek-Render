@@ -19,7 +19,7 @@ namespace SleekRender
         private SerializedProperty _bloomLumaVectorProperty;
         private SerializedProperty _bloomSelectedLumaVectorTypeProperty;
 
-        private SerializedProperty _dfTextureSize;
+        private SerializedProperty _dualFilterTextureSize;
 
         private string[] _bloomSizeVariants = new[] { "32", "64", "128" };
         private int[] _bloomSizeVariantInts = new[] { 32, 64, 128 };
@@ -62,7 +62,7 @@ namespace SleekRender
             _contrasteIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrast));
             _brightnesseIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightness));
 
-            _dfTextureSize = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.dfTextureSize));
+            _dualFilterTextureSize = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.dualFilterTextureSize));
         }
 
         private void SetupBloomProperties()
@@ -178,7 +178,7 @@ namespace SleekRender
                 EditorGUI.indentLevel += 1;
 
                 EditorGUILayout.LabelField("Experiment! X - bigger, Y - smaller");
-                EditorGUILayout.PropertyField(_dfTextureSize, new GUIContent(""));
+                EditorGUILayout.PropertyField(_dualFilterTextureSize, new GUIContent(""));
                 EditorGUILayout.LabelField("Bloom threshold");
                 EditorGUILayout.Slider(_bloomThresholdProperty, 0f, 1f, "");
                 EditorGUILayout.LabelField("Bloom intensity");

@@ -41,6 +41,7 @@ namespace SleekRender
                 }
                 else
                 {
+                    _downsampleBlurMaterial.SetVector(Uniforms._TexelSize, new Vector2(1f / currentTargetRenderTexture.width, 1f / currentTargetRenderTexture.height));
                     // Applying only blur to our already brightpassed texture
                     _renderer.Blit(previousTargetRenderTexture, currentTargetRenderTexture, _downsampleBlurMaterial);
                 }

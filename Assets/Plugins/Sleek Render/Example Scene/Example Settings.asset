@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Name: Example Settings
   m_EditorClassIdentifier: 
   bloomExpanded: 1
-  bloomEnabled: 0
+  bloomEnabled: 1
   bloomThreshold: 0.194
   bloomIntensity: 3.1
   bloomTint: {r: 1, g: 1, b: 1, a: 1}

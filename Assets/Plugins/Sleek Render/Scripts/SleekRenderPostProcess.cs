@@ -9,7 +9,7 @@ namespace SleekRender
     [ExecuteInEditMode, DisallowMultipleComponent]
     public class SleekRenderPostProcess : MonoBehaviour
     {
-        public static class Uniforms
+        private static class Uniforms
         {
             public static readonly int _LuminanceConst = Shader.PropertyToID("_LuminanceConst");
             public static readonly int _BloomIntencity = Shader.PropertyToID("_BloomIntencity");

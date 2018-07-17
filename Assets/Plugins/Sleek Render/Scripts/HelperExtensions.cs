@@ -20,5 +20,11 @@ namespace SleekRender
             renderTexture.wrapMode = TextureWrapMode.Clamp;
             return renderTexture;
         }
+
+        public static Material CreateMaterialFromShader(string shaderName)
+        {
+            var shader = Shader.Find(shaderName);
+            return new Material(shader);
+        }
 	}
 }

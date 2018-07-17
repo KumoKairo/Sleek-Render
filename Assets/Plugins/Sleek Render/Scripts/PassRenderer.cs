@@ -6,6 +6,11 @@ namespace SleekRender
     {
         private Mesh _fullscreenQuadMesh;   
 
+        public PassRenderer()
+        {
+            _fullscreenQuadMesh = CreateScreenSpaceQuadMesh();
+        }
+
 		public void Blit(Texture source, RenderTexture destination, Material material, int materialPass = 0)
         {
             SetActiveRenderTextureAndClear(destination);

@@ -2,14 +2,14 @@
 
 namespace SleekRender
 {
-    public class Bloom
+    public class BloomRenderer
     {
         private RenderTexture[] _blurTextures;
         private Material _brightpassBlurMaterial;
         private Material _downsampleBlurMaterial;
         private PassRenderer _renderer;
 
-        public Bloom(PassRenderer renderer)
+        public BloomRenderer(PassRenderer renderer)
         {
             _renderer = renderer;
         }
@@ -25,6 +25,7 @@ namespace SleekRender
 
             // Changing current Luminance Const value just to make sure that we have the latest settings in our Uniforms
             _brightpassBlurMaterial.SetVector(Uniforms._LuminanceThreshold, luminanceThreshold);
+            _brightpassBlurMaterial.SetVector(Uniforms._TexelSize, new Vector2(1f / _blurTextures[0].width, 1f / _blurTextures[0].height));
 
             var currentTargetRenderTexture = _blurTextures[0];
             var previousTargetRenderTexture = _blurTextures[0];
@@ -41,7 +42,7 @@ namespace SleekRender
                 else
                 {
                     // Applying only blur to our already brightpassed texture
-                    _renderer.Blit(previousTargetRenderTexture, currentTargetRenderTexture, _brightpassBlurMaterial);
+                    _renderer.Blit(previousTargetRenderTexture, currentTargetRenderTexture, _downsampleBlurMaterial);
                 }
 
                 previousTargetRenderTexture = currentTargetRenderTexture;
@@ -54,12 +55,21 @@ namespace SleekRender
         {
             _blurTextures = new RenderTexture[2];
             _blurTextures[0] = HelperExtensions.CreateTransientRenderTexture("Brightpass Blur 0", 128, 128);
-            _blurTextures[1] = HelperExtensions.CreateTransientRenderTexture("Downsample Blur 1", 128, 128);
+            _blurTextures[1] = HelperExtensions.CreateTransientRenderTexture("Downsample Blur 1", 64, 64);
+
+            _brightpassBlurMaterial = HelperExtensions.CreateMaterialFromShader("Sleek Render/Post Process/Brightpass Blur");
+            _downsampleBlurMaterial = HelperExtensions.CreateMaterialFromShader("Sleek Render/Post Process/Downsample Blur");
         }
 
         public void ReleaseResources()
         {
+            foreach(var blurTexture in _blurTextures)
+            {
+                blurTexture.DestroyImmediateIfNotNull();
+            }
 
+            _brightpassBlurMaterial.DestroyImmediateIfNotNull();
+            _downsampleBlurMaterial.DestroyImmediateIfNotNull();
         }
     }
 }

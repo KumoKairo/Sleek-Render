@@ -9,21 +9,6 @@ namespace SleekRender
     [ExecuteInEditMode, DisallowMultipleComponent]
     public class SleekRenderPostProcess : MonoBehaviour
     {
-        private static class Uniforms
-        {
-            public static readonly int _LuminanceConst = Shader.PropertyToID("_LuminanceConst");
-            public static readonly int _BloomIntencity = Shader.PropertyToID("_BloomIntencity");
-            public static readonly int _BloomTint = Shader.PropertyToID("_BloomTint");
-            public static readonly int _MainTex = Shader.PropertyToID("_MainTex");
-            public static readonly int _BloomTex = Shader.PropertyToID("_BloomTex");
-            public static readonly int _PreComposeTex = Shader.PropertyToID("_PreComposeTex");
-            public static readonly int _TexelSize = Shader.PropertyToID("_TexelSize");
-            public static readonly int _Colorize = Shader.PropertyToID("_Colorize");
-            public static readonly int _VignetteShape = Shader.PropertyToID("_VignetteShape");
-            public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
-            public static readonly int _BrightnessContrast = Shader.PropertyToID("_BrightnessContrast");
-        }
-
         // Keywords for shader variants
         private static class Keywords
         {
@@ -146,7 +131,7 @@ namespace SleekRender
                 var vignetteColor = settings.vignetteColor;
 
                 _preComposeMaterial.SetVector(Uniforms._VignetteShape, new Vector4(
-                    4f * oneOverVignetteRadiusDistance * oneOverVignetteRadiusDistance, 
+                    4f * oneOverVignetteRadiusDistance * oneOverVignetteRadiusDistance,
                     -oneOverVignetteRadiusDistance * squareVignetteBeginRaduis));
 
                 // Premultiplying Alpha of vignette color
@@ -255,10 +240,10 @@ namespace SleekRender
             int precomposeWidth = Mathf.RoundToInt((width * ratio) / 5f);
             int precomposeHeight = Mathf.RoundToInt((height * ratio) / 5f);
 
-            _downsampledBrightpassTexture = CreateTransientRenderTexture("Bloom Downsample Pass", blurWidth, blurHeight);
-            _brightpassHorizontalBlurTexture = CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
-            _verticalBlurTexture = CreateTransientRenderTexture("Vertical Blur", blurWidth / 2, blurHeight / 2);
-            _preComposeTexture = CreateTransientRenderTexture("Pre Compose", precomposeWidth, precomposeHeight);
+            _downsampledBrightpassTexture = HelperExtensions.CreateTransientRenderTexture("Bloom Downsample Pass", blurWidth, blurHeight);
+            _brightpassHorizontalBlurTexture = HelperExtensions.CreateTransientRenderTexture("Pre Bloom", blurWidth, blurHeight);
+            _verticalBlurTexture = HelperExtensions.CreateTransientRenderTexture("Vertical Blur", blurWidth / 2, blurHeight / 2);
+            _preComposeTexture = HelperExtensions.CreateTransientRenderTexture("Pre Compose", precomposeWidth, precomposeHeight);
 
             _verticalBlurMaterial.SetTexture(Uniforms._MainTex, _downsampledBrightpassTexture);
             _verticalBlurMaterial.SetTexture(Uniforms._BloomTex, _brightpassHorizontalBlurTexture);
@@ -266,7 +251,7 @@ namespace SleekRender
             var xSpread = 1 / (float)blurWidth;
             var ySpread = 1 / (float)blurHeight;
             var blurTexelSize = new Vector4(xSpread, ySpread);
-            
+
             _brightpassHorizontalBlurMaterial.SetVector(Uniforms._TexelSize, new Vector4(1f / _downsampledBrightpassTexture.width, 1f / _downsampledBrightpassTexture.height, 0.0f, 0.0f));
             _verticalBlurMaterial.SetVector(Uniforms._TexelSize, new Vector4(1f / _verticalBlurTexture.width, 1f / _verticalBlurTexture.height, 0.0f, 0.0f));
 
@@ -284,15 +269,6 @@ namespace SleekRender
             _isBloomAlreadyEnabled = false;
             _isVignetteAlreadyEnabled = false;
             _isContrastAndBrightnessAlreadyEnabled = false;
-        }
-
-        private RenderTexture CreateTransientRenderTexture(string textureName, int width, int height)
-        {
-            var renderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
-            renderTexture.name = textureName;
-            renderTexture.filterMode = FilterMode.Bilinear;
-            renderTexture.wrapMode = TextureWrapMode.Clamp;
-            return renderTexture;
         }
 
         private RenderTexture CreateMainRenderTexture(int width, int height)
@@ -319,44 +295,18 @@ namespace SleekRender
 
         private void ReleaseResources()
         {
-            DestroyImmediateIfNotNull(_brightpassHorizontalBlurMaterial);
-            DestroyImmediateIfNotNull(_verticalBlurMaterial);
-            DestroyImmediateIfNotNull(_preComposeMaterial);
-            DestroyImmediateIfNotNull(_composeMaterial);
+            _brightpassHorizontalBlurMaterial.DestroyImmediateIfNotNull();
+            _verticalBlurMaterial.DestroyImmediateIfNotNull();
 
-            DestroyImmediateIfNotNull(_downsampledBrightpassTexture);
-            DestroyImmediateIfNotNull(_brightpassHorizontalBlurTexture);
-            DestroyImmediateIfNotNull(_verticalBlurTexture);
-            DestroyImmediateIfNotNull(_preComposeTexture);
+            _preComposeMaterial.DestroyImmediateIfNotNull();
+            _composeMaterial.DestroyImmediateIfNotNull();
+            _downsampledBrightpassTexture.DestroyImmediateIfNotNull();
 
-            DestroyImmediateIfNotNull(_fullscreenQuadMesh);
-        }
+            _brightpassHorizontalBlurTexture.DestroyImmediateIfNotNull();
+            _verticalBlurTexture.DestroyImmediateIfNotNull();
+            _preComposeTexture.DestroyImmediateIfNotNull();
 
-        private void DestroyImmediateIfNotNull(Object obj)
-        {
-            if (obj != null)
-            {
-                DestroyImmediate(obj);
-            }
-        }
-
-        public void Blit(Texture source, RenderTexture destination, Material material, int materialPass = 0)
-        {
-            SetActiveRenderTextureAndClear(destination);
-            this.DrawFullscreenQuad(source, material, materialPass);
-        }
-
-        private static void SetActiveRenderTextureAndClear(RenderTexture destination)
-        {
-            RenderTexture.active = destination;
-            GL.Clear(true, true, new Color(1f, 0.75f, 0.5f, 0.8f));
-        }
-
-        private void DrawFullscreenQuad(Texture source, Material material, int materialPass = 0)
-        {
-            material.SetTexture(Uniforms._MainTex, source);
-            material.SetPass(materialPass);
-            Graphics.DrawMeshNow(_fullscreenQuadMesh, Matrix4x4.identity);
+            _fullscreenQuadMesh.DestroyImmediateIfNotNull();
         }
 
         private void CheckScreenSizeAndRecreateTexturesIfNeeded(Camera mainCamera)
@@ -411,53 +361,6 @@ namespace SleekRender
                 settings = ScriptableObject.CreateInstance<SleekRenderSettings>();
                 settings.name = "Default Settings";
             }
-        }
-
-        private Mesh CreateScreenSpaceQuadMesh()
-        {
-            var mesh = new Mesh();
-
-            var vertices = new[]
-            {
-                new Vector3 (-1f, -1f, 0f), // BL
-                new Vector3 (-1f, 1f, 0f), // TL
-                new Vector3 (1f, 1f, 0f), // TR
-                new Vector3 (1f, -1f, 0f) // BR
-            };
-
-            var uvs = new[]
-            {
-                new Vector2 (0f, 0f),
-                new Vector2 (0f, 1f),
-                new Vector2 (1f, 1f),
-                new Vector2 (1f, 0f)
-            };
-
-            var colors = new[]
-            {
-                new Color (0f, 0f, 1f),
-                new Color (0f, 1f, 1f),
-                new Color (1f, 1f, 1f),
-                new Color (1f, 0f, 1f),
-            };
-
-            var triangles = new[]
-            {
-                0,
-                2,
-                1,
-                0,
-                3,
-                2
-            };
-
-            mesh.vertices = vertices;
-            mesh.uv = uvs;
-            mesh.triangles = triangles;
-            mesh.colors = colors;
-            mesh.UploadMeshData(true);
-
-            return mesh;
         }
     }
 }

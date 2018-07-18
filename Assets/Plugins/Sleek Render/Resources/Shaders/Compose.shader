@@ -78,7 +78,16 @@
 				half4 col = tex2D(_MainTex, i.uv);
 				half3 mainColor = col.rgb * precompose.a + precompose.rgb;
 
-				half3 result = mainColor;	
+				#ifdef COLORIZE_ON
+				half3 result = mainColor * _Colorize.a + _Colorize.rgb * dot(_LuminanceConst, mainColor);
+				#else 
+				half3 result = mainColor;
+				#endif
+
+				#ifdef BRIGHTNESS_CONTRAST_ON
+				result = saturate((result * _BrightnessContrast.x) + _BrightnessContrast.z);
+				#endif
+				
 				#ifdef FILM_GRAIN_ON
 				half4 filmGrainTex = tex2D(_FilmGrainTex, i.uv);
 				half filmGrain = dot(filmGrainTex, _FilmGrainChannel);

@@ -41,6 +41,11 @@ namespace SleekRender
 
         public float contrast = 0f;
         public float brightness = 0f;
+
+        [Header("Film Grain")]
+        public bool filmGrainExpanded = false;
+        public bool filmGrainEnabled = true;
+        public float filmGrainIntensity = 0.4f;
     }
 
     public enum LumaVectorType

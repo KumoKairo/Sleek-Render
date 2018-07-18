@@ -38,8 +38,12 @@ namespace SleekRender
 
         private SerializedProperty _isContrastAndBrightnessEditorExpandedProperty;
         private SerializedProperty _contrastAndBrightnessEnabledProperty;
-        private SerializedProperty _contrasteIntensity;
-        private SerializedProperty _brightnesseIntensity;
+        private SerializedProperty _contrasteIntensityProperty;
+        private SerializedProperty _brightnesseIntensityProperty;
+
+        private SerializedProperty _isFilmGrainExpandedProperty;
+        private SerializedProperty _filmGrainEnabledProperty;
+        private SerializedProperty _filmGrainIntensityProperty;
 
         private void OnEnable()
         {
@@ -57,8 +61,12 @@ namespace SleekRender
 
             _isContrastAndBrightnessEditorExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightnessContrastExpanded));
             _contrastAndBrightnessEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightnessContrastEnabled));
-            _contrasteIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrast));
-            _brightnesseIntensity = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightness));
+            _contrasteIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrast));
+            _brightnesseIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightness));
+
+             _isFilmGrainExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainExpanded));
+            _filmGrainEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainEnabled));
+            _filmGrainIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainIntensity));
         }
 
         private void SetupBloomProperties()
@@ -102,11 +110,29 @@ namespace SleekRender
             EditorGUILayout.Space();
 
             DrawContrastAndBrightnessEditor();
+            EditorGUILayout.Space();
+
+            DrawFilmGrainEditor();
 
             DrawTotalCost();
 
             EditorGUI.indentLevel = indent;
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawFilmGrainEditor()
+        {
+            Header("Film Grain", _isFilmGrainExpandedProperty, _filmGrainEnabledProperty);
+
+            if(_filmGrainEnabledProperty.boolValue)
+            {
+                EditorGUI.indentLevel += 1;
+
+                EditorGUILayout.LabelField("Film Grain Intensity");
+                EditorGUILayout.Slider(_filmGrainIntensityProperty, 0f, 1f, "");
+
+                EditorGUI.indentLevel -= 1;
+            }
         }
 
         private void DrawContrastAndBrightnessEditor()
@@ -118,10 +144,10 @@ namespace SleekRender
                 EditorGUI.indentLevel += 1;
 
                 EditorGUILayout.LabelField("Contrast Intensity");
-                EditorGUILayout.Slider(_contrasteIntensity, -1f, 1f, "");
+                EditorGUILayout.Slider(_contrasteIntensityProperty, -1f, 1f, "");
 
                 EditorGUILayout.LabelField("Brightness Intensity");
-                EditorGUILayout.Slider(_brightnesseIntensity, -1f, 1f, "");
+                EditorGUILayout.Slider(_brightnesseIntensityProperty, -1f, 1f, "");
 
                 EditorGUI.indentLevel -= 1;
             }

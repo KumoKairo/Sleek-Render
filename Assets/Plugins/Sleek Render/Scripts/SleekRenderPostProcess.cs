@@ -23,6 +23,9 @@ namespace SleekRender
             public static readonly int _VignetteShape = Shader.PropertyToID("_VignetteShape");
             public static readonly int _VignetteColor = Shader.PropertyToID("_VignetteColor");
             public static readonly int _BrightnessContrast = Shader.PropertyToID("_BrightnessContrast");
+            public static readonly int _FilmGrainTex = Shader.PropertyToID("_FilmGrainTex");
+            public static readonly int _FilmGrainIntensity = Shader.PropertyToID("_FilmGrainIntensity");
+            public static readonly int _FilmGrainChannel = Shader.PropertyToID("_FilmGrainChannel");
         }
 
         // Keywords for shader variants
@@ -32,6 +35,7 @@ namespace SleekRender
             public const string BLOOM_ON = "BLOOM_ON";
             public const string VIGNETTE_ON = "VIGNETTE_ON";
             public const string BRIGHTNESS_CONTRAST_ON = "BRIGHTNESS_CONTRAST_ON";
+            public const string FILM_GRAIN_ON = "FILM_GRAIN_ON";
         }
 
         // Currently linked settings in the inspector
@@ -51,6 +55,7 @@ namespace SleekRender
         private RenderTexture _horizontalBlurTexture;
         private RenderTexture _verticalBlurTexture;
         private RenderTexture _preComposeTexture;
+        private Texture2D _filmGrainTexture;
 
         // Currenly cached camera on which Post Processing stack is applied
         private Camera _mainCamera;
@@ -67,6 +72,7 @@ namespace SleekRender
         private bool _isVignetteAlreadyEnabled = false;
         private bool _isAlreadyPreservingAspectRatio = false;
         private bool _isContrastAndBrightnessAlreadyEnabled = false;
+        private bool _isFilmGrainAlreadyEnabled = false;
 
         private void OnEnable()
         {
@@ -245,6 +251,19 @@ namespace SleekRender
                 _isContrastAndBrightnessAlreadyEnabled = false;
             }
 
+            _composeMaterial.SetFloat(Uniforms._FilmGrainIntensity, settings.filmGrainIntensity);
+            if(settings.filmGrainEnabled && !_isFilmGrainAlreadyEnabled)
+            {
+                _composeMaterial.EnableKeyword(Keywords.FILM_GRAIN_ON);
+                _isFilmGrainAlreadyEnabled = true;
+            }
+            else if(!settings.filmGrainEnabled && _isFilmGrainAlreadyEnabled)
+            {
+                _composeMaterial.DisableKeyword(Keywords.FILM_GRAIN_ON);
+                _isFilmGrainAlreadyEnabled = false;
+            }
+            
+
             Blit(source, target, _composeMaterial);
         }
 
@@ -307,12 +326,18 @@ namespace SleekRender
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
             _composeMaterial.SetVector(Uniforms._LuminanceConst, new Vector4(0.2126f, 0.7152f, 0.0722f, 0f));
 
+            _filmGrainTexture = Resources.Load("filmgrain_01") as Texture2D;
+            _composeMaterial.SetTexture(Uniforms._FilmGrainTex, _filmGrainTexture);
+            _composeMaterial.SetFloat(Uniforms._FilmGrainIntensity, settings.filmGrainIntensity);
+            _composeMaterial.SetVector(Uniforms._FilmGrainChannel, new Vector4(1f, 0f, 0f, 0f));
+
             _fullscreenQuadMesh = CreateScreenSpaceQuadMesh();
 
             _isColorizeAlreadyEnabled = false;
             _isBloomAlreadyEnabled = false;
             _isVignetteAlreadyEnabled = false;
             _isContrastAndBrightnessAlreadyEnabled = false;
+            _isFilmGrainAlreadyEnabled = false;
         }
 
         private RenderTexture CreateTransientRenderTexture(string textureName, int width, int height)

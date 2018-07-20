@@ -17,7 +17,7 @@
 			struct v2f
 			{
 				half4 vertex : SV_POSITION;
-				half2 uv[5] : TEXCOORD0;
+				half2 uv[8] : TEXCOORD0;
 			};
 
 			sampler2D_half _MainTex;
@@ -28,11 +28,11 @@
 				v2f o;
 				o.vertex = v.vertex;
 
-				calculateDownsampleTapPoints(v, _TexelSize.xy, o.uv);
+				calculateUpsampleTapPoints(v, _TexelSize.xy, o.uv);
 
 				if (_ProjectionParams.x < 0)
 				{
-					for(int i = 0; i < 5; i++)
+					for(int i = 0; i < 8; i++)
 					{
 						o.uv[i].y = 1.0h - o.uv[i].y;
 					}
@@ -45,7 +45,7 @@
 
 			half4 frag (v2f i) : SV_Target
 			{
-				return applyDownsampleBrightpassTapLogic(i.uv, _MainTex, _LuminanceThreshold);
+				return applyUpsampleBrightpassTapLogic(i.uv, _MainTex, _LuminanceThreshold);
 			}
 			ENDCG
 		}

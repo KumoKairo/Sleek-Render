@@ -54,9 +54,13 @@ namespace SleekRender
 
         public void CreateResources(SleekRenderSettings settings)
         {
-            _blurTextures = new RenderTexture[2];
+            _blurTextures = new RenderTexture[5];
             _blurTextures[0] = HelperExtensions.CreateTransientRenderTexture("Brightpass Blur 0", 128, 128);
             _blurTextures[1] = HelperExtensions.CreateTransientRenderTexture("Downsample Blur 1", 64, 64);
+            _blurTextures[2] = HelperExtensions.CreateTransientRenderTexture("Downsample Blur 2", 32, 32);
+            //_blurTextures[3] = HelperExtensions.CreateTransientRenderTexture("Downsample Blur 3", 16, 16);
+            _blurTextures[3] = HelperExtensions.CreateTransientRenderTexture("Downsample Blur 4", 64, 64);
+            _blurTextures[4] = HelperExtensions.CreateTransientRenderTexture("Downsample Blur 4", 128, 128);
 
             _brightpassBlurMaterial = HelperExtensions.CreateMaterialFromShader("Sleek Render/Post Process/Brightpass Blur");
             _downsampleBlurMaterial = HelperExtensions.CreateMaterialFromShader("Sleek Render/Post Process/Downsample Blur");

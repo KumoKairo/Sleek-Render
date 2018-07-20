@@ -13,21 +13,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bloomExpanded: 1
   bloomEnabled: 1
-  bloomThreshold: 0.082
-  bloomIntensity: 3.1
+  bloomThreshold: 0.046
+  bloomIntensity: 10.67
   bloomTint: {r: 1, g: 1, b: 1, a: 1}
   preserveAspectRatio: 1
   bloomTextureWidth: 128
   bloomTextureHeight: 128
   bloomLumaCalculationType: 0
   bloomLumaVector: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-  colorizeExpanded: 1
-  colorizeEnabled: 1
+  colorizeExpanded: 0
+  colorizeEnabled: 0
   colorize:
     serializedVersion: 2
     rgba: 2432695801
-  vignetteExpanded: 1
-  vignetteEnabled: 1
+  vignetteExpanded: 0
+  vignetteEnabled: 0
   vignetteBeginRadius: 0.714
   vignetteExpandRadius: 0.97
   vignetteColor: {r: 0.2794118, g: 0.2794118, b: 0.2794118, a: 1}

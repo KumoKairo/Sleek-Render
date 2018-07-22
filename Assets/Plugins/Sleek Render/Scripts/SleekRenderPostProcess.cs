@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -38,6 +38,13 @@ namespace SleekRender
             public const string FILM_GRAIN_ON = "FILM_GRAIN_ON";
         }
 
+        private static class FilmGrainMethodKeywords
+        {
+            public const string FILM_GRAIN_EXPENSIVE = "FILM_GRAIN_EXPENSIVE";
+            public const string FILM_GRAIN_MIDDLE = "FILM_GRAIN_MIDDLE";
+            public const string FILM_GRAIN_CHEAP = "FILM_GRAIN_CHEAP";
+        }
+
         // Currently linked settings in the inspector
         public SleekRenderSettings settings;
 
@@ -55,7 +62,7 @@ namespace SleekRender
         private RenderTexture _horizontalBlurTexture;
         private RenderTexture _verticalBlurTexture;
         private RenderTexture _preComposeTexture;
-        private Texture2D _filmGrainTexture;
+        private List<Texture2D> _filmGrainTextures;
 
         // Currenly cached camera on which Post Processing stack is applied
         private Camera _mainCamera;
@@ -73,6 +80,8 @@ namespace SleekRender
         private bool _isAlreadyPreservingAspectRatio = false;
         private bool _isContrastAndBrightnessAlreadyEnabled = false;
         private bool _isFilmGrainAlreadyEnabled = false;
+        
+        private FilmGrainMethod _currentFilmGrainMethod = FilmGrainMethod.Cheap;
 
         private void OnEnable()
         {
@@ -251,7 +260,7 @@ namespace SleekRender
                 _isContrastAndBrightnessAlreadyEnabled = false;
             }
 
-            _composeMaterial.SetFloat(Uniforms._FilmGrainIntensity, settings.filmGrainIntensity);
+            UpdateFilmGrain();
             if(settings.filmGrainEnabled && !_isFilmGrainAlreadyEnabled)
             {
                 _composeMaterial.EnableKeyword(Keywords.FILM_GRAIN_ON);
@@ -326,10 +335,14 @@ namespace SleekRender
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
             _composeMaterial.SetVector(Uniforms._LuminanceConst, new Vector4(0.2126f, 0.7152f, 0.0722f, 0f));
 
-            _filmGrainTexture = Resources.Load("filmgrain_01") as Texture2D;
-            _composeMaterial.SetTexture(Uniforms._FilmGrainTex, _filmGrainTexture);
-            _composeMaterial.SetFloat(Uniforms._FilmGrainIntensity, settings.filmGrainIntensity);
-            _composeMaterial.SetVector(Uniforms._FilmGrainChannel, new Vector4(1f, 0f, 0f, 0f));
+            _filmGrainTextures = new List<Texture2D>();
+            for ( int i = 1; i <= 4; i++ )
+            {
+                var resourceName = "filmgrain_0" + i;
+                var curTex = Resources.Load( resourceName ) as Texture2D;
+                _filmGrainTextures.Add( curTex );
+            }
+            UpdateFilmGrain();
 
             _fullscreenQuadMesh = CreateScreenSpaceQuadMesh();
 
@@ -460,6 +473,57 @@ namespace SleekRender
             {
                 settings = ScriptableObject.CreateInstance<SleekRenderSettings>();
                 settings.name = "Default Settings";
+            }
+        }
+
+        private void UpdateFilmGrain()
+        {
+            if (settings.filmGrainIntensity >= .001f)
+            {
+                _composeMaterial.SetFloat(Uniforms._FilmGrainIntensity, settings.filmGrainIntensity);
+                int curTex = Random.Range(0, 3);
+                _composeMaterial.SetTexture("_FilmGrainTex", _filmGrainTextures[curTex]);
+
+                int grainChannel = Random.Range(0, 3);
+
+                switch (grainChannel)
+                {
+                    case 0:
+                        _preComposeMaterial.SetVector("_FilmGrainChannel", new Vector4(1f, 0f, 0f, 0f));
+                        break;
+
+                    case 1:
+                        _preComposeMaterial.SetVector("_FilmGrainChannel", new Vector4( 0f, 1f, 0f, 0f ));
+                        break;
+
+                    case 2:
+                        _preComposeMaterial.SetVector("_FilmGrainChannel", new Vector4( 0f, 0f, 1f, 0f ));
+                        break;
+
+                    case 3:
+                        _preComposeMaterial.SetVector("_FilmGrainChannel", new Vector4( 0f, 0f, 0f, 1f ));
+                        break;
+                }
+
+                if(_currentFilmGrainMethod != settings.filmGrainMethod)
+                {
+                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_EXPENSIVE);
+                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_MIDDLE);
+                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_CHEAP);
+                    switch(settings.filmGrainMethod)
+                    {
+                        case FilmGrainMethod.Expensive:
+                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_EXPENSIVE);
+                            break;
+                        case FilmGrainMethod.Middle:
+                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_MIDDLE);
+                            break;
+                        case FilmGrainMethod.Cheap:
+                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_CHEAP);
+                            break;
+                    }
+                    _currentFilmGrainMethod = settings.filmGrainMethod;
+                }
             }
         }
 

@@ -46,6 +46,7 @@ namespace SleekRender
         public bool filmGrainExpanded = false;
         public bool filmGrainEnabled = true;
         public float filmGrainIntensity = 0.4f;
+        public FilmGrainMethod filmGrainMethod = FilmGrainMethod.Cheap;
     }
 
     public enum LumaVectorType
@@ -53,5 +54,12 @@ namespace SleekRender
         Uniform,
         sRGB,
         Custom
+    }
+
+    public enum FilmGrainMethod
+    {
+        Expensive,
+        Middle,
+        Cheap
     }
 }

@@ -44,6 +44,9 @@ namespace SleekRender
         private SerializedProperty _isFilmGrainExpandedProperty;
         private SerializedProperty _filmGrainEnabledProperty;
         private SerializedProperty _filmGrainIntensityProperty;
+        private SerializedProperty _filmGrainMethodProperty;
+
+        private FilmGrainMethod _selectedFilmGrainMethod;
 
         private void OnEnable()
         {
@@ -64,9 +67,11 @@ namespace SleekRender
             _contrasteIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.contrast));
             _brightnesseIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.brightness));
 
-             _isFilmGrainExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainExpanded));
+            _isFilmGrainExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainExpanded));
             _filmGrainEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainEnabled));
             _filmGrainIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainIntensity));
+            _filmGrainMethodProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainMethod));
+            _selectedFilmGrainMethod = (FilmGrainMethod)_filmGrainMethodProperty.enumValueIndex;
         }
 
         private void SetupBloomProperties()
@@ -124,12 +129,15 @@ namespace SleekRender
         {
             Header("Film Grain", _isFilmGrainExpandedProperty, _filmGrainEnabledProperty);
 
-            if(_filmGrainEnabledProperty.boolValue)
+            if(_isFilmGrainExpandedProperty.boolValue)
             {
                 EditorGUI.indentLevel += 1;
 
                 EditorGUILayout.LabelField("Film Grain Intensity");
                 EditorGUILayout.Slider(_filmGrainIntensityProperty, 0f, 1f, "");
+                EditorGUILayout.LabelField("Film Grain Method");
+                _selectedFilmGrainMethod = (FilmGrainMethod)EditorGUILayout.EnumPopup(_selectedFilmGrainMethod);
+                _filmGrainMethodProperty.enumValueIndex = (int)_selectedFilmGrainMethod;
 
                 EditorGUI.indentLevel -= 1;
             }

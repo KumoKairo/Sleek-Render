@@ -24,6 +24,10 @@
 			#pragma multi_compile _ COLORIZE_ON
 			#pragma multi_compile _ BRIGHTNESS_CONTRAST_ON
 			#pragma multi_compile _ FILM_GRAIN_ON
+
+			#pragma multi_compile _ FILM_GRAIN_EXPENSIVE
+			#pragma multi_compile _ FILM_GRAIN_MIDDLE
+			#pragma multi_compile _ FILM_GRAIN_CHEAP
 			
 			struct appdata
 			{
@@ -65,11 +69,21 @@
 			half3 _BrightnessContrast;
 			half4 _FilmGrainChannel;
 
-			half3 Overlay(half3 _a, half3 _b) {
-				//half3 screen = 2.0 * (0.5 + (_a - 1) * (1 - _b));
-				half3 screen = 1.0 - 2.0 * (1 - _a) * (1 - _b);
-				half3 mult = 2 * _a * _b;
-				return lerp(mult, screen, saturate((_a - .5) * 10000));
+			half3 Overlay(half3 a, half3 b) 
+			{
+				half3 screen = 1.0 - 2.0 * (1 - a) * (1 - b);
+				half3 mult = 2 * a * b;
+				return lerp(mult, screen, saturate((a - .5) * 10000));
+			}
+
+			half3 Dodge(half3 a, half3 b)
+			{
+				return 0.5 * a / (1 - b);
+			}
+
+			half3 PseudoOverlay(half3 a, half3 b)
+			{
+				return (0.9 * a) + (0.1 * b);
 			}
 
 			half4 frag (v2f i) : SV_Target
@@ -87,11 +101,18 @@
 				#ifdef BRIGHTNESS_CONTRAST_ON
 				result = saturate((result * _BrightnessContrast.x) + _BrightnessContrast.z);
 				#endif
-				
+
 				#ifdef FILM_GRAIN_ON
 				half4 filmGrainTex = tex2D(_FilmGrainTex, i.uv);
 				half filmGrain = dot(filmGrainTex, _FilmGrainChannel);
-				result = lerp(result, Overlay(result, half3(filmGrain, filmGrain, filmGrain)), _FilmGrainIntensity);
+				#ifdef FILM_GRAIN_EXPENSIVE
+				half3 overlay = Overlay(result, half3(filmGrain, filmGrain, filmGrain));
+				#elif FILM_GRAIN_MIDDLE
+				half3 overlay = Dodge(result, half3(filmGrain, filmGrain, filmGrain));
+				#else
+				half3 overlay = PseudoOverlay(result, half3(filmGrain, filmGrain, filmGrain));
+				#endif
+				result = lerp(result, overlay, _FilmGrainIntensity);
 				#endif
 
 				return half4(result, 1.0h);

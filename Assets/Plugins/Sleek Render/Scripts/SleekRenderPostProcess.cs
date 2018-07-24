@@ -40,9 +40,9 @@ namespace SleekRender
 
         private static class FilmGrainMethodKeywords
         {
-            public const string FILM_GRAIN_EXPENSIVE = "FILM_GRAIN_EXPENSIVE";
-            public const string FILM_GRAIN_MIDDLE = "FILM_GRAIN_MIDDLE";
-            public const string FILM_GRAIN_CHEAP = "FILM_GRAIN_CHEAP";
+            public const string FILM_GRAIN_OVERLAY = "FILM_GRAIN_OVERLAY";
+            public const string FILM_GRAIN_MULTIPLY = "FILM_GRAIN_MULTIPLY";
+            public const string FILM_GRAIN_ADDITION = "FILM_GRAIN_ADDITION";
         }
 
         // Currently linked settings in the inspector
@@ -84,6 +84,7 @@ namespace SleekRender
         private List<Vector2[]> _filmGrainTextureAtlasCoordinates;
         private Vector2[] _currentFilmGrainAtlasCoordinate;
         private FilmGrainMethod _currentFilmGrainMethod;
+        private float _currentFilmGrainTimeLeft;
 
         private void OnEnable()
         {
@@ -337,6 +338,7 @@ namespace SleekRender
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
             _composeMaterial.SetVector(Uniforms._LuminanceConst, new Vector4(0.2126f, 0.7152f, 0.0722f, 0f));
 
+            _currentFilmGrainTimeLeft = settings.filmGrainWaitTime;
             _currentFilmGrainMethod = settings.filmGrainMethod;
             _filmGrainTextureAtlas = settings.filmGrainTextureAtlas;
             _filmGrainTextureAtlasCoordinates = new List<Vector2[]>();
@@ -511,11 +513,17 @@ namespace SleekRender
             {
                 _composeMaterial.SetFloat(Uniforms._FilmGrainIntensity, settings.filmGrainIntensity);
                 _composeMaterial.SetTexture("_FilmGrainTex", _filmGrainTextureAtlas);
-                int curTex = Random.Range(0, 4);
-                _currentFilmGrainAtlasCoordinate = _filmGrainTextureAtlasCoordinates[curTex];
-                _fullscreenQuadMesh = CreateScreenSpaceQuadMesh();
-                int grainChannel = Random.Range(0, 3);
                 
+                _currentFilmGrainTimeLeft -= Time.deltaTime;
+                if(_currentFilmGrainTimeLeft <= 0)
+                {
+                    _currentFilmGrainTimeLeft = settings.filmGrainWaitTime;
+                    int curTex = Random.Range(0, 4);
+                    _currentFilmGrainAtlasCoordinate = _filmGrainTextureAtlasCoordinates[curTex];
+                    _fullscreenQuadMesh = CreateScreenSpaceQuadMesh();
+                }
+
+                int grainChannel = Random.Range(0, 3);
                 switch (grainChannel)
                 {
                     case 0:
@@ -533,19 +541,19 @@ namespace SleekRender
 
                 if(_currentFilmGrainMethod != settings.filmGrainMethod)
                 {
-                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_EXPENSIVE);
-                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_MIDDLE);
-                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_CHEAP);
+                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_OVERLAY);
+                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_ADDITION);
+                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_MULTIPLY);
                     switch(settings.filmGrainMethod)
                     {
-                        case FilmGrainMethod.Expensive:
-                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_EXPENSIVE);
+                        case FilmGrainMethod.Overlay:
+                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_OVERLAY);
                             break;
-                        case FilmGrainMethod.Middle:
-                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_MIDDLE);
+                        case FilmGrainMethod.Multiply:
+                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_MULTIPLY);
                             break;
-                        case FilmGrainMethod.Cheap:
-                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_CHEAP);
+                        case FilmGrainMethod.Addition:
+                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_ADDITION);
                             break;
                     }
                     _currentFilmGrainMethod = settings.filmGrainMethod;

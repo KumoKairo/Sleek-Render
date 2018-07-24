@@ -25,9 +25,9 @@
 			#pragma multi_compile _ BRIGHTNESS_CONTRAST_ON
 			#pragma multi_compile _ FILM_GRAIN_ON
 
-			#pragma multi_compile _ FILM_GRAIN_EXPENSIVE
-			#pragma multi_compile _ FILM_GRAIN_MIDDLE
-			#pragma multi_compile _ FILM_GRAIN_CHEAP
+			#pragma multi_compile _ FILM_GRAIN_OVERLAY
+			#pragma multi_compile _ FILM_GRAIN_MULTIPLY
+			#pragma multi_compile _ FILM_GRAIN_ADDITION
 			
 			struct appdata
 			{
@@ -81,14 +81,14 @@
 				return lerp(mult, screen, saturate((a - .5) * 10000));
 			}
 
-			half3 Dodge(half3 a, half3 b)
+			half3 MultiplyOverlay(half3 a, half3 b)
 			{
-				return 0.5 * a / (1 - b);
+				return a * b;
 			}
 
-			half3 PseudoOverlay(half3 a, half3 b)
+			half3 AdditionOverlay(half3 a, half3 b)
 			{
-				return (0.9 * a) + (0.1 * b);
+				return a + b;
 			}
 
 			half4 frag (v2f i) : SV_Target
@@ -110,12 +110,17 @@
 				#ifdef FILM_GRAIN_ON
 				half4 filmGrainTex = tex2D(_FilmGrainTex, i.uv2);
 				half filmGrain = dot(filmGrainTex, _FilmGrainChannel);
-				#ifdef FILM_GRAIN_EXPENSIVE
+
+				#ifdef FILM_GRAIN_OVERLAY
 				half3 overlay = Overlay(result, half3(filmGrain, filmGrain, filmGrain));
-				#elif FILM_GRAIN_MIDDLE
-				half3 overlay = Dodge(result, half3(filmGrain, filmGrain, filmGrain));
+
+				#elif FILM_GRAIN_MULTIPLY
+				half3 overlay = MultiplyOverlay(result, half3(filmGrain, filmGrain, filmGrain));
+
+				#elif FILM_GRAIN_ADDITION
+				half3 overlay = AdditionOverlay(result, half3(filmGrain, filmGrain, filmGrain));
 				#else
-				half3 overlay = PseudoOverlay(result, half3(filmGrain, filmGrain, filmGrain));
+				half3 overlay = result;
 				#endif
 				result = lerp(result, overlay, _FilmGrainIntensity);
 				#endif

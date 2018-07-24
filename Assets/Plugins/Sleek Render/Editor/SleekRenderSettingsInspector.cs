@@ -43,6 +43,7 @@ namespace SleekRender
 
         private SerializedProperty _isFilmGrainExpandedProperty;
         private SerializedProperty _filmGrainEnabledProperty;
+        private SerializedProperty _filmGrainWaitTimeProperty;
         private SerializedProperty _filmGrainIntensityProperty;
         private SerializedProperty _filmGrainMethodProperty;
         private SerializedProperty _filmGrainTextureProperty;
@@ -71,6 +72,7 @@ namespace SleekRender
 
             _isFilmGrainExpandedProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainExpanded));
             _filmGrainEnabledProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainEnabled));
+            _filmGrainWaitTimeProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainWaitTime));
             _filmGrainIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainIntensity));
             _filmGrainMethodProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainMethod));
             _selectedFilmGrainMethod = (FilmGrainMethod)_filmGrainMethodProperty.enumValueIndex;
@@ -137,6 +139,8 @@ namespace SleekRender
             {
                 EditorGUI.indentLevel += 1;
 
+                EditorGUILayout.LabelField("Film Grain Frame Change Time");
+                EditorGUILayout.Slider(_filmGrainWaitTimeProperty, 0f, 0.5f, "");
                 EditorGUILayout.LabelField("Film Grain Intensity");
                 EditorGUILayout.Slider(_filmGrainIntensityProperty, 0f, 1f, "");
                 EditorGUILayout.LabelField("Film Grain Method");

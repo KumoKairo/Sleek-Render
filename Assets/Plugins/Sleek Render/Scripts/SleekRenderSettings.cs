@@ -45,8 +45,9 @@ namespace SleekRender
         [Header("Film Grain")]
         public bool filmGrainExpanded = false;
         public bool filmGrainEnabled = true;
+        public float filmGrainWaitTime = 0.1f;
         public float filmGrainIntensity = 0.4f;
-        public FilmGrainMethod filmGrainMethod = FilmGrainMethod.Cheap;
+        public FilmGrainMethod filmGrainMethod = FilmGrainMethod.Overlay;
         public Texture2D filmGrainTextureAtlas = Resources.Load( "atlasExample" ) as Texture2D;
     }
 
@@ -59,8 +60,8 @@ namespace SleekRender
 
     public enum FilmGrainMethod
     {
-        Expensive,
-        Middle,
-        Cheap
+        Overlay,
+        Multiply,
+        Addition
     }
 }

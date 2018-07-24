@@ -47,6 +47,7 @@ namespace SleekRender
         public bool filmGrainEnabled = true;
         public float filmGrainIntensity = 0.4f;
         public FilmGrainMethod filmGrainMethod = FilmGrainMethod.Cheap;
+        public Texture2D filmGrainTextureAtlas = Resources.Load( "atlasExample" ) as Texture2D;
     }
 
     public enum LumaVectorType

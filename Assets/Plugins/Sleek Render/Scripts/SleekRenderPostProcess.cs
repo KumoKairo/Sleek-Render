@@ -62,7 +62,6 @@ namespace SleekRender
         private RenderTexture _horizontalBlurTexture;
         private RenderTexture _verticalBlurTexture;
         private RenderTexture _preComposeTexture;
-        private List<Texture2D> _filmGrainTextures;
 
         // Currenly cached camera on which Post Processing stack is applied
         private Camera _mainCamera;
@@ -81,7 +80,10 @@ namespace SleekRender
         private bool _isContrastAndBrightnessAlreadyEnabled = false;
         private bool _isFilmGrainAlreadyEnabled = false;
         
-        private FilmGrainMethod _currentFilmGrainMethod = FilmGrainMethod.Cheap;
+        private Texture2D _filmGrainTextureAtlas;
+        private List<Vector2[]> _filmGrainTextureAtlasCoordinates;
+        private Vector2[] _currentFilmGrainAtlasCoordinate;
+        private FilmGrainMethod _currentFilmGrainMethod;
 
         private void OnEnable()
         {
@@ -335,13 +337,40 @@ namespace SleekRender
             _composeMaterial.SetTexture(Uniforms._PreComposeTex, _preComposeTexture);
             _composeMaterial.SetVector(Uniforms._LuminanceConst, new Vector4(0.2126f, 0.7152f, 0.0722f, 0f));
 
-            _filmGrainTextures = new List<Texture2D>();
-            for ( int i = 1; i <= 4; i++ )
+            _currentFilmGrainMethod = settings.filmGrainMethod;
+            _filmGrainTextureAtlas = settings.filmGrainTextureAtlas;
+            _filmGrainTextureAtlasCoordinates = new List<Vector2[]>();
+            _filmGrainTextureAtlasCoordinates.Add(new[]
             {
-                var resourceName = "filmgrain_0" + i;
-                var curTex = Resources.Load( resourceName ) as Texture2D;
-                _filmGrainTextures.Add( curTex );
-            }
+                new Vector2 (0f, 0f),
+                new Vector2 (0f, .5f),
+                new Vector2 (.5f, .5f),
+                new Vector2 (.5f, 0f)
+            });
+
+            _filmGrainTextureAtlasCoordinates.Add(new[]
+            {
+                new Vector2 (0f, .5f),
+                new Vector2 (0f, 1f),
+                new Vector2 (.5f, 1f),
+                new Vector2 (.5f, .5f)
+            });
+
+            _filmGrainTextureAtlasCoordinates.Add(new[]
+            {
+                new Vector2 (.5f, .5f),
+                new Vector2 (.5f, 1f),
+                new Vector2 (1f, 1f),
+                new Vector2 (1f, .5f)
+            });
+
+            _filmGrainTextureAtlasCoordinates.Add(new[]
+            {
+                new Vector2 (.5f, 0f),
+                new Vector2 (.5f, .5f),
+                new Vector2 (1f, .5f),
+                new Vector2 (1f, 0f)
+            });
             UpdateFilmGrain();
 
             _fullscreenQuadMesh = CreateScreenSpaceQuadMesh();
@@ -481,11 +510,12 @@ namespace SleekRender
             if (settings.filmGrainIntensity >= .001f)
             {
                 _composeMaterial.SetFloat(Uniforms._FilmGrainIntensity, settings.filmGrainIntensity);
-                int curTex = Random.Range(0, 3);
-                _composeMaterial.SetTexture("_FilmGrainTex", _filmGrainTextures[curTex]);
-
+                _composeMaterial.SetTexture("_FilmGrainTex", _filmGrainTextureAtlas);
+                int curTex = Random.Range(0, 4);
+                _currentFilmGrainAtlasCoordinate = _filmGrainTextureAtlasCoordinates[curTex];
+                _fullscreenQuadMesh = CreateScreenSpaceQuadMesh();
                 int grainChannel = Random.Range(0, 3);
-
+                
                 switch (grainChannel)
                 {
                     case 0:
@@ -498,10 +528,6 @@ namespace SleekRender
 
                     case 2:
                         _preComposeMaterial.SetVector("_FilmGrainChannel", new Vector4( 0f, 0f, 1f, 0f ));
-                        break;
-
-                    case 3:
-                        _preComposeMaterial.SetVector("_FilmGrainChannel", new Vector4( 0f, 0f, 0f, 1f ));
                         break;
                 }
 
@@ -567,6 +593,7 @@ namespace SleekRender
 
             mesh.vertices = vertices;
             mesh.uv = uvs;
+            mesh.uv2 = _currentFilmGrainAtlasCoordinate;
             mesh.triangles = triangles;
             mesh.colors = colors;
             mesh.UploadMeshData(true);

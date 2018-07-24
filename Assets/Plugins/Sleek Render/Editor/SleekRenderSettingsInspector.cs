@@ -45,9 +45,11 @@ namespace SleekRender
         private SerializedProperty _filmGrainEnabledProperty;
         private SerializedProperty _filmGrainIntensityProperty;
         private SerializedProperty _filmGrainMethodProperty;
+        private SerializedProperty _filmGrainTextureProperty;
 
         private FilmGrainMethod _selectedFilmGrainMethod;
-
+        private Texture2D _selectedFilmGrainTexture;
+        
         private void OnEnable()
         {
             SetupBloomProperties();
@@ -72,6 +74,8 @@ namespace SleekRender
             _filmGrainIntensityProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainIntensity));
             _filmGrainMethodProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainMethod));
             _selectedFilmGrainMethod = (FilmGrainMethod)_filmGrainMethodProperty.enumValueIndex;
+            _filmGrainTextureProperty = serializedObject.FindProperty(GetMemberName((SleekRenderSettings s) => s.filmGrainTextureAtlas));
+            _selectedFilmGrainTexture = (Texture2D)_filmGrainTextureProperty.objectReferenceValue;
         }
 
         private void SetupBloomProperties()
@@ -138,6 +142,9 @@ namespace SleekRender
                 EditorGUILayout.LabelField("Film Grain Method");
                 _selectedFilmGrainMethod = (FilmGrainMethod)EditorGUILayout.EnumPopup(_selectedFilmGrainMethod);
                 _filmGrainMethodProperty.enumValueIndex = (int)_selectedFilmGrainMethod;
+                EditorGUILayout.LabelField("Film Grain Texture Atlas");
+                _selectedFilmGrainTexture = (Texture2D) EditorGUILayout.ObjectField(_selectedFilmGrainTexture, typeof(Texture2D), true);
+                _filmGrainTextureProperty.objectReferenceValue = _selectedFilmGrainTexture;
 
                 EditorGUI.indentLevel -= 1;
             }

@@ -33,12 +33,14 @@
 			{
 				half4 vertex : POSITION;
 				half2 uv : TEXCOORD0;
+				half2 uv2 : TEXCOORD1;
 			};
 
 			struct v2f
 			{
 				half4 vertex : SV_POSITION;
 				half2 uv : TEXCOORD0;
+				half2 uv2 : TEXCOORD1;
 			};
 
 			half4 _Colorize, _LuminanceConst, _MainTex_TexelSize;
@@ -48,16 +50,19 @@
 				v2f o;
 				o.vertex = v.vertex;
 				o.uv = v.uv;
+				o.uv2 = v.uv2;
 
 				if (_ProjectionParams.x < 0)
 				{
 					o.uv.y = 1 - v.uv.y;
+					o.uv2.y = 1 - v.uv2.y;
 				}
 
 				#if UNITY_UV_STARTS_AT_TOP
 				if (_MainTex_TexelSize.y < 0)
 				{
 					o.uv.y = 1 - v.uv.y;
+					o.uv2.y = 1 - v.uv2.y;
 				}
 				#endif
 
@@ -103,7 +108,7 @@
 				#endif
 
 				#ifdef FILM_GRAIN_ON
-				half4 filmGrainTex = tex2D(_FilmGrainTex, i.uv);
+				half4 filmGrainTex = tex2D(_FilmGrainTex, i.uv2);
 				half filmGrain = dot(filmGrainTex, _FilmGrainChannel);
 				#ifdef FILM_GRAIN_EXPENSIVE
 				half3 overlay = Overlay(result, half3(filmGrain, filmGrain, filmGrain));

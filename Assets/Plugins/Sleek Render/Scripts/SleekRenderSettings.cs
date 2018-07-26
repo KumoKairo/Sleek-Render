@@ -45,10 +45,10 @@ namespace SleekRender
         [Header("Film Grain")]
         public bool filmGrainExpanded = false;
         public bool filmGrainEnabled = true;
-        public float filmGrainWaitTime = 0.1f;
-        public float filmGrainIntensity = 0.4f;
-        public FilmGrainMethod filmGrainMethod = FilmGrainMethod.Overlay;
-        public Texture2D filmGrainTextureAtlas = Resources.Load( "atlasExample" ) as Texture2D;
+        public float filmGrainWaitTime = 0.074f;
+        public float filmGrainIntensity = 0.8f;
+        public FilmGrainMethod filmGrainMethod = FilmGrainMethod.Multiply;
+        public Texture2D filmGrainTextureAtlas = Resources.Load( "filmgrain-multiply" ) as Texture2D;
     }
 
     public enum LumaVectorType

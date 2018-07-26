@@ -149,6 +149,10 @@ namespace SleekRender
                 EditorGUILayout.LabelField("Film Grain Texture Atlas");
                 _selectedFilmGrainTexture = (Texture2D) EditorGUILayout.ObjectField(_selectedFilmGrainTexture, typeof(Texture2D), true);
                 _filmGrainTextureProperty.objectReferenceValue = _selectedFilmGrainTexture;
+                if(_selectedFilmGrainMethod == FilmGrainMethod.Overlay)
+                {
+                    EditorGUILayout.HelpBox("WARNING! Overlay is expensive! You use it at your own risk", MessageType.Warning);
+                }
 
                 EditorGUI.indentLevel -= 1;
             }

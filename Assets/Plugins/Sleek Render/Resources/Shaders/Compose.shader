@@ -74,19 +74,19 @@
 			half3 _BrightnessContrast;
 			half4 _FilmGrainChannel;
 
-			half3 Overlay(half3 a, half3 b) 
+			half3 OverlayMethod(half3 a, half3 b) 
 			{
 				half3 screen = 1.0 - 2.0 * (1 - a) * (1 - b);
 				half3 mult = 2 * a * b;
 				return lerp(mult, screen, saturate((a - .5) * 10000));
 			}
 
-			half3 MultiplyOverlay(half3 a, half3 b)
+			half3 MultiplyMethod(half3 a, half3 b)
 			{
 				return a * b;
 			}
 
-			half3 AdditionOverlay(half3 a, half3 b)
+			half3 AdditionMethod(half3 a, half3 b)
 			{
 				return a + b;
 			}
@@ -112,13 +112,13 @@
 				half filmGrain = dot(filmGrainTex, _FilmGrainChannel);
 
 				#ifdef FILM_GRAIN_OVERLAY
-				half3 overlay = Overlay(result, half3(filmGrain, filmGrain, filmGrain));
+				half3 overlay = OverlayMethod(result, half3(filmGrain, filmGrain, filmGrain));
 
 				#elif FILM_GRAIN_MULTIPLY
-				half3 overlay = MultiplyOverlay(result, half3(filmGrain, filmGrain, filmGrain));
+				half3 overlay = MultiplyMethod(result, half3(filmGrain, filmGrain, filmGrain));
 
 				#elif FILM_GRAIN_ADDITION
-				half3 overlay = AdditionOverlay(result, half3(filmGrain, filmGrain, filmGrain));
+				half3 overlay = AdditionMethod(result, half3(filmGrain, filmGrain, filmGrain));
 				#else
 				half3 overlay = result;
 				#endif

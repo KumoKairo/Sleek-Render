@@ -340,6 +340,7 @@ namespace SleekRender
 
             _currentFilmGrainTimeLeft = settings.filmGrainWaitTime;
             _currentFilmGrainMethod = settings.filmGrainMethod;
+            FilmGrainMethodSet(_currentFilmGrainMethod);
             _filmGrainTextureAtlas = settings.filmGrainTextureAtlas;
             _filmGrainTextureAtlasCoordinates = new List<Vector2[]>();
             _filmGrainTextureAtlasCoordinates.Add(new[]
@@ -541,26 +542,29 @@ namespace SleekRender
 
                 if(_currentFilmGrainMethod != settings.filmGrainMethod)
                 {
-                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_OVERLAY);
-                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_ADDITION);
-                    _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_MULTIPLY);
-                    switch(settings.filmGrainMethod)
-                    {
-                        case FilmGrainMethod.Overlay:
-                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_OVERLAY);
-                            break;
-                        case FilmGrainMethod.Multiply:
-                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_MULTIPLY);
-                            break;
-                        case FilmGrainMethod.Addition:
-                            _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_ADDITION);
-                            break;
-                    }
-                    _currentFilmGrainMethod = settings.filmGrainMethod;
+                    FilmGrainMethodSet(settings.filmGrainMethod);
                 }
             }
         }
 
+        private void FilmGrainMethodSet(FilmGrainMethod method){
+            _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_OVERLAY);
+            _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_ADDITION);
+            _composeMaterial.DisableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_MULTIPLY);
+            switch(method)
+            {
+                case FilmGrainMethod.Overlay:
+                    _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_OVERLAY);
+                    break;
+                case FilmGrainMethod.Multiply:
+                    _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_MULTIPLY);
+                    break;
+                case FilmGrainMethod.Addition:
+                    _composeMaterial.EnableKeyword(FilmGrainMethodKeywords.FILM_GRAIN_ADDITION);
+                    break;
+            }
+            _currentFilmGrainMethod = method;
+        }
         private Mesh CreateScreenSpaceQuadMesh()
         {
             var mesh = new Mesh();

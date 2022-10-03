@@ -1,3 +1,3 @@
-# This repository is not supported and is for reference only. 
+Reference code for high performance post-effects for mobile platforms.
 
-# No pull requests, issues or comments are accepted
+Original Unity forums thread: https://forum.unity.com/threads/sleek-render-lightning-fast-mobile-post-processing-effects.502181/
